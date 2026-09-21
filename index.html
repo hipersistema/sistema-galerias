@@ -3,44 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro / Recepción de Producto - Hipergalerias</title>
-    <!-- Librería SheetJS para importar/exportar archivos Excel (.xlsx / .csv) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <title>Panel Principal - Hipergalerias</title>
+    
+    <!-- Fuente Inter desde Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- SDK de Supabase y archivo de conexión -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="conexion.js"></script>
+
     <style>
         :root {
-            --green-dark: #123e1b;
-            --green-primary: #2e7d32;
-            --green-light: #4caf50;
-            --green-bg: #e8f5e9;
+            --green-dark: #0e3316;
+            --green-primary: #1b5e20;
+            --green-light: #2e7d32;
+            --green-bg: #f0fdf4;
             --yellow-brand: #f5b000;
-            --orange-brand: #e67e22;
-            --orange-brand-hover: #d35400;
-            --red: #c62828;
-            --gray-light: #f4f6f8;
-            --header-bg: #fbfbfb;
-            --blue-kardex: #0070ba;
-            --yellow-edit: #f39c12;
-            --dark-inhabilitar: #2c3e50;
+            --orange-brand: #d35400;
+            --red-brand: #c0392b;
+            --gray-bg: #f8fafc;
+            --header-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-color: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        /* TEMA OSCURO */
+        body.dark-mode {
+            --green-dark: #22c55e;
+            --green-primary: #166534;
+            --green-light: #15803d;
+            --green-bg: #064e3b;
+            --gray-bg: #0f172a;
+            --header-bg: #1e293b;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: var(--gray-light);
-            color: #333;
+            background-color: var(--gray-bg);
+            color: var(--text-color);
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* ENCABEZADO HIPERGALERIAS */
         header {
             background-color: var(--header-bg);
-            color: #222222;
-            padding: 10px 30px;
+            padding: 14px 32px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 4px solid var(--yellow-brand);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border-bottom: 3px solid var(--yellow-brand);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
 
         .header-brand-container {
@@ -63,2324 +90,994 @@
             mix-blend-mode: multiply;
         }
 
+        body.dark-mode .logo-container img {
+            mix-blend-mode: normal;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+        }
+
+        .header-titles h1 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: var(--green-dark);
+            font-weight: 800;
+            text-transform: uppercase;
+            display: none;
+        }
+
         .header-titles p {
             margin: 0;
-            font-size: 0.95rem;
-            color: #444444;
-            font-weight: 600;
-        }
-
-        .btn-header-container {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn {
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid transparent;
-            text-decoration: none;
-        }
-
-        .btn-excel { background-color: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-        .btn-excel:hover { background-color: #dcfce7; }
-
-        .btn-backup-export { background-color: #0284c7; color: white; }
-        .btn-backup-export:hover { background-color: #0369a1; }
-
-        .btn-backup-import { background-color: #ffffff; color: #475569; border-color: #cbd5e1; }
-        .btn-backup-import:hover { background-color: #f1f5f9; }
-
-        .btn-save { background-color: var(--green-dark); color: white; border: none; padding: 10px 24px; }
-        .btn-save:hover { background-color: #0a2510; }
-
-        .btn-delete { background-color: var(--red); color: white; border: none; padding: 10px 24px; }
-        .btn-delete:hover { background-color: #a71d1d; }
-
-        /* CONTENEDOR OPTIMIZADO PARA APROVECHAR PANTALLA COMPLETA */
-        .container {
-            padding: 20px 30px;
-            max-width: 100%;
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
-
-        .card {
-            background: white;
-            padding: 20px 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            margin: 0;
+            font-size: 1.05rem;
             color: var(--green-dark);
-            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        /* BARRA SUPERIOR DERECHA */
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 16px;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .form-grid .span-large { grid-column: span 2; }
-
-        .form-group {
+        .user-profile-badge {
             display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-size: 0.78rem;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--green-bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            font-size: 0.82rem;
             font-weight: 600;
-            margin-bottom: 4px;
-            color: #555;
+            color: var(--text-color);
         }
 
-        .form-group input, .form-group textarea {
-            padding: 8px 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            font-size: 0.88rem;
+        .btn-login-trigger {
+            background-color: #0e3316;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
             font-family: inherit;
         }
 
-        .form-group input:focus, .form-group textarea:focus {
-            outline: none;
-            border-color: var(--green-primary);
+        .btn-login-trigger:hover {
+            background-color: #1b5e20;
         }
 
-        .dashboard-grid {
+        body.dark-mode .btn-login-trigger {
+            background-color: #166534;
+        }
+
+        body.dark-mode .btn-login-trigger:hover {
+            background-color: #22c55e;
+        }
+
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .btn-logout:hover {
+            background-color: #dc2626;
+        }
+
+        /* INTERRUPTOR MODO OSCURO */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .theme-switch-wrapper {
+            background-color: #334155;
+            border-color: #475569;
+        }
+
+        .theme-label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-color);
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 22px;
+            position: relative;
+            width: 42px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: #cbd5e1;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .3s;
+        }
+
+        .slider:before {
+            background-color: #fff;
+            bottom: 3px;
+            content: "";
+            height: 16px;
+            left: 3px;
+            position: absolute;
+            transition: .3s;
+            width: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: #22c55e;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .slider.round {
+            border-radius: 22px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 32px auto;
+            padding: 0 24px;
+        }
+
+        /* TARJETA EJECUTIVA CON MARCA DE AGUA DETALLADA */
+        .welcome-card {
+            background: linear-gradient(135deg, #0e3316 0%, #1b5e20 100%);
+            color: white;
+            padding: 28px 32px;
+            border-radius: 18px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 25px -5px rgba(14, 51, 22, 0.25);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.dark-mode .welcome-card {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .welcome-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-text h2 {
+            margin: 0 0 6px 0;
+            font-size: 1.45rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        .welcome-text p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        /* MARCA DE AGUA CONSERVALINEAS Y DETALLES */
+        .welcome-card-watermark {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%) rotate(-10deg);
+            height: 160px;
+            width: auto;
+            opacity: 0.20;
+            filter: grayscale(30%);
+            pointer-events: none;
+            user-select: none;
+            z-index: 1;
+        }
+
+        body.dark-mode .welcome-card-watermark {
+            opacity: 0.25;
+            filter: brightness(1.1);
+        }
+
+        .modules-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: linear-gradient(to bottom, #1b5e20, var(--yellow-brand));
+        }
+
+        .module-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+            border-color: #cbd5e1;
+        }
+
+        body.dark-mode .module-card:hover {
+            border-color: #475569;
+        }
+
+        .module-card.disabled {
+            opacity: 0.65;
+            background-color: var(--gray-bg);
+        }
+
+        .module-card.disabled::before {
+            background: #94a3b8;
+        }
+
+        .module-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
             margin-bottom: 20px;
         }
 
-        .dash-card {
-            background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            border-left: 5px solid #ccc;
-        }
-
-        .dash-card.optimo { border-left-color: var(--green-primary); }
-        .dash-card.warning { border-left-color: var(--orange-brand); }
-        .dash-card.danger { border-left-color: var(--red); }
-
-        .dash-card .title {
-            font-size: 0.78rem;
-            color: #666;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .dash-card .value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-top: 5px;
-            display: block;
-        }
-
-        .dash-card.optimo .value { color: var(--green-primary); }
-        .dash-card.warning .value { color: var(--orange-brand-hover); }
-        .dash-card.danger .value { color: var(--red); }
-
-        .filter-search-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .filter-pills { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-
-        .pill-btn {
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid #ccc;
-            background-color: white;
-            font-size: 0.82rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .pill-btn.active {
+        .module-icon {
+            font-size: 1.6rem;
             background-color: var(--green-bg);
-            border-color: var(--green-primary);
-            color: var(--green-primary);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            flex-shrink: 0;
+            transition: background-color 0.3s ease;
         }
 
-        .pill-btn.pill-inhabilitados {
-            background-color: #2c3e50;
-            color: white;
-            border-color: #1a252f;
-        }
-        .pill-btn.pill-inhabilitados.active {
-            background-color: #1a252f;
-            border-color: #000;
-            color: white;
+        .module-card.disabled .module-icon {
+            background-color: #f1f5f9;
         }
 
-        .search-box {
-            position: relative;
-            min-width: 320px;
+        body.dark-mode .module-card.disabled .module-icon {
+            background-color: #334155;
         }
 
-        .search-box input {
-            width: 100%;
-            padding: 7px 12px 7px 32px;
+        .module-title-zone h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-color);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .module-card.disabled .module-title-zone h3 {
+            color: #64748b;
+        }
+
+        .module-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 3px 8px;
             border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 0.85rem;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-active { background-color: #dcfce7; color: #15803d; }
+        body.dark-mode .badge-active { background-color: #064e3b; color: #4ade80; }
+
+        .badge-pending { background-color: #f1f5f9; color: #64748b; }
+        body.dark-mode .badge-pending { background-color: #334155; color: #94a3b8; }
+
+        .dashboard-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .dashboard-metrics.cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .metric-box {
+            background-color: var(--gray-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 10px;
+            border-radius: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .metric-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .metric-value {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: -0.02em;
+        }
+
+        /* Colores dinámicos */
+        .metric-box.state-alert-green { background-color: #f0fdf4; border-color: #bbf7d0; }
+        .metric-box.state-alert-green .metric-value { color: #166534; }
+
+        .metric-box.state-alert-blue { background-color: #f0f9ff; border-color: #bae6fd; }
+        .metric-box.state-alert-blue .metric-value { color: #0369a1; }
+
+        .metric-box.state-alert-orange { background-color: #fff7ed; border-color: #fed7aa; }
+        .metric-box.state-alert-orange .metric-value { color: #c2410c; }
+
+        .metric-box.state-alert-red { background-color: #fef2f2; border-color: #fecaca; }
+        .metric-box.state-alert-red .metric-value { color: #b91c1c; }
+
+        body.dark-mode .metric-box.state-alert-green { background-color: #064e3b; border-color: #047857; }
+        body.dark-mode .metric-box.state-alert-green .metric-value { color: #4ade80; }
+
+        body.dark-mode .metric-box.state-alert-blue { background-color: #0c4a6e; border-color: #0369a1; }
+        body.dark-mode .metric-box.state-alert-blue .metric-value { color: #38bdf8; }
+
+        body.dark-mode .metric-box.state-alert-orange { background-color: #7c2d12; border-color: #c2410c; }
+        body.dark-mode .metric-box.state-alert-orange .metric-value { color: #fb923c; }
+
+        body.dark-mode .metric-box.state-alert-red { background-color: #7f1d1d; border-color: #b91c1c; }
+        body.dark-mode .metric-box.state-alert-red .metric-value { color: #f87171; }
+
+        .btn-module {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 18px;
+            background-color: #0e3316;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-module:hover {
+            background-color: #1b5e20;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .btn-module {
+            background-color: #166534;
+            color: #ffffff;
+        }
+
+        body.dark-mode .btn-module:hover {
+            background-color: #22c55e;
+        }
+
+        .btn-module.disabled {
+            background-color: #e2e8f0;
+            color: #94a3b8;
+            cursor: not-allowed;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        body.dark-mode .btn-module.disabled {
+            background-color: #334155;
+            color: #64748b;
+        }
+
+        /* MODAL DE LOGIN BLOQUEANTE */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .login-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 400px;
+            padding: 32px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        }
+
+        .login-card h3 {
+            margin: 0 0 8px 0;
+            color: var(--text-color);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .login-card p {
+            margin: 0 0 20px 0;
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background-color: var(--gray-bg);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.9rem;
             box-sizing: border-box;
         }
 
-        .search-box::before {
-            content: '🔍';
-            position: absolute;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.8rem;
-            color: #888;
+        .form-control:focus {
+            outline: none;
+            border-color: #22c55e;
         }
 
-        .table-responsive { 
-            width: 100%;
-            overflow-x: auto; 
-            border-radius: 6px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .login-error-msg {
+            color: #ef4444;
             font-size: 0.82rem;
-            table-layout: auto;
+            margin-bottom: 14px;
+            display: none;
+            font-weight: 600;
         }
 
-        th, td {
-            text-align: left;
-            padding: 8px 10px;
-            border-bottom: 1px solid #edf2f7;
-            white-space: nowrap;
+        .login-actions {
+            margin-top: 24px;
         }
 
-        td:nth-child(3), th:nth-child(3) {
-            white-space: normal !important;
-            min-width: 200px;
-            max-width: 350px;
-            word-break: break-word;
-        }
-
-        td:nth-child(1) { width: 120px; }
-        td:nth-child(2) { width: 90px; }
-        td:nth-child(4) { width: 90px; }
-        td:nth-child(5) { width: 80px; }
-        td:nth-child(6) { width: 50px; text-align: center; }
-        td:nth-child(7) { width: 100px; }
-        td:nth-child(8) { width: 100px; }
-        td:nth-child(9) { width: 120px; text-align: center; }
-
-        th {
-            background-color: var(--green-bg);
-            color: var(--green-dark);
+        .btn-submit-login {
+            width: 100%;
+            background-color: #22c55e;
+            color: #0e3316;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
             font-weight: 700;
-        }
-
-        th.sortable {
+            font-size: 0.95rem;
             cursor: pointer;
-            user-select: none;
+            font-family: inherit;
             transition: background-color 0.2s;
         }
-        th.sortable:hover {
-            background-color: #d4ebd6;
-        }
 
-        tr.clickable-row {
-            cursor: pointer;
-            transition: background-color 0.15s ease;
-        }
-
-        tr.clickable-row:hover { background-color: #f1f8f3; }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .badge-optimo { background-color: #e8f5e9; color: var(--green-primary); }
-        .badge-warning { background-color: #fff3e0; color: var(--orange-brand-hover); }
-        .badge-danger { background-color: #ffebee; color: var(--red); }
-        .badge-sin-fecha { background-color: #f1f5f9; color: #64748b; }
-        .badge-inhabilitado { background-color: #2c3e50; color: #ffffff; }
-
-        @keyframes titilarAlerta {
-            0% { background-color: #ffe0b2; color: #b45309; opacity: 1; transform: scale(1); }
-            50% { background-color: #ff9800; color: #ffffff; opacity: 0.6; transform: scale(1.03); }
-            100% { background-color: #ffe0b2; color: #b45309; opacity: 1; transform: scale(1); }
-        }
-
-        .badge-titilar {
-            animation: titilarAlerta 0.9s infinite ease-in-out;
-            border: 1px dashed #d97706;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-card {
-            background: white;
-            width: 90%;
-            max-width: 580px;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-            overflow: hidden;
-            animation: modalFadeIn 0.2s ease;
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-header {
-            background-color: var(--green-dark);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-
-        .modal-close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-        }
-
-        .modal-body {
-            padding: 20px;
-        }
-
-        .modal-info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-            background-color: #f8fafc;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .modal-info-item label {
-            font-size: 0.72rem;
-            color: #64748b;
-            font-weight: 700;
-            display: block;
-            text-transform: uppercase;
-        }
-
-        .modal-info-item span {
-            font-size: 0.9rem;
-            color: #0f172a;
-            font-weight: 600;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .btn-modal-inhabilitar {
-            background-color: var(--dark-inhabilitar);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-modal-inhabilitar:hover {
-            background-color: #1a252f;
-        }
-
-        .btn-modal-edit {
-            background-color: var(--yellow-edit);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-modal-kardex {
-            background-color: var(--blue-kardex);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-modal-delete {
-            background-color: var(--red);
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+        .btn-submit-login:hover {
+            background-color: #16a34a;
+            color: #ffffff;
         }
     </style>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-/* ================================================================
-   CAPA VISUAL — REDISEÑO + MODO OSCURO
-   No modifica la lógica existente: solo apariencia y tema.
-   ================================================================ */
-:root {
-    --green-dark: #14532d;
-    --green-primary: #15803d;
-    --green-light: #22c55e;
-    --green-bg: #ecfdf5;
-    --yellow-brand: #f4b400;
-    --orange-brand: #f59e0b;
-    --orange-brand-hover: #d97706;
-    --red: #dc2626;
-    --gray-light: #f4f7f6;
-    --header-bg: #ffffff;
-    --blue-kardex: #0f78b8;
-    --yellow-edit: #d99109;
-    --dark-inhabilitar: #243447;
-    --ui-bg: #f4f7f6;
-    --ui-surface: #ffffff;
-    --ui-surface-soft: #f8fafc;
-    --ui-border: #dfe7e3;
-    --ui-text: #17211b;
-    --ui-text-soft: #64748b;
-    --ui-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-    --ui-shadow-hover: 0 12px 30px rgba(15, 23, 42, 0.10);
-    --ui-radius: 12px;
-}
-
-html {
-    color-scheme: light;
-    background: var(--ui-bg);
-}
-
-body {
-    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: var(--ui-bg);
-    color: var(--ui-text);
-    letter-spacing: -0.01em;
-    transition: background-color .2s ease, color .2s ease;
-}
-
-button, input, textarea {
-    font-family: inherit;
-}
-
-header {
-    background: rgba(255,255,255,.96);
-    border-bottom: 1px solid #e5ebe7;
-    box-shadow: 0 4px 16px rgba(15,23,42,.05);
-    padding: 10px 28px;
-    min-height: 68px;
-}
-
-.header-brand-container {
-    gap: 14px;
-}
-
-.logo-container {
-    height: 58px;
-    min-width: 58px;
-}
-
-.logo-container img {
-    max-width: 250px;
-    mix-blend-mode: multiply;
-}
-
-.header-titles p {
-    font-size: 1.05rem;
-    color: #334155;
-    font-weight: 800;
-    margin-left: 15px;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-.btn-header-container {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.btn {
-    min-height: 38px;
-    padding: 8px 13px;
-    border-radius: 9px;
-    font-size: .78rem;
-    font-weight: 700;
-    border-width: 1px;
-    box-shadow: none;
-}
-
-.btn:hover {
-    transform: translateY(-1px);
-}
-
-.btn-save {
-    background: #166534;
-    box-shadow: 0 4px 12px rgba(22,101,52,.16);
-}
-
-.btn-excel {
-    background: #ecfdf5;
-    color: #166534;
-    border-color: #b7e4c7;
-}
-
-.btn-backup-export {
-    background: #0b76b9;
-}
-
-.btn-backup-import {
-    background: #fff;
-    color: #334155;
-    border-color: #d5dde5;
-}
-
-/* NAVEGACION ENTRE MODULOS */
-.header-separator {
-    width: 1px;
-    height: 30px;
-    background: #d7e0da;
-    margin: 0 6px;
-    flex: 0 0 1px;
-}
-
-.btn-return {
-    background: #fff;
-    color: #dc2626;
-    border: 1px solid #f0b7b7;
-    min-height: 38px;
-    padding: 8px 15px;
-    border-radius: 9px;
-    font-size: .78rem;
-    font-weight: 800;
-}
-
-.btn-return:hover {
-    background: #fff5f5;
-    border-color: #dc2626;
-    color: #b91c1c;
-}
-
-.theme-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 38px;
-    padding: 6px 8px 6px 10px;
-    border: 1px solid #d7e0da;
-    background: #f8fbf9;
-    color: #334155;
-    border-radius: 999px;
-    cursor: pointer;
-    font-size: .73rem;
-    font-weight: 700;
-    white-space: nowrap;
-    transition: all .2s ease;
-}
-
-.theme-toggle:hover {
-    border-color: #b9cbc0;
-    background: #f2f7f4;
-}
-
-.theme-toggle-icon {
-    font-size: .9rem;
-    width: 15px;
-    text-align: center;
-}
-
-.theme-switch {
-    width: 32px;
-    height: 18px;
-    border-radius: 999px;
-    padding: 2px;
-    box-sizing: border-box;
-    background: #d7e2dc;
-    display: inline-flex;
-    align-items: center;
-    transition: background-color .2s ease;
-}
-
-.theme-switch-thumb {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0,0,0,.2);
-    transform: translateX(0);
-    transition: transform .2s ease;
-}
-
-.container {
-    padding: 22px 30px 30px;
-}
-
-.card, .dash-card {
-    background: var(--ui-surface);
-    border: 1px solid var(--ui-border);
-    box-shadow: var(--ui-shadow);
-    border-radius: var(--ui-radius);
-}
-
-.card {
-    padding: 21px 24px;
-}
-
-.card-title {
-    color: var(--green-dark);
-    font-size: 1.05rem;
-    font-weight: 800;
-    letter-spacing: -.02em;
-}
-
-.card-title::after {
-    content: '';
-    display: block;
-    width: 34px;
-    height: 3px;
-    margin-left: 26px;
-    margin-top: 4px;
-    border-radius: 999px;
-    background: #25a45a;
-}
-
-.form-grid {
-    gap: 13px;
-    margin-bottom: 17px;
-}
-
-.form-group label {
-    color: #53636a;
-    font-size: .72rem;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.form-group input, .form-group textarea {
-    min-height: 34px;
-    padding: 7px 10px;
-    border: 1px solid #d7e0dc;
-    border-radius: 8px;
-    background: #fff;
-    color: #17211b;
-    font-size: .80rem;
-    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
-}
-
-.form-group input::placeholder,
-.search-box input::placeholder {
-    color: #94a3b8;
-}
-
-.form-group input:focus, .form-group textarea:focus, .search-box input:focus {
-    border-color: #2f9e5b;
-    box-shadow: 0 0 0 3px rgba(47,158,91,.10);
-}
-
-.dashboard-grid {
-    gap: 16px;
-    margin-bottom: 18px;
-}
-
-.dash-card {
-    padding: 16px 18px;
-    border-left-width: 4px;
-    position: relative;
-    overflow: hidden;
-}
-
-.dash-card::after {
-    content: '';
-    position: absolute;
-    width: 72px;
-    height: 72px;
-    right: -26px;
-    bottom: -32px;
-    border-radius: 50%;
-    background: currentColor;
-    opacity: .035;
-}
-
-.dash-card .title {
-    color: #64748b;
-    font-size: .72rem;
-    letter-spacing: .02em;
-}
-
-.dash-card .value {
-    font-size: 1.72rem;
-    line-height: 1;
-    margin-top: 8px;
-    letter-spacing: -.03em;
-}
-
-.filter-search-bar {
-    gap: 12px;
-    margin-bottom: 13px;
-}
-
-.filter-pills {
-    gap: 7px;
-}
-
-.pill-btn {
-    min-height: 34px;
-    padding: 6px 12px;
-    border-color: #d5ded9;
-    color: #334155;
-    background: #fff;
-    font-size: .74rem;
-    border-radius: 999px;
-}
-
-.pill-btn:hover:not(:disabled) {
-    border-color: #b7c8be;
-    background: #f8fbf9;
-}
-
-.pill-btn.active {
-    background: #eaf8ee;
-    border-color: #57ad72;
-    color: #166534;
-}
-
-.pill-btn.pill-inhabilitados {
-    background: #263847;
-    border-color: #263847;
-}
-
-.search-box {
-    min-width: 300px;
-}
-
-.search-box input {
-    min-height: 36px;
-    border: 1px solid #d7e0dc;
-    border-radius: 9px;
-    background: #fff;
-    color: #17211b;
-    padding: 7px 12px 7px 33px;
-    font-size: .78rem;
-}
-
-.table-responsive {
-    border: 1px solid var(--ui-border);
-    border-radius: 10px;
-    overflow: auto;
-}
-
-table {
-    font-size: .76rem;
-}
-
-th, td {
-    padding: 9px 10px;
-    border-bottom-color: #e9efec;
-}
-
-th {
-    background: #ecf8ef;
-    color: #185b31;
-    font-size: .70rem;
-    letter-spacing: .015em;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-
-th.sortable:hover {
-    background: #dff2e4;
-}
-
-td {
-    color: #35423b;
-}
-
-td:nth-child(3) {
-    color: #17211b;
-}
-
-tr.clickable-row:hover {
-    background: #f6fbf7;
-}
-
-code {
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-    font-size: .72rem;
-    color: #597166;
-}
-
-.badge {
-    padding: 5px 9px;
-    border-radius: 999px;
-    font-size: .67rem;
-    letter-spacing: .015em;
-}
-
-.badge-optimo { background: #e8f6eb; color: #218242; }
-.badge-warning { background: #fff6df; color: #a86200; }
-.badge-danger { background: #ffeded; color: #b42318; }
-.badge-sin-fecha { background: #eef2f6; color: #64748b; }
-.badge-inhabilitado { background: #2d3e4d; color: #ffffff; }
-
-.modal-overlay {
-    backdrop-filter: blur(4px);
-    background: rgba(8, 15, 12, .46);
-}
-
-.modal-card {
-    background: var(--ui-surface);
-    border: 1px solid var(--ui-border);
-    border-radius: 14px;
-    box-shadow: 0 24px 60px rgba(15,23,42,.20);
-}
-
-.modal-header {
-    background: linear-gradient(135deg, #14532d, #166534);
-    padding: 14px 18px;
-}
-
-.modal-body {
-    padding: 18px;
-}
-
-.modal-info-grid {
-    background: var(--ui-surface-soft);
-    border-color: var(--ui-border);
-    border-radius: 10px;
-    padding: 12px;
-}
-
-.modal-info-item label {
-    color: var(--ui-text-soft);
-}
-
-.modal-info-item span {
-    color: var(--ui-text);
-}
-
-.btn-modal-inhabilitar,
-.btn-modal-edit,
-.btn-modal-kardex,
-.btn-modal-delete {
-    border-radius: 8px;
-    min-height: 38px;
-    box-shadow: none;
-}
-
-#contenedorPaginacion {
-    color: #64748b !important;
-    border-top: 0 !important;
-    margin-top: 10px !important;
-    padding: 10px 3px 2px !important;
-}
-
-#contenedorPaginacion .pill-btn {
-    min-height: 32px;
-    background: #fff !important;
-}
-
-/* =============================
-   TEMA OSCURO
-   ============================= */
-html:has(body.theme-dark) {
-    color-scheme: dark;
-}
-
-body.theme-dark {
-    --green-dark: #86efac;
-    --green-primary: #4ade80;
-    --green-light: #22c55e;
-    --green-bg: #163a26;
-    --yellow-brand: #f4b400;
-    --orange-brand: #f59e0b;
-    --orange-brand-hover: #fbbf24;
-    --red: #f05252;
-    --gray-light: #0b1411;
-    --header-bg: #0e1915;
-    --ui-bg: #0b1411;
-    --ui-surface: #101c18;
-    --ui-surface-soft: #14241f;
-    --ui-border: #263b34;
-    --ui-text: #e7f1ec;
-    --ui-text-soft: #9db1a8;
-    --ui-shadow: 0 8px 24px rgba(0,0,0,.20);
-    --ui-shadow-hover: 0 12px 30px rgba(0,0,0,.26);
-    background: var(--ui-bg);
-    color: var(--ui-text);
-}
-
-body.theme-dark header {
-    background: #0d1915;
-    border-bottom-color: #20362e;
-    box-shadow: 0 4px 18px rgba(0,0,0,.20);
-}
-
-body.theme-dark .logo-container img {
-    mix-blend-mode: normal;
-}
-
-body.theme-dark .header-titles p {
-    color: #d9e8e0;
-}
-
-body.theme-dark .theme-toggle {
-    background: #13221d;
-    border-color: #294239;
-    color: #dbeae3;
-}
-
-body.theme-dark .theme-toggle:hover {
-    background: #172a23;
-    border-color: #3b5b4d;
-}
-
-body.theme-dark .theme-switch {
-    background: #25a45a;
-}
-
-body.theme-dark .theme-switch-thumb {
-    transform: translateX(14px);
-}
-
-body.theme-dark .theme-toggle-icon {
-    color: #facc15;
-}
-
-body.theme-dark .card,
-body.theme-dark .dash-card {
-    background: var(--ui-surface);
-    border-color: var(--ui-border);
-    box-shadow: var(--ui-shadow);
-}
-
-body.theme-dark .card-title {
-    color: #dff7e7;
-}
-
-body.theme-dark .card-title::after {
-    background: #35c66d;
-}
-
-body.theme-dark .form-group label {
-    color: #9fb4a9;
-}
-
-body.theme-dark .form-group input,
-body.theme-dark .form-group textarea,
-body.theme-dark .search-box input {
-    background: #14231f;
-    border-color: #2b453b;
-    color: #e8f3ed;
-}
-
-body.theme-dark .form-group input:focus,
-body.theme-dark .form-group textarea:focus,
-body.theme-dark .search-box input:focus {
-    border-color: #4ade80;
-    box-shadow: 0 0 0 3px rgba(74,222,128,.12);
-}
-
-body.theme-dark .btn-excel {
-    background: #143c28;
-    color: #a7f3c5;
-    border-color: #2f7147;
-}
-
-body.theme-dark .btn-backup-import {
-    background: #12201c;
-    color: #d5e4de;
-    border-color: #2c4138;
-}
-
-body.theme-dark .header-separator {
-    background: #31473f;
-}
-
-body.theme-dark .btn-return {
-    background: #231719;
-    color: #ff8d8d;
-    border-color: #6a3437;
-}
-
-body.theme-dark .btn-return:hover {
-    background: #321d20;
-    border-color: #ff6b6b;
-    color: #ff9e9e;
-}
-
-body.theme-dark .dash-card .title {
-    color: #91aaa0;
-}
-
-body.theme-dark .dash-card.optimo .value { color: #55e58a; }
-body.theme-dark .dash-card.warning .value { color: #f8bd46; }
-body.theme-dark .dash-card.danger .value { color: #ff6666; }
-
-body.theme-dark .pill-btn {
-    background: #13221d;
-    border-color: #2b4138;
-    color: #d9e8e0;
-}
-
-body.theme-dark .pill-btn:hover:not(:disabled) {
-    background: #172a23;
-    border-color: #3b5a4c;
-}
-
-body.theme-dark .pill-btn.active {
-    background: #174b2d;
-    border-color: #3d9e61;
-    color: #baf5cc;
-}
-
-body.theme-dark .pill-btn.pill-inhabilitados {
-    background: #1d2c37;
-    border-color: #304653;
-}
-
-body.theme-dark th {
-    background: #173329;
-    color: #a8edbe;
-    border-bottom-color: #25443a;
-}
-
-body.theme-dark th.sortable:hover {
-    background: #1b4032;
-}
-
-body.theme-dark td {
-    color: #c5d3cc;
-    border-bottom-color: #22372f;
-}
-
-body.theme-dark td:nth-child(3) {
-    color: #eff8f3;
-}
-
-body.theme-dark tr.clickable-row:hover {
-    background: #142b23;
-}
-
-body.theme-dark code {
-    color: #9db7aa;
-}
-
-body.theme-dark .badge-optimo { background: #153c28; color: #7ceaa4; }
-body.theme-dark .badge-warning { background: #4b3515; color: #ffd27b; }
-body.theme-dark .badge-danger { background: #4a1f22; color: #ff8585; }
-body.theme-dark .badge-sin-fecha { background: #25313a; color: #b5c3ce; }
-body.theme-dark .badge-inhabilitado { background: #2e3f4d; color: #f0f6f9; }
-
-body.theme-dark .table-responsive {
-    border-color: #263b34;
-}
-
-body.theme-dark #contenedorPaginacion {
-    color: #93aaa0 !important;
-}
-
-body.theme-dark #contenedorPaginacion .pill-btn {
-    background: #13221d !important;
-}
-
-body.theme-dark .modal-card {
-    background: var(--ui-surface);
-    border-color: #294139;
-}
-
-body.theme-dark .modal-info-grid {
-    background: #14241f;
-    border-color: #294139;
-}
-
-body.theme-dark .modal-info-item label {
-    color: #8ea79d;
-}
-
-body.theme-dark .modal-info-item span {
-    color: #e6f1eb;
-}
-
-body.theme-dark #modalClaveSeguridad .modal-body p {
-    color: #dbe8e2 !important;
-}
-
-body.theme-dark #btnCancelarEdicion {
-    background: #2a3a35 !important;
-    color: #e4eee9 !important;
-}
-
-body.theme-dark #modalClaveSeguridad .modal-body .btn:not(.btn-delete) {
-    background: #2a3a35 !important;
-    color: #e4eee9 !important;
-}
-
-body.theme-dark #tablaRegistros tr td[style*="color"] {
-    color: #aabdb4 !important;
-}
-
-@media (max-width: 1180px) {
-    header {
-        padding: 10px 18px;
-    }
-    .container {
-        padding: 18px;
-    }
-    .header-actions {
-        gap: 8px;
-    }
-    .theme-toggle-label {
-        display: none;
-    }
-    .form-grid {
-        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    }
-}
-
-@media (max-width: 760px) {
-    header {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-    }
-    .btn-header-container {
-        width: 100%;
-    }
-    .btn-header-container .btn {
-        flex: 1 1 150px;
-        justify-content: center;
-    }
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-    .filter-search-bar {
-        align-items: stretch;
-    }
-    .search-box {
-        width: 100%;
-        min-width: 0;
-    }
-    .form-grid .span-large {
-        grid-column: auto;
-    }
-}
-</style>
 </head>
 <body>
 
     <header>
         <div class="header-brand-container">
             <div class="logo-container">
-                <img src="logo.png" alt="Hipergalerias Logo" onerror="this.onerror=null; this.src='logo.jpeg';">
+                <img src="logo.png" alt="Galeria Hipermarket Logo" onerror="this.onerror=null; this.src='logo.jpeg';">
             </div>
             <div class="header-titles">
-                <p>Recepción y Control de Fechas de Productos</p>
+                <h1>HIPERGALERIAS</h1>
+                <p>Sistema Centralizado de Gestión</p>
             </div>
         </div>
+        
         <div class="header-actions">
-            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
-                <span class="theme-toggle-icon" id="themeToggleIcon">☾</span>
-                <span class="theme-toggle-label" id="themeToggleLabel">Modo oscuro</span>
-                <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
-            </button>
-            <div class="btn-header-container">
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="cargarExcel(event)">
-            <button class="btn btn-backup-export" onclick="exportarRespaldoJSON()">💾 Exportar Respaldo</button>
+            <!-- Contenedor dinámico de Login / Sesión -->
+            <div id="userAuthContainer"></div>
+
+            <!-- Conmutador Modo Oscuro -->
+            <div class="theme-switch-wrapper">
+                <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
+                <label class="theme-switch" for="checkboxTheme">
+                    <input type="checkbox" id="checkboxTheme" onchange="toggleDarkTheme(this.checked)">
+                    <div class="slider round"></div>
+                </label>
             </div>
-
-            <span class="header-separator" aria-hidden="true"></span>
-
-            <button type="button" class="btn btn-return" onclick="history.back()" title="Regresar al módulo anterior">
-                ← Regresar
-            </button>
         </div>
     </header>
 
     <div class="container">
-        <!-- FORMULARIO DE REGISTRO / EDICIÓN -->
-        <div class="card">
-            <h2 class="card-title">📥 Registro / Recepción de Producto</h2>
-            <form id="formRecepcion" onsubmit="registrarProducto(event)" style="margin-top: 15px;">
-                <input type="hidden" id="editId" value="">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="codBarra">Cód. Barra</label>
-                        <input type="text" id="codBarra" placeholder="750123456789" 
-                               onkeypress="if(event.key === 'Enter'){ event.preventDefault(); buscarYAutocompletarPorCodigo(this.value, 'codBarra'); }" 
-                               onblur="buscarYAutocompletarPorCodigo(this.value, 'codBarra')">
+        <div class="welcome-card">
+            <div class="welcome-text">
+                <h2>Panel de Control Ejecutivo</h2>
+                <p>Supervisión general de operaciones, inventarios, costos y sistemas de Hipergalerías.</p>
+            </div>
+            <!-- Silueta en marca de agua manteniendo los bordes e identidad gráfica -->
+            <img src="logo solo g.png" alt="Galeria G Watermark" class="welcome-card-watermark" onerror="this.onerror=null; this.src='logo.png';">
+        </div>
+
+        <div class="modules-grid">
+            <!-- RECEPCIÓN Y FECHAS -->
+            <div class="module-card">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon">📦</div>
+                        <div class="module-title-zone">
+                            <h3>Recepción y Fechas</h3>
+                            <span class="module-badge badge-active">Activo</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="codInterno">Cód. Interno</label>
-                        <input type="text" id="codInterno" placeholder="INT-001" 
-                               onkeypress="if(event.key === 'Enter'){ event.preventDefault(); buscarYAutocompletarPorCodigo(this.value, 'codInterno'); }" 
-                               onblur="buscarYAutocompletarPorCodigo(this.value, 'codInterno')">
-                    </div>
-                    <div class="form-group span-large">
-                        <label for="producto">Descripción del Producto</label>
-                        <input type="text" id="producto" placeholder="Ej. MARGARINA MAVESA 500G" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="departamento">Departamento</label>
-                        <input type="text" id="departamento" placeholder="Ej. VÍVERES">
-                    </div>
-                    <div class="form-group">
-                        <label for="proveedor">Proveedor</label>
-                        <input type="text" id="proveedor" placeholder="Ej. ALFONZO RIVAS">
-                    </div>
-                    <div class="form-group">
-                        <label for="numFactura">N° de Factura</label>
-                        <input type="text" id="numFactura" placeholder="FAC-9921">
-                    </div>
-                    <div class="form-group">
-                        <label for="personaRecibe">Recibe</label>
-                        <input type="text" id="personaRecibe" placeholder="Nombre de quien recibe">
-                    </div>
-                    <div class="form-group">
-                        <label for="lote">N° Lote</label>
-                        <input type="text" id="lote" placeholder="LOTE-100">
-                    </div>
-                    <div class="form-group">
-                        <label for="cantidad">Cantidad</label>
-                        <input type="number" id="cantidad" min="1" value="1" oninput="calcularCostoTotalAuto()" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="costoUnitario">Costo Unitario</label>
-                        <input type="number" id="costoUnitario" step="0.01" min="0" placeholder="0.00" oninput="calcularCostoTotalAuto()">
-                    </div>
-                    <div class="form-group">
-                        <label for="costoTotal">Costo Total</label>
-                        <input type="number" id="costoTotal" step="0.01" min="0" placeholder="0.00" oninput="calcularCostoUnitarioAuto()">
-                    </div>
-                    <div class="form-group">
-                        <label for="fechaRecepcion">F. Recepción</label>
-                        <input type="date" id="fechaRecepcion" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="fechaCaducidad">F. Caducidad</label>
-                        <input type="date" id="fechaCaducidad">
-                    </div>
-                    <div class="form-group span-large">
-                        <label for="observaciones">Observaciones</label>
-                        <input type="text" id="observaciones" placeholder="Detalles o novedades de la mercancía...">
+                    <div class="dashboard-metrics cols-3">
+                        <div class="metric-box" id="box-mod1-optimos">
+                            <span class="metric-title">Óptimos</span>
+                            <span class="metric-value" id="val-mod1-optimos">0</span>
+                        </div>
+                        <div class="metric-box" id="box-mod1-porvencer">
+                            <span class="metric-title">Por Vencer</span>
+                            <span class="metric-value" id="val-mod1-porvencer">0</span>
+                        </div>
+                        <div class="metric-box" id="box-mod1-vencidos">
+                            <span class="metric-title">Vencidos</span>
+                            <span class="metric-value" id="val-mod1-vencidos">0</span>
+                        </div>
                     </div>
                 </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button type="submit" class="btn btn-save">+ Guardar</button>
-                    <button type="button" id="btnEliminarForm" class="btn btn-delete" style="display:none;" onclick="eliminarItemActualForm()">🗑️ Eliminar este Ítem</button>
-                    <button type="button" id="btnCancelarEdicion" class="btn" style="display:none; background:#cbd5e1; color:#333;" onclick="cancelarEdicionForm()">Cancelar Edición</button>
+                <a href="recepcionyfechas.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recepcionyfechas.html')">Ingresar al Módulo ➔</a>
+            </div>
+
+            <!-- DESCUENTOS EMPLEADOS -->
+            <div class="module-card">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon">👥</div>
+                        <div class="module-title-zone">
+                            <h3>Descuentos Empleados</h3>
+                            <span class="module-badge badge-active">Activo</span>
+                        </div>
+                    </div>
+                    <div class="dashboard-metrics cols-3">
+                        <div class="metric-box" id="box-mod2-pendientes">
+                            <span class="metric-title">Pend. Pago</span>
+                            <span class="metric-value" id="val-mod2-pendientes">0</span>
+                        </div>
+                        <div class="metric-box" id="box-mod2-parciales">
+                            <span class="metric-title">Parciales</span>
+                            <span class="metric-value" id="val-mod2-parciales">0</span>
+                        </div>
+                        <div class="metric-box" id="box-mod2-porcobrar">
+                            <span class="metric-title">Por Cobrar</span>
+                            <span class="metric-value" id="val-mod2-porcobrar">$0</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="modulo2.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo2.html')">Ingresar al Módulo ➔</a>
+            </div>
+
+            <!-- RECETAS Y COSTOS -->
+            <div class="module-card">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon">🍳</div>
+                        <div class="module-title-zone">
+                            <h3>Recetas y Costos</h3>
+                            <span class="module-badge badge-active">Activo</span>
+                        </div>
+                    </div>
+                    <div class="dashboard-metrics">
+                        <div class="metric-box" id="box-mod3-recetas">
+                            <span class="metric-title">Recetas</span>
+                            <span class="metric-value" id="val-mod3-recetas">0</span>
+                        </div>
+                        <div class="metric-box" id="box-mod3-ingredientes">
+                            <span class="metric-title">Ingredientes</span>
+                            <span class="metric-value" id="val-mod3-ingredientes">0</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="modulo3.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo3.html')">Ingresar al Módulo ➔</a>
+            </div>
+
+            <!-- TI EQUIPOS -->
+            <div class="module-card">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon">🖥️</div>
+                        <div class="module-title-zone">
+                            <h3>TI Equipos</h3>
+                            <span class="module-badge badge-active">Activo</span>
+                        </div>
+                    </div>
+                    <div class="dashboard-metrics">
+                        <div class="metric-box" id="box-mod4-equipos">
+                            <span class="metric-title">Equipos TI</span>
+                            <span class="metric-value" id="val-mod4-equipos">0</span>
+                        </div>
+                        <div class="metric-box" id="box-mod4-mant">
+                            <span class="metric-title">Mant. Pendientes</span>
+                            <span class="metric-value" id="val-mod4-mant">0</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="modulo4.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo4.html')">Ingresar al Módulo ➔</a>
+            </div>
+
+            <!-- PENDIENTE 5 -->
+            <div class="module-card disabled">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon">📑</div>
+                        <div class="module-title-zone">
+                            <h3>Pendiente 5</h3>
+                            <span class="module-badge badge-pending">En Desarrollo</span>
+                        </div>
+                    </div>
+                    <div class="dashboard-metrics">
+                        <div class="metric-box" style="opacity: 0.5;">
+                            <span class="metric-title">Estado</span>
+                            <span class="metric-value" style="font-size: 1.05rem;">Próximamente</span>
+                        </div>
+                        <div class="metric-box" style="opacity: 0.5;">
+                            <span class="metric-title">Fase</span>
+                            <span class="metric-value" style="font-size: 1.05rem;">Diseño</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="#" class="btn-module disabled">Próximamente</a>
+            </div>
+
+            <!-- PENDIENTE 6 -->
+            <div class="module-card disabled">
+                <div>
+                    <div class="module-header">
+                        <div class="module-icon">📊</div>
+                        <div class="module-title-zone">
+                            <h3>Pendiente 6</h3>
+                            <span class="module-badge badge-pending">En Desarrollo</span>
+                        </div>
+                    </div>
+                    <div class="dashboard-metrics">
+                        <div class="metric-box" style="opacity: 0.5;">
+                            <span class="metric-title">Estado</span>
+                            <span class="metric-value" style="font-size: 1.05rem;">Próximamente</span>
+                        </div>
+                        <div class="metric-box" style="opacity: 0.5;">
+                            <span class="metric-title">Fase</span>
+                            <span class="metric-value" style="font-size: 1.05rem;">Próximamente</span>
+                        </div>
+                    </div>
+                </div>
+                <a href="#" class="btn-module disabled">Próximamente</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE AUTENTICACIÓN BLOQUEANTE -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="login-card">
+            <h3>Acceso al Sistema</h3>
+            <p>Ingresa tus credenciales corporativas para continuar.</p>
+            
+            <form id="loginForm" onsubmit="ejecutarLogin(event)">
+                <div class="form-group">
+                    <label for="loginEmail">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="usuario@hipergalerias.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <div id="loginError" class="login-error-msg"></div>
+
+                <div class="login-actions">
+                    <button type="submit" class="btn-submit-login" id="btnSubmitLogin">Ingresar</button>
                 </div>
             </form>
-        </div>
-
-        <!-- DASHBOARD DE STATUS -->
-        <div class="dashboard-grid">
-            <div class="dash-card optimo">
-                <span class="title">ÓPTIMOS (> 30 DÍAS)</span>
-                <span class="value" id="dashOptimos">0</span>
-            </div>
-            <div class="dash-card warning">
-                <span class="title">POR VENCER (≤ 30 DÍAS)</span>
-                <span class="value" id="dashPorVencer">0</span>
-            </div>
-            <div class="dash-card danger">
-                <span class="title">VENCIDOS</span>
-                <span class="value" id="dashVencidos">0</span>
-            </div>
-        </div>
-
-        <!-- BARRA DE FILTROS Y BUSCADOR -->
-        <div class="filter-search-bar">
-            <div class="filter-pills">
-                <button class="pill-btn active" onclick="filtrarEstado('todos', this)">Todos</button>
-                <button class="pill-btn" onclick="filtrarEstado('optimo', this)">🟢 Óptimos</button>
-                <button class="pill-btn" onclick="filtrarEstado('por_vencer', this)">⚠️ Por Vencer</button>
-                <button class="pill-btn" onclick="filtrarEstado('vencido', this)">🔴 Vencidos</button>
-                <button class="pill-btn pill-inhabilitados" onclick="filtrarEstado('inhabilitados', this)">🚫 Inhabilitados</button>
-                <button class="btn btn-excel" onclick="descargarExcelFiltrado()" style="padding: 6px 14px; font-size: 0.82rem; border-radius: 20px;">📥 Descargar Filtro en Excel</button>
-            </div>
-            <div class="search-box">
-                <input type="text" id="inputBuscar" placeholder="Buscar por código, producto, factura..." oninput="debounceActualizarTabla()">
-            </div>
-        </div>
-
-        <!-- TABLA COMPACTA CON PAGINACIÓN -->
-        <div class="card" style="padding: 15px;">
-            <p style="margin: 0 0 10px 0; font-size: 0.8rem; color: #64748b; font-style: italic;">💡 Haz clic en cualquier fila para ver opciones de Inhabilitar, Edición, Kardex y Eliminación protegida. Haz clic en los encabezados **F. Recepción**, **F. Vencimiento** o **Estatus** para ordenar.</p>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cód. Barra</th>
-                            <th>Cód. Interno</th>
-                            <th>Producto</th>
-                            <th>Dpto.</th>
-                            <th>Lote</th>
-                            <th>Cant.</th>
-                            <th class="sortable" onclick="sortTable('recepcion')">F. Recepción ↕</th>
-                            <th class="sortable" onclick="sortTable('vencimiento')">F. Vencimiento ↕</th>
-                            <th class="sortable" onclick="sortTable('estatus')">Estatus ↕</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaRegistros">
-                        <!-- Carga dinámica -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE ACCIONES AL CLICKEAR FILA -->
-    <div class="modal-overlay" id="modalAcciones" onclick="cerrarModalFuera(event)">
-        <div class="modal-card">
-            <div class="modal-header">
-                <h3 id="modalTituloProducto">Detalle del Producto</h3>
-                <button class="modal-close-btn" onclick="cerrarModal()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-info-grid">
-                    <div class="modal-info-item">
-                        <label>Cód. Barra / Interno</label>
-                        <span id="modalCodigos">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <label>Departamento</label>
-                        <span id="modalDpto">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <label>Proveedor</label>
-                        <span id="modalProveedor">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <label>N° Factura / Lote</label>
-                        <span id="modalFacturaLote">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <label>Cantidad & Costos</label>
-                        <span id="modalCantCostos">-</span>
-                    </div>
-                    <div class="modal-info-item">
-                        <label>Recibe</label>
-                        <span id="modalRecibe">-</span>
-                    </div>
-                    <div class="modal-info-item" style="grid-column: span 2;">
-                        <label>Observaciones</label>
-                        <span id="modalObservaciones">-</span>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-modal-inhabilitar" id="btnModalInhabilitar">🚫 Inhabilitar</button>
-                    <button class="btn-modal-edit" id="btnModalEditar">✏️ Editar</button>
-                    <button class="btn-modal-kardex" id="btnModalKardex">📘 Kardex</button>
-                    <button class="btn-modal-delete" id="btnModalEliminar">🗑️ Eliminar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL DE CLAVE DE SEGURIDAD (CON ASTERISCOS ****) -->
-    <div class="modal-overlay" id="modalClaveSeguridad" style="z-index: 1100;">
-        <div class="modal-card" style="max-width: 400px;">
-            <div class="modal-header" style="background-color: var(--red);">
-                <h3>⚠️ Acción Protegida</h3>
-                <button class="modal-close-btn" onclick="cerrarModalClave(false)">✕</button>
-            </div>
-            <div class="modal-body">
-                <p style="margin-top:0; font-size:0.9rem; color:#333; font-weight:600;">Ingrese la clave de seguridad para eliminar:</p>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <input type="password" id="inputClaveAdmin" placeholder="••••" style="font-size: 1.2rem; text-align: center; letter-spacing: 4px;" onkeypress="if(event.key === 'Enter') confirmarClaveAdmin()">
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button class="btn" style="background: #e2e8f0; color: #334155;" onclick="cerrarModalClave(false)">Cancelar</button>
-                    <button class="btn btn-delete" onclick="confirmarClaveAdmin()">Confirmar</button>
-                </div>
-            </div>
         </div>
     </div>
 
     <script>
-        let registros = [];
-        let filtroEstadoActual = 'todos';
-        let db;
-        let itemSeleccionadoActual = null;
-        let sortDirections = {};
-        let timeoutBusqueda = null;
-
-        let paginaActual = 1;
-        const registrosPorPagina = 100;
-
-        // CLAVE DE SEGURIDAD PARA ELIMINAR (Puedes cambiar "1234" por la clave que prefieras)
-        const CLAVE_ELIMINACION = "1234";
-        let callbackClaveExito = null;
-
-        document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
-
-        function verificarClaveAdmin(callback) {
-            callbackClaveExito = callback;
-            const inputClave = document.getElementById('inputClaveAdmin');
-            inputClave.value = '';
-            document.getElementById('modalClaveSeguridad').style.display = 'flex';
-            setTimeout(() => inputClave.focus(), 100);
-        }
-
-        function cerrarModalClave(exito) {
-            document.getElementById('modalClaveSeguridad').style.display = 'none';
-            if (!exito && callbackClaveExito) {
-                callbackClaveExito = null;
+        // --- MANEJO DE MODO OSCURO ---
+        function toggleDarkTheme(isDark) {
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('hipergalerias_theme', 'dark');
+                document.getElementById('themeLabel').innerText = '☀️ Modo claro';
+            } else {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('hipergalerias_theme', 'light');
+                document.getElementById('themeLabel').innerText = '🌙 Modo oscuro';
             }
         }
 
-        function confirmarClaveAdmin() {
-            const claveIngresada = document.getElementById('inputClaveAdmin').value;
-            if (claveIngresada.trim() !== CLAVE_ELIMINACION) {
-                alert("❌ Clave incorrecta. No se puede realizar la eliminación.");
-                document.getElementById('inputClaveAdmin').value = '';
-                document.getElementById('inputClaveAdmin').focus();
+        function cargarTemaGuardado() {
+            const tema = localStorage.getItem('hipergalerias_theme');
+            const checkbox = document.getElementById('checkboxTheme');
+            if (tema === 'dark') {
+                checkbox.checked = true;
+                toggleDarkTheme(true);
+            }
+        }
+
+        // --- AUTENTICACIÓN Y BLOQUEO DE PANTALLA ---
+        function abrirModalLogin() {
+            document.getElementById('loginModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function cerrarModalLogin() {
+            document.getElementById('loginModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        async function ejecutarLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+            const btnSubmit = document.getElementById('btnSubmitLogin');
+
+            errorDiv.style.display = 'none';
+            btnSubmit.innerText = 'Verificando...';
+            btnSubmit.disabled = true;
+
+            if (typeof supabaseClient === 'undefined') {
+                alert("Atención: No se ha encontrado la configuración de Supabase en 'conexion.js'.");
+                btnSubmit.innerText = 'Ingresar';
+                btnSubmit.disabled = false;
                 return;
             }
 
-            cerrarModalClave(true);
-            if (callbackClaveExito) {
-                const cb = callbackClaveExito;
-                callbackClaveExito = null;
-                cb();
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password
+            });
+
+            btnSubmit.innerText = 'Ingresar';
+            btnSubmit.disabled = false;
+
+            if (error) {
+                errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message);
+                errorDiv.style.display = 'block';
+            } else {
+                cerrarModalLogin();
+                document.getElementById('loginForm').reset();
             }
         }
 
-        function debounceActualizarTabla() {
-            paginaActual = 1;
-            clearTimeout(timeoutBusqueda);
-            timeoutBusqueda = setTimeout(() => {
-                actualizarTabla();
-            }, 150);
+        async function ejecutarLogout() {
+            if (typeof supabaseClient !== 'undefined') {
+                await supabaseClient.auth.signOut();
+            }
         }
 
-        function buscarYAutocompletarPorCodigo(valorBuscado, campoOrigen) {
-            if (document.getElementById('editId').value) return;
+        function gestionarEstadoSesion(session) {
+            const authContainer = document.getElementById('userAuthContainer');
 
-            const val = valorBuscado.trim();
-            if (!val || val.length < 2) return;
+            if (session && session.user) {
+                cerrarModalLogin();
 
-            const existente = registros.find(r => 
-                (r.codBarra && String(r.codBarra).trim() === val && r.codBarra !== 'S/C') || 
-                (r.codInterno && String(r.codInterno).trim() === val && r.codInterno !== 'S/C')
-            );
+                const metadata = session.user.user_metadata || {};
+                const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
+                const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
 
-            if (existente) {
-                if (campoOrigen !== 'codBarra') {
-                    document.getElementById('codBarra').value = (existente.codBarra && existente.codBarra !== 'S/C') ? existente.codBarra : '';
+                if (authContainer) {
+                    authContainer.innerHTML = `
+                        <div class="user-profile-badge">
+                            <span>Bienvenido, <strong>${nombreFormateado}</strong></span>
+                            <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
+                        </div>
+                    `;
                 }
-                if (campoOrigen !== 'codInterno') {
-                    document.getElementById('codInterno').value = (existente.codInterno && existente.codInterno !== 'S/C') ? existente.codInterno : '';
+            } else {
+                abrirModalLogin();
+                if (authContainer) {
+                    authContainer.innerHTML = `
+                        <button class="btn-login-trigger" onclick="abrirModalLogin()">🔑 Iniciar Sesión</button>
+                    `;
                 }
+            }
+        }
+
+        async function protegerEnlaceModulo(event, url) {
+            if (typeof supabaseClient === 'undefined') return;
+
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                event.preventDefault();
+                abrirModalLogin();
+            }
+        }
+
+        // --- METRICAS Y DASHBOARD ---
+        function actualizarColorMetrica(boxId, valor, tipoAlerta) {
+            const box = document.getElementById(boxId);
+            if (!box) return;
+
+            box.classList.remove('state-alert-orange', 'state-alert-red', 'state-alert-green', 'state-alert-blue');
+
+            let numValor = typeof valor === 'string' ? parseFloat(valor.replace('$', '')) : valor;
+
+            if (!isNaN(numValor) && numValor > 0) {
+                if (tipoAlerta === 'red') box.classList.add('state-alert-red');
+                else if (tipoAlerta === 'orange') box.classList.add('state-alert-orange');
+                else if (tipoAlerta === 'blue') box.classList.add('state-alert-blue');
+                else box.classList.add('state-alert-green');
+            }
+        }
+
+        function sincronizarDashboard() {
+            // Módulo 1 (Recepción y Fechas)
+            let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
+            let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
+            let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
+
+            document.getElementById('val-mod1-optimos').innerText = optimos;
+            document.getElementById('val-mod1-porvencer').innerText = porVencer;
+            document.getElementById('val-mod1-vencidos').innerText = vencidos;
+
+            actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
+            actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
+            actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
+
+            // Módulo 2 (Descuentos Empleados)
+            try {
+                const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
+                let cantPendientes = 0;
+                let cantParciales = 0;
+                let montoPorCobrar = 0;
+
+                descuentosDB.forEach(item => {
+                    const montoTotal = parseFloat(item.monto || item.total || 0);
+                    const abonado = parseFloat(item.abonado || 0);
+                    const saldoPendiente = parseFloat(item.saldoPendiente !== undefined ? item.saldoPendiente : (montoTotal - abonado));
+
+                    if (saldoPendiente > 0) {
+                        montoPorCobrar += saldoPendiente;
+                        if (abonado > 0) cantParciales++;
+                        else cantPendientes++;
+                    }
+                });
+
+                document.getElementById('val-mod2-pendientes').innerText = cantPendientes;
+                document.getElementById('val-mod2-parciales').innerText = cantParciales;
+                document.getElementById('val-mod2-porcobrar').innerText = '$' + montoPorCobrar.toFixed(2);
+
+                actualizarColorMetrica('box-mod2-pendientes', cantPendientes, 'orange');
+                actualizarColorMetrica('box-mod2-parciales', cantParciales, 'orange');
+                actualizarColorMetrica('box-mod2-porcobrar', montoPorCobrar, 'red');
+            } catch (e) {
+                console.error("Error al sincronizar descuentos en el index:", e);
+            }
+
+            // Módulo 3 (Recetas y Costos)
+            try {
+                const recetasDB = JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
+                const insumosDB = JSON.parse(localStorage.getItem('hipergalerias_insumos_db')) || [];
+
+                document.getElementById('val-mod3-recetas').innerText = recetasDB.length;
+                document.getElementById('val-mod3-ingredientes').innerText = insumosDB.length;
+
+                actualizarColorMetrica('box-mod3-recetas', recetasDB.length, 'green');
+                actualizarColorMetrica('box-mod3-ingredientes', insumosDB.length, 'blue');
+            } catch (e) {
+                console.error("Error al sincronizar recetas en el index:", e);
+            }
+
+            // Módulo 4 (TI Equipos)
+            try {
+                const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
+                document.getElementById('val-mod4-equipos').innerText = tiDB.length;
+                document.getElementById('val-mod4-mant').innerText = '0';
                 
-                document.getElementById('producto').value = existente.producto || '';
-                document.getElementById('departamento').value = existente.departamento || '';
-
-                if (existente.proveedor && existente.proveedor !== 'S/P') {
-                    document.getElementById('proveedor').value = existente.proveedor;
-                }
-
-                setTimeout(() => {
-                    document.getElementById('numFactura').focus();
-                }, 50);
+                actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
+                actualizarColorMetrica('box-mod4-mant', 0, 'orange');
+            } catch (e) {
+                console.error("Error al sincronizar TI Equipos en el index:", e);
             }
         }
 
-        function calcularCostoTotalAuto() {
-            const cant = parseFloat(document.getElementById('cantidad').value) || 0;
-            const unit = parseFloat(document.getElementById('costoUnitario').value) || 0;
-            if (cant > 0 && unit >= 0) {
-                document.getElementById('costoTotal').value = (cant * unit).toFixed(2);
-            }
-        }
+        // --- INICIALIZACIÓN DE PÁGINA ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            cargarTemaGuardado();
+            sincronizarDashboard();
 
-        function calcularCostoUnitarioAuto() {
-            const cant = parseFloat(document.getElementById('cantidad').value) || 0;
-            const total = parseFloat(document.getElementById('costoTotal').value) || 0;
-            if (cant > 0 && total >= 0) {
-                document.getElementById('costoUnitario').value = (total / cant).toFixed(2);
-            }
-        }
+            if (typeof supabaseClient !== 'undefined') {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                gestionarEstadoSesion(session);
 
-        
-        async function cargarDatosDB() {
-        const { data, error } = await supabaseClient
-        .from('recepcion_fechas')
-        .select('*')
-        .order('id', { ascending: false });
-
-    if (error) {
-        console.error("Error al consultar Supabase:", error);
-        alert("Error al cargar datos desde la nube: " + error.message);
-        return;
-    }
-
-    registros = data || [];
-    
-    // Normalizar fechas y valores predeterminados
-    registros.forEach(item => {
-        item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion);
-        item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento);
-        if (item.inhabilitado === undefined) item.inhabilitado = false;
-    });
-
-    actualizarTodo();
-    sincronizarDashboardLocalStorage();
-}
-
-        // --- GUARDAR O ACTUALIZAR REGISTROS (UPSERT) ---
-    async function guardarDatosDB(nuevosItems) {
-    // Formatear fechas vacías a null para evitar incompatibilidad con el tipo 'date' de Postgres
-    const itemsFormateados = nuevosItems.map(item => ({
-        ...item,
-        fechaRecepcion: normalizarFechaGuardada(item.fechaRecepcion) || null,
-        fechaVencimiento: normalizarFechaGuardada(item.fechaVencimiento) || null,
-        inhabilitado: item.inhabilitado !== undefined ? item.inhabilitado : false
-    }));
-
-    const { error } = await supabaseClient
-        .from('recepcion_fechas')
-        .upsert(itemsFormateados);
-
-    if (error) {
-        console.error("Error al guardar en Supabase:", error);
-        alert("Error al guardar en la nube: " + error.message);
-        return;
-    }
-
-    await cargarDatosDB();
-}
-
-        // --- ELIMINAR REGISTRO DE SUPABASE ---
-    async function eliminarRegistroDB(idItem) {
-    const { error } = await supabaseClient
-        .from('recepcion_fechas')
-        .delete()
-        .eq('id', idItem);
-
-    if (error) {
-        console.error("Error al eliminar en Supabase:", error);
-        alert("Error al eliminar en la nube: " + error.message);
-        return;
-    }
-
-    await cargarDatosDB();
-}
-
-        function normalizarFechaGuardada(val) {
-            if (!val || val === 'S/F' || val === '-') return '';
-            
-            if (val instanceof Date && !isNaN(val.getTime())) {
-                const yyyy = val.getFullYear();
-                const mm = String(val.getMonth() + 1).padStart(2, '0');
-                const dd = String(val.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-
-            let str = String(val).trim();
-            if (str === '' || str === 'Invalid Date') return '';
-
-            if (str.includes('GMT') || str.includes('hora de')) {
-                const parsed = new Date(str);
-                if (!isNaN(parsed.getTime())) {
-                    const yyyy = parsed.getFullYear();
-                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-                    const dd = String(parsed.getDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
-                }
-            }
-
-            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-                return str;
-            }
-
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
-                const partes = str.split('/');
-                return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-            }
-
-            const dGen = new Date(str);
-            if (!isNaN(dGen.getTime())) {
-                const yyyy = dGen.getFullYear();
-                const mm = String(dGen.getMonth() + 1).padStart(2, '0');
-                const dd = String(dGen.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-
-            return str;
-        }
-
-        function sincronizarDashboardLocalStorage() {
-            let optimos = 0, porVencer = 0, vencidos = 0;
-
-            registros.forEach(item => {
-                if (item.inhabilitado) return;
-                const st = calcularEstado(item.fechaVencimiento).status;
-                if (st === 'optimo') optimos++;
-                if (st === 'por_vencer') porVencer++;
-                if (st === 'vencido') vencidos++;
-            });
-
-            localStorage.setItem('dashboard_mod1_optimos', optimos);
-            localStorage.setItem('dashboard_mod1_porvencer', porVencer);
-            localStorage.setItem('dashboard_mod1_vencidos', vencidos);
-        }
-
-        function formatearFechaMostrar(fechaStr) {
-            const norm = normalizarFechaGuardada(fechaStr);
-            if (!norm) return 'S/F';
-            
-            const partes = norm.split('-');
-            if (partes.length === 3) {
-                return `${partes[2]}/${partes[1]}/${partes[0]}`;
-            }
-            return norm;
-        }
-
-        function formatearFechaInput(fechaStr) {
-            return normalizarFechaGuardada(fechaStr);
-        }
-
-    
-    async function registrarProducto(event) {
-    event.preventDefault();
-    
-    const editId = document.getElementById('editId').value;
-    const existenteAntiguo = editId ? registros.find(r => String(r.id) === String(editId)) : null;
-
-    const nuevo = {
-        id: editId ? parseFloat(editId) : Date.now(),
-        codBarra: document.getElementById('codBarra').value || 'S/C',
-        codInterno: document.getElementById('codInterno').value || 'S/C',
-        producto: document.getElementById('producto').value,
-        departamento: document.getElementById('departamento').value || 'GENERAL',
-        proveedor: document.getElementById('proveedor').value || 'S/P',
-        numFactura: document.getElementById('numFactura').value || 'S/F',
-        personaRecibe: document.getElementById('personaRecibe').value || 'S/N',
-        lote: document.getElementById('lote').value || 'S/L',
-        cantidad: parseInt(document.getElementById('cantidad').value) || 1,
-        costoUnitario: parseFloat(document.getElementById('costoUnitario').value) || 0,
-        costoTotal: parseFloat(document.getElementById('costoTotal').value) || 0,
-        fechaRecepcion: normalizarFechaGuardada(document.getElementById('fechaRecepcion').value),
-        fechaVencimiento: normalizarFechaGuardada(document.getElementById('fechaCaducidad').value),
-        observaciones: document.getElementById('observaciones').value || '',
-        inhabilitado: existenteAntiguo ? !!existenteAntiguo.inhabilitado : false
-    };
-
-    await guardarDatosDB([nuevo]);
-
-    document.getElementById('formRecepcion').reset();
-    document.getElementById('editId').value = '';
-    document.getElementById('btnEliminarForm').style.display = 'none';
-    document.getElementById('btnCancelarEdicion').style.display = 'none';
-    document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
-}
-
-        function cancelarEdicionForm() {
-            document.getElementById('formRecepcion').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('btnEliminarForm').style.display = 'none';
-            document.getElementById('btnCancelarEdicion').style.display = 'none';
-            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
-        }
-
-        function eliminarItemActualForm() {
-            const editId = document.getElementById('editId').value;
-            if (!editId) return;
-
-            verificarClaveAdmin(() => {
-                if (confirm("¿Estás seguro de que deseas eliminar este registro permanentemente?")) {
-                    eliminarRegistroDB(editId).then(() => {
-                        cancelarEdicionForm();
-                        alert("Registro eliminado exitosamente.");
-                    });
-                }
-            });
-        }
-
-        function calcularEstado(fechaVencStr) {
-            const norm = normalizarFechaGuardada(fechaVencStr);
-            if (!norm) {
-                return { texto: 'SIN FECHA', clase: 'badge-sin-fecha', status: 'sin_fecha' };
-            }
-
-            const hoy = new Date();
-            hoy.setHours(0,0,0,0);
-            
-            const fechaVenc = new Date(norm + 'T00:00:00');
-
-            if (isNaN(fechaVenc.getTime())) {
-                return { texto: 'SIN FECHA', clase: 'badge-sin-fecha', status: 'sin_fecha' };
-            }
-
-            const difDias = Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24));
-
-            if (isNaN(difDias) || difDias < 0) {
-                return { texto: 'VENCIDO', clase: 'badge-danger', status: 'vencido' };
-            } else if (difDias <= 5) {
-                return { texto: `¡URGENTE (${difDias}d)!`, clase: 'badge-titilar', status: 'por_vencer' };
-            } else if (difDias <= 30) {
-                return { texto: `POR VENCER (${difDias}d)`, clase: 'badge-warning', status: 'por_vencer' };
+                supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    gestionarEstadoSesion(session);
+                });
             } else {
-                return { texto: 'ÓPTIMO', clase: 'badge-optimo', status: 'optimo' };
+                abrirModalLogin();
             }
-        }
-
-        function actualizarDashboard() {
-            let optimos = 0, porVencer = 0, vencidos = 0;
-
-            registros.forEach(item => {
-                if (item.inhabilitado) return;
-                const st = calcularEstado(item.fechaVencimiento).status;
-                if (st === 'optimo') optimos++;
-                if (st === 'por_vencer') porVencer++;
-                if (st === 'vencido') vencidos++;
-            });
-
-            document.getElementById('dashOptimos').innerText = optimos.toLocaleString();
-            document.getElementById('dashPorVencer').innerText = porVencer.toLocaleString();
-            document.getElementById('dashVencidos').innerText = vencidos.toLocaleString();
-        }
-
-        function filtrarEstado(estado, btn) {
-            paginaActual = 1;
-            filtroEstadoActual = estado;
-            document.querySelectorAll('.pill-btn').forEach(b => {
-                if(!b.classList.contains('btn-excel')) b.classList.remove('active');
-            });
-            btn.classList.add('active');
-            actualizarTabla();
-        }
-
-        function obtenerRegistrosFiltrados() {
-            const busqueda = document.getElementById('inputBuscar').value.toLowerCase().trim();
-            
-            let existeCoincidenciaCodigoExacto = false;
-            if (busqueda) {
-                existeCoincidenciaCodigoExacto = registros.some(r => 
-                    (r.codBarra && String(r.codBarra).toLowerCase().trim() === busqueda && r.codBarra !== 'S/C') ||
-                    (r.codInterno && String(r.codInterno).toLowerCase().trim() === busqueda && r.codInterno !== 'S/C')
-                );
-            }
-
-            return registros.filter(item => {
-                if (filtroEstadoActual === 'inhabilitados') {
-                    if (!item.inhabilitado) return false;
-                } else {
-                    if (item.inhabilitado) return false;
-                    const st = calcularEstado(item.fechaVencimiento).status;
-                    if (filtroEstadoActual !== 'todos' && st !== filtroEstadoActual) return false;
-                }
-
-                if (!busqueda) return true;
-
-                const codBarraStr = String(item.codBarra || '').toLowerCase().trim();
-                const codInternoStr = String(item.codInterno || '').toLowerCase().trim();
-
-                if (existeCoincidenciaCodigoExacto) {
-                    return (codBarraStr === busqueda && item.codBarra !== 'S/C') || 
-                           (codInternoStr === busqueda && item.codInterno !== 'S/C');
-                }
-
-                const prod = String(item.producto || '').toLowerCase();
-                const dpto = String(item.departamento || '').toLowerCase();
-                const prov = String(item.proveedor || '').toLowerCase();
-                const fac  = String(item.numFactura || '').toLowerCase();
-                const lote = String(item.lote || '').toLowerCase();
-                const obs  = String(item.observaciones || '').toLowerCase();
-
-                return codBarraStr.includes(busqueda) || 
-                       codInternoStr.includes(busqueda) || 
-                       prod.includes(busqueda) || 
-                       dpto.includes(busqueda) || 
-                       prov.includes(busqueda) || 
-                       fac.includes(busqueda) || 
-                       lote.includes(busqueda) || 
-                       obs.includes(busqueda);
-            });
-        }
-
-        function sortTable(column) {
-            sortDirections[column] = !sortDirections[column];
-            const asc = sortDirections[column];
-
-            registros.sort((rowA, rowB) => {
-                let valA, valB;
-
-                if (column === 'recepcion') {
-                    valA = parseDate(rowA.fechaRecepcion);
-                    valB = parseDate(rowB.fechaRecepcion);
-                    return asc ? valA - valB : valB - valA;
-                } 
-                else if (column === 'vencimiento') {
-                    valA = parseDate(rowA.fechaVencimiento);
-                    valB = parseDate(rowB.fechaVencimiento);
-                    return asc ? valA - valB : valB - valA;
-                } 
-                else if (column === 'estatus') {
-                    valA = parseDays(rowA.fechaVencimiento);
-                    valB = parseDays(rowB.fechaVencimiento);
-                    return asc ? valA - valB : valB - valA;
-                }
-            });
-
-            actualizarTabla();
-        }
-
-        function parseDate(dateStr) {
-            const norm = normalizarFechaGuardada(dateStr);
-            if (!norm) return 0;
-            return new Date(norm + 'T00:00:00').getTime() || 0;
-        }
-
-        function parseDays(fechaVencStr) {
-            const norm = normalizarFechaGuardada(fechaVencStr);
-            if (!norm) return 999999;
-            const hoy = new Date();
-            hoy.setHours(0,0,0,0);
-            const fechaVenc = new Date(norm + 'T00:00:00');
-            if (isNaN(fechaVenc.getTime())) return 999999;
-            return Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24));
-        }
-
-        function actualizarTabla() {
-            const tbody = document.getElementById('tablaRegistros');
-            tbody.innerHTML = '';
-
-            let filtrados = obtenerRegistrosFiltrados();
-            const totalRegistros = filtrados.length;
-            const totalPaginas = Math.ceil(totalRegistros / registrosPorPagina) || 1;
-
-            if (paginaActual > totalPaginas) paginaActual = totalPaginas;
-            if (paginaActual < 1) paginaActual = 1;
-
-            if (totalRegistros === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#888; padding:20px;">No se encontraron registros.</td></tr>';
-                renderizarPaginacion(0, 1, 1);
-                return;
-            }
-
-            const inicio = (paginaActual - 1) * registrosPorPagina;
-            const fin = inicio + registrosPorPagina;
-            const muestra = filtrados.slice(inicio, fin);
-
-            muestra.forEach(item => {
-                let badgeHtml = '';
-                if (item.inhabilitado) {
-                    badgeHtml = `<span class="badge badge-inhabilitado">INHABILITADO</span>`;
-                } else {
-                    const estado = calcularEstado(item.fechaVencimiento);
-                    badgeHtml = `<span class="badge ${estado.clase}">${estado.texto}</span>`;
-                }
-
-                const tr = document.createElement('tr');
-                tr.className = 'clickable-row';
-                tr.onclick = () => abrirModalItem(item);
-
-                tr.innerHTML = `
-                    <td><strong>${item.codBarra || 'S/C'}</strong></td>
-                    <td><code>${item.codInterno || 'S/C'}</code></td>
-                    <td><strong>${item.producto}</strong></td>
-                    <td>${(item.departamento || 'GENERAL').toUpperCase()}</td>
-                    <td>${item.lote || 'S/L'}</td>
-                    <td><strong>${item.cantidad || 0}</strong></td>
-                    <td>${formatearFechaMostrar(item.fechaRecepcion)}</td>
-                    <td>${formatearFechaMostrar(item.fechaVencimiento)}</td>
-                    <td>${badgeHtml}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            renderizarPaginacion(totalRegistros, paginaActual, totalPaginas);
-        }
-
-        function renderizarPaginacion(total, pagina, totalPaginas) {
-            let contenedorPaginacion = document.getElementById('contenedorPaginacion');
-            
-            if (!contenedorPaginacion) {
-                contenedorPaginacion = document.createElement('div');
-                contenedorPaginacion.id = 'contenedorPaginacion';
-                contenedorPaginacion.style.cssText = 'display:flex; justify-content:space-between; align-items:center; margin-top:12px; padding:10px 5px; font-size:0.85rem; color:#475569;';
-                document.querySelector('.table-responsive').after(contenedorPaginacion);
-            }
-
-            if (total === 0) {
-                contenedorPaginacion.innerHTML = '';
-                return;
-            }
-
-            const inicio = ((pagina - 1) * registrosPorPagina) + 1;
-            const fin = Math.min(pagina * registrosPorPagina, total);
-
-            contenedorPaginacion.innerHTML = `
-                <div>
-                    Mostrando <strong>${inicio}-${fin}</strong> de <strong>${total.toLocaleString()}</strong> registros
-                </div>
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <button class="pill-btn" onclick="cambiarPagina(${pagina - 1})" ${pagina === 1 ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>◀ Anterior</button>
-                    <span style="margin: 0 4px;">Página <strong>${pagina}</strong> de <strong>${totalPaginas}</strong></span>
-                    <button class="pill-btn" onclick="cambiarPagina(${pagina + 1})" ${pagina === totalPaginas ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}>Siguiente ▶</button>
-                </div>
-            `;
-        }
-
-        function cambiarPagina(nuevaPagina) {
-            paginaActual = nuevaPagina;
-            actualizarTabla();
-            document.querySelector('.table-responsive').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function descargarExcelFiltrado() {
-            const datosFiltrados = obtenerRegistrosFiltrados();
-            if (datosFiltrados.length === 0) {
-                alert("No hay registros bajo el filtro actual para descargar.");
-                return;
-            }
-
-            const datosParaExcel = datosFiltrados.map(item => ({
-                "Cód. Barra": item.codBarra || 'S/C',
-                "Cód. Interno": item.codInterno || 'S/C',
-                "Descripción del Producto": item.producto,
-                "Departamento": (item.departamento || 'GENERAL').toUpperCase(),
-                "Proveedor": (item.proveedor || 'S/P').toUpperCase(),
-                "N° Factura": item.numFactura || 'S/F',
-                "N° Lote": item.lote || 'S/L',
-                "Cantidad": item.cantidad || 0,
-                "Costo Unitario ($)": item.costoUnitario || 0,
-                "Costo Total ($)": item.costoTotal || 0,
-                "Fecha Recepción": formatearFechaMostrar(item.fechaRecepcion),
-                "Fecha Vencimiento": formatearFechaMostrar(item.fechaVencimiento),
-                "Estatus": item.inhabilitado ? 'INHABILITADO' : calcularEstado(item.fechaVencimiento).texto,
-                "Recibe": item.personaRecibe || 'S/N',
-                "Observaciones": item.observaciones || ''
-            }));
-
-            const worksheet = XLSX.utils.json_to_sheet(datosParaExcel);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Filtrado");
-
-            XLSX.writeFile(workbook, `reporte_productos_${filtroEstadoActual}_${new Date().toISOString().slice(0,10)}.xlsx`);
-        }
-
-        function abrirModalItem(item) {
-            itemSeleccionadoActual = item;
-            
-            document.getElementById('modalTituloProducto').innerText = item.producto;
-            document.getElementById('modalCodigos').innerText = `Barra: ${item.codBarra || 'S/C'} | Int: ${item.codInterno || 'S/C'}`;
-            document.getElementById('modalDpto').innerText = (item.departamento || 'GENERAL').toUpperCase();
-            document.getElementById('modalProveedor').innerText = (item.proveedor || 'S/P').toUpperCase();
-            document.getElementById('modalFacturaLote').innerText = `Fac: ${item.numFactura || 'S/F'} | Lote: ${item.lote || 'S/L'}`;
-            document.getElementById('modalCantCostos').innerText = `${item.cantidad || 0} Uds. | Unit: $${(item.costoUnitario || 0).toFixed(2)} | Total: $${(item.costoTotal || 0).toFixed(2)}`;
-            document.getElementById('modalRecibe').innerText = item.personaRecibe || 'S/N';
-            document.getElementById('modalObservaciones').innerText = item.observaciones || '-';
-
-            const btnInhabilitar = document.getElementById('btnModalInhabilitar');
-            if (item.inhabilitado) {
-                btnInhabilitar.innerHTML = '✅ Habilitar';
-                btnInhabilitar.style.backgroundColor = 'var(--green-primary)';
-            } else {
-                btnInhabilitar.innerHTML = '🚫 Inhabilitar';
-                btnInhabilitar.style.backgroundColor = 'var(--dark-inhabilitar)';
-            }
-
-            btnInhabilitar.onclick = () => {
-                cerrarModal();
-                item.inhabilitado = !item.inhabilitado;
-                guardarDatosDB([item]).then(() => {
-                    alert(item.inhabilitado ? "Artículo inhabilitado correctamente." : "Artículo habilitado correctamente.");
-                });
-            };
-
-            document.getElementById('btnModalEditar').onclick = () => {
-                cerrarModal();
-                editarItem(item.id);
-            };
-
-            document.getElementById('btnModalKardex').onclick = () => {
-                cerrarModal();
-                verKardex(item.codBarra);
-            };
-
-            document.getElementById('btnModalEliminar').onclick = () => {
-                cerrarModal();
-                verificarClaveAdmin(() => {
-                    if (confirm(`¿Deseas eliminar este registro (${item.producto} - Lote: ${item.lote})?`)) {
-                        eliminarRegistroDB(item.id).then(() => {
-                            alert("Ítem eliminado correctamente.");
-                        });
-                    }
-                });
-            };
-
-            document.getElementById('modalAcciones').style.display = 'flex';
-        }
-
-        function cerrarModal() {
-            document.getElementById('modalAcciones').style.display = 'none';
-        }
-
-        function cerrarModalFuera(event) {
-            if (event.target === document.getElementById('modalAcciones')) {
-                cerrarModal();
-            }
-        }
-
-        function editarItem(id) {
-            const item = registros.find(r => String(r.id) === String(id));
-            
-            if (!item) {
-                alert("No se encontró el artículo seleccionado.");
-                return;
-            }
-
-            document.getElementById('editId').value = item.id;
-            document.getElementById('codBarra').value = (item.codBarra && item.codBarra !== 'S/C') ? item.codBarra : '';
-            document.getElementById('codInterno').value = (item.codInterno && item.codInterno !== 'S/C') ? item.codInterno : '';
-            document.getElementById('producto').value = item.producto || '';
-            document.getElementById('departamento').value = item.departamento || '';
-            document.getElementById('proveedor').value = item.proveedor || '';
-            document.getElementById('numFactura').value = (item.numFactura && item.numFactura !== 'S/F') ? item.numFactura : '';
-            document.getElementById('personaRecibe').value = (item.personaRecibe && item.personaRecibe !== 'S/N') ? item.personaRecibe : '';
-            document.getElementById('lote').value = (item.lote && item.lote !== 'S/L') ? item.lote : '';
-            document.getElementById('cantidad').value = item.cantidad || 1;
-            document.getElementById('costoUnitario').value = item.costoUnitario || '';
-            document.getElementById('costoTotal').value = item.costoTotal || '';
-
-            document.getElementById('fechaRecepcion').value = formatearFechaInput(item.fechaRecepcion) || new Date().toISOString().substring(0, 10);
-            document.getElementById('fechaCaducidad').value = formatearFechaInput(item.fechaVencimiento);
-            document.getElementById('observaciones').value = item.observaciones || '';
-
-            document.getElementById('btnEliminarForm').style.display = 'inline-flex';
-            document.getElementById('btnCancelarEdicion').style.display = 'inline-flex';
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            setTimeout(() => {
-                document.getElementById('producto').focus();
-            }, 300);
-        }
-
-        function verKardex(codBarra) {
-    const item = registros.find(r => String(r.codBarra) === String(codBarra) || String(r.id) === String(codBarra));
-    
-    if (!item) {
-        alert("No se encontró el historial para el código especificado.");
-        return;
-    }
-
-    const estado = item.inhabilitado ? { texto: 'INHABILITADO', clase: 'badge-inhabilitado' } : calcularEstado(item.fechaVencimiento);
-    const ventanaKardex = window.open('', '_blank', 'width=1100,height=750');
-    
-    const htmlKardex = `<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Kardex - ${item.producto}</title>
-    <style>
-        @page { size: letter landscape; margin: 8mm; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 10px 20px; color: #1e293b; background: #fff; max-width: 1050px; margin: 0 auto; }
-        .header-kardex { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #f5b000; padding-bottom: 10px; margin-bottom: 12px; }
-        .logo-kardex { height: 50px; max-width: 220px; object-fit: contain; }
-        .header-title-container { text-align: right; }
-        .header-title-container h1 { margin: 0; font-size: 1.5rem; color: #123e1b; font-weight: 800; text-transform: uppercase; }
-        .header-title-container p { margin: 2px 0 0 0; font-size: 0.9rem; color: #475569; font-weight: 600; }
-        .info-box.full-width { border: 2px solid #a5d6a7; border-radius: 6px; padding: 8px 14px; background-color: #e8f5e9; margin-bottom: 10px; display: flex; flex-direction: column; }
-        .info-box.full-width label { font-size: 0.8rem; color: #123e1b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .info-box.full-width span { font-size: 1.4rem; font-weight: 800; color: #123e1b; word-break: break-word; }
-        .kardex-horizontal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .info-box { border: 2px solid #cbd5e1; border-radius: 6px; padding: 8px 14px; background-color: #f8fafc; display: flex; flex-direction: column; justify-content: center; }
-        .info-box label { font-size: 0.78rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
-        .info-box span { font-size: 1.15rem; font-weight: 800; color: #0f172a; word-break: break-word; }
-        .print-bar { margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-print { background-color: #123e1b; color: white; border: none; padding: 8px 18px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-        .btn-close { background-color: #e2e8f0; color: #334155; border: none; padding: 8px 18px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; cursor: pointer; }
-        @media print { .print-bar { display: none; } body { padding: 0; max-width: 100%; } .info-box, .info-box.full-width { border-color: #000; } }
-    </style>
-</head>
-<body>
-    <div class="print-bar">
-        <button class="btn-print" onclick="window.print()">🖨️ Imprimir Kardex</button>
-        <button class="btn-close" onclick="window.close()">Cerrar</button>
-    </div>
-    <div class="header-kardex">
-        <div><img src="logo.png" alt="Hipergalerias Logo" class="logo-kardex" onerror="this.onerror=null; this.src='logo.jpeg';"></div>
-        <div class="header-title-container">
-            <h1>HIPERGALERIAS</h1>
-            <p>Ficha Kardex de Producto</p>
-            <p style="font-size: 0.8rem; color: #64748b; margin-top: 2px;">Emisión: ${new Date().toLocaleDateString('es-ES')}</p>
-        </div>
-    </div>
-    <div class="info-box full-width">
-        <label>Descripción del Producto</label>
-        <span>${item.producto}</span>
-    </div>
-    <div class="kardex-horizontal-grid">
-        <div class="info-box"><label>Código de Barras</label><span>${item.codBarra || 'S/C'}</span></div>
-        <div class="info-box"><label>Código Interno</label><span>${item.codInterno || 'S/C'}</span></div>
-        <div class="info-box"><label>Departamento</label><span>${(item.departamento || 'GENERAL').toUpperCase()}</span></div>
-        <div class="info-box"><label>Proveedor</label><span>${(item.proveedor || 'S/P').toUpperCase()}</span></div>
-        <div class="info-box"><label>N° de Factura</label><span>${item.numFactura || 'S/F'}</span></div>
-        <div class="info-box"><label>N° Lote</label><span>${item.lote || 'S/L'}</span></div>
-        <div class="info-box"><label>Cantidad Disponible</label><span>${item.cantidad || 0} Uds.</span></div>
-        <div class="info-box"><label>Fecha de Recepción</label><span>${formatearFechaMostrar(item.fechaRecepcion)}</span></div>
-        <div class="info-box"><label>Fecha de Vencimiento</label><span>${formatearFechaMostrar(item.fechaVencimiento)}</span></div>
-        <div class="info-box"><label>Estatus del Producto</label><span style="color: ${item.inhabilitado ? '#2c3e50' : '#c62828'};">${estado.texto}</span></div>
-    </div>
-</body>
-</html>`;
-
-    ventanaKardex.document.write(htmlKardex);
-    ventanaKardex.document.close();
-}
-
-        function actualizarTodo() {
-            actualizarDashboard();
-            actualizarTabla();
-        }
-
-        function cargarExcel(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true, raw: false });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-                    if (jsonData.length === 0) {
-                        alert('El archivo Excel no contiene datos.');
-                        return;
-                    }
-
-                    const nuevosRegistros = [];
-                    const hoy = new Date().toISOString().substring(0, 10);
-                    let baseId = Date.now();
-
-                    jsonData.forEach((row, index) => {
-                        const keys = Object.keys(row);
-                        let codBarra = "", codInterno = "", producto = "", departamento = "GENERAL", proveedor = "S/P", numFactura = "S/F", personaRecibe = "S/N", lote = "S/L", cantidad = 1, costoUnitario = 0, costoTotal = 0, fechaRecepcion = hoy, fechaVencimiento = "", observaciones = "";
-
-                        keys.forEach(k => {
-                            const kUp = k.trim().toUpperCase();
-                            if (kUp.includes("BARRA") || kUp.includes("EAN") || kUp.includes("UPC")) codBarra = row[k];
-                            if (kUp.includes("INT") || kUp.includes("CODIGO") || kUp.includes("SKU")) codInterno = row[k];
-                            if (kUp.includes("PROD") || kUp.includes("ARTIC") || kUp.includes("DESC") || kUp.includes("NOM")) producto = row[k];
-                            if (kUp.includes("DPTO") || kUp.includes("DEP") || kUp.includes("CATEG")) departamento = row[k];
-                            if (kUp.includes("PROV") || kUp.includes("ORIG")) proveedor = row[k];
-                            if (kUp.includes("FACT") || kUp.includes("FACTURA")) numFactura = row[k];
-                            if (kUp.includes("RECIBE") || kUp.includes("RESPONSABLE")) personaRecibe = row[k];
-                            if (kUp.includes("LOTE")) lote = row[k];
-                            if (kUp.includes("CANT")) cantidad = parseInt(row[k]) || 1;
-                            if (kUp.includes("UNIT") || kUp.includes("P.UNIT")) costoUnitario = parseFloat(row[k]) || 0;
-                            if (kUp.includes("TOTAL") || kUp.includes("COSTO")) costoTotal = parseFloat(row[k]) || 0;
-                            if (kUp.includes("RECEPCION")) fechaRecepcion = row[k];
-                            if (kUp.includes("VENC") || kUp.includes("CADUC") || kUp.includes("EXPIR")) fechaVencimiento = row[k];
-                            if (kUp.includes("OBS") || kUp.includes("NOTA")) observaciones = row[k];
-                        });
-
-                        if (!producto && keys.length > 0) producto = row[keys[0]];
-                        if (costoTotal === 0 && costoUnitario > 0 && cantidad > 0) costoTotal = costoUnitario * cantidad;
-
-                        if (producto && String(producto).trim() !== "") {
-                            nuevosRegistros.push({
-                                id: baseId + index,
-                                codBarra: String(codBarra || codInterno || 'S/C'),
-                                codInterno: String(codInterno || 'S/C'),
-                                producto: String(producto),
-                                departamento: String(departamento || 'GENERAL'),
-                                proveedor: String(proveedor || 'S/P'),
-                                numFactura: String(numFactura || 'S/F'),
-                                personaRecibe: String(personaRecibe || 'S/N'),
-                                lote: String(lote || 'S/L'),
-                                cantidad: cantidad,
-                                costoUnitario: costoUnitario,
-                                costoTotal: costoTotal,
-                                fechaRecepcion: normalizarFechaGuardada(fechaRecepcion || hoy),
-                                fechaVencimiento: normalizarFechaGuardada(fechaVencimiento),
-                                observaciones: String(observaciones || ''),
-                                inhabilitado: false
-                            });
-                        }
-                    });
-
-                    if (nuevosRegistros.length > 0) {
-                        guardarDatosDB(nuevosRegistros).then(() => {
-                            cargarDatosDB().then(() => {
-                                alert(`¡Éxito! Se importaron y guardaron ${nuevosRegistros.length.toLocaleString()} productos de forma permanente.`);
-                            });
-                        });
-                    } else {
-                        alert('No se pudieron leer filas válidas en el Excel.');
-                    }
-
-                    document.getElementById('excelFileInput').value = '';
-                } catch (err) {
-                    console.error(err);
-                    alert('Error al leer el archivo Excel.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function exportarRespaldoJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(registros, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `respaldo_recepcion_hipergalerias_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importarRespaldoJSON(event) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const datosImportados = JSON.parse(e.target.result);
-                    if (Array.isArray(datosImportados)) {
-                        guardarDatosDB(datosImportados).then(() => {
-                            cargarDatosDB().then(() => {
-                                alert('Respaldo masivo importado y guardado correctamente.');
-                            });
-                        });
-                    } else {
-                        alert('El archivo JSON no es válido.');
-                    }
-                } catch (err) {
-                    alert('Error al leer el archivo JSON.');
-                }
-            };
-            reader.readAsText(event.target.files[0]);
-        }
-
-
-        // --- TEMA VISUAL (no interviene en la lógica de datos existente) ---
-        function aplicarTema(oscuro) {
-            document.body.classList.toggle('theme-dark', oscuro);
-            const toggle = document.getElementById('themeToggle');
-            const icon = document.getElementById('themeToggleIcon');
-            const label = document.getElementById('themeToggleLabel');
-            if (!toggle) return;
-
-            toggle.setAttribute('aria-pressed', oscuro ? 'true' : 'false');
-            toggle.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro');
-            toggle.title = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
-            if (icon) icon.textContent = oscuro ? '☀' : '☾';
-            if (label) label.textContent = oscuro ? 'Modo claro' : 'Modo oscuro';
-        }
-
-        function inicializarTema() {
-            const preferenciaGuardada = localStorage.getItem('hipergalerias_tema_recepcion');
-            const usaPreferenciaSistema = preferenciaGuardada === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            aplicarTema(preferenciaGuardada === 'dark' || usaPreferenciaSistema);
-
-            const toggle = document.getElementById('themeToggle');
-            if (toggle) {
-                toggle.addEventListener('click', () => {
-                    const oscuro = !document.body.classList.contains('theme-dark');
-                    aplicarTema(oscuro);
-                    localStorage.setItem('hipergalerias_tema_recepcion', oscuro ? 'dark' : 'light');
-                });
-            }
-        }
-
-        inicializarTema();
-
-        window.onload = function() {
-            cargarDatosDB();
-        };
+        });
+
+        window.addEventListener('storage', function() {
+            sincronizarDashboard();
+        });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Archivo local de credenciales -->
-    <script src="conexion.js"></script>
 </body>
 </html>
