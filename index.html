@@ -130,6 +130,7 @@
             font-size: 0.82rem;
             font-weight: 600;
             color: var(--text-color);
+            white-space: nowrap;
         }
 
         .btn-login-trigger {
@@ -256,7 +257,6 @@
             padding: 0 24px;
         }
 
-        /* TARJETA EJECUTIVA CON MARCA DE AGUA DETALLADA */
         .welcome-card {
             background: linear-gradient(135deg, #0e3316 0%, #1b5e20 100%);
             color: white;
@@ -293,7 +293,6 @@
             font-weight: 400;
         }
 
-        /* MARCA DE AGUA CONSERVALINEAS Y DETALLES */
         .welcome-card-watermark {
             position: absolute;
             right: 15px;
@@ -458,7 +457,6 @@
             letter-spacing: -0.02em;
         }
 
-        /* Colores dinámicos */
         .metric-box.state-alert-green { background-color: #f0fdf4; border-color: #bbf7d0; }
         .metric-box.state-alert-green .metric-value { color: #166534; }
 
@@ -651,9 +649,6 @@
         </div>
         
         <div class="header-actions">
-            <!-- Contenedor dinámico de Login / Sesión -->
-            <div id="userAuthContainer"></div>
-
             <!-- Conmutador Modo Oscuro -->
             <div class="theme-switch-wrapper">
                 <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
@@ -662,6 +657,9 @@
                     <div class="slider round"></div>
                 </label>
             </div>
+
+            <!-- Contenedor dinámico de Login / Sesión (Ubicado a la extrema derecha) -->
+            <div id="userAuthContainer"></div>
         </div>
     </header>
 
@@ -671,7 +669,6 @@
                 <h2>Panel de Control Ejecutivo</h2>
                 <p>Supervisión general de operaciones, inventarios, costos y sistemas de Hipergalerías.</p>
             </div>
-            <!-- Silueta en marca de agua manteniendo los bordes e identidad gráfica -->
             <img src="logo solo g.png" alt="Galeria G Watermark" class="welcome-card-watermark" onerror="this.onerror=null; this.src='logo.png';">
         </div>
 
@@ -857,7 +854,7 @@
     </div>
 
     <script>
-        // --- MANEJO DE MODO OSCURO ---
+        // --- MANEJO DE MODO OSCURO (UNIFICADO) ---
         function toggleDarkTheme(isDark) {
             if (isDark) {
                 document.body.classList.add('dark-mode');
@@ -988,7 +985,6 @@
         }
 
         function sincronizarDashboard() {
-            // Módulo 1 (Recepción y Fechas)
             let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
             let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
             let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
@@ -1001,7 +997,6 @@
             actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
             actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
 
-            // Módulo 2 (Descuentos Empleados)
             try {
                 const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
                 let cantPendientes = 0;
@@ -1031,7 +1026,6 @@
                 console.error("Error al sincronizar descuentos en el index:", e);
             }
 
-            // Módulo 3 (Recetas y Costos)
             try {
                 const recetasDB = JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
                 const insumosDB = JSON.parse(localStorage.getItem('hipergalerias_insumos_db')) || [];
@@ -1045,7 +1039,6 @@
                 console.error("Error al sincronizar recetas en el index:", e);
             }
 
-            // Módulo 4 (TI Equipos)
             try {
                 const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
                 document.getElementById('val-mod4-equipos').innerText = tiDB.length;
@@ -1058,7 +1051,6 @@
             }
         }
 
-        // --- INICIALIZACIÓN DE PÁGINA ---
         window.addEventListener('DOMContentLoaded', async () => {
             cargarTemaGuardado();
             sincronizarDashboard();

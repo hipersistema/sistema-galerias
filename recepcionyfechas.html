@@ -4,8 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro / Recepción de Producto - Hipergalerias</title>
-    <!-- Librería SheetJS para importar/exportar archivos Excel (.xlsx / .csv) -->
+    <!-- Librería SheetJS para importar/exportar archivos Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- SDK de Supabase y conexion -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="conexion.js"></script>
+
     <style>
         :root {
             --green-dark: #123e1b;
@@ -104,7 +109,6 @@
         .btn-delete { background-color: var(--red); color: white; border: none; padding: 10px 24px; }
         .btn-delete:hover { background-color: #a71d1d; }
 
-        /* CONTENEDOR OPTIMIZADO PARA APROVECHAR PANTALLA COMPLETA */
         .container {
             padding: 20px 30px;
             max-width: 100%;
@@ -487,14 +491,48 @@
             align-items: center;
             gap: 6px;
         }
+
+        /* PERFIL DE USUARIO Y BOTÓN DE LOGOUT */
+        .user-profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: #ecfdf5;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #d7e0da;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #17211b;
+            white-space: nowrap;
+        }
+
+        body.theme-dark .user-profile-badge {
+            background-color: #163a26;
+            border-color: #263b34;
+            color: #e7f1ec;
+        }
+
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background-color 0.2s;
+        }
+
+        .btn-logout:hover {
+            background-color: #dc2626;
+        }
     </style>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-/* ================================================================
-   CAPA VISUAL — REDISEÑO + MODO OSCURO
-   No modifica la lógica existente: solo apariencia y tema.
-   ================================================================ */
 :root {
     --green-dark: #14532d;
     --green-primary: #15803d;
@@ -583,7 +621,7 @@ header {
 .btn {
     min-height: 38px;
     padding: 8px 13px;
-    border-radius: 9px;
+    border-radius: 999px;
     font-size: .78rem;
     font-weight: 700;
     border-width: 1px;
@@ -615,7 +653,6 @@ header {
     border-color: #d5dde5;
 }
 
-/* NAVEGACION ENTRE MODULOS */
 .header-separator {
     width: 1px;
     height: 30px;
@@ -630,7 +667,7 @@ header {
     border: 1px solid #f0b7b7;
     min-height: 38px;
     padding: 8px 15px;
-    border-radius: 9px;
+    border-radius: 999px;
     font-size: .78rem;
     font-weight: 800;
 }
@@ -960,9 +997,7 @@ code {
     background: #fff !important;
 }
 
-/* =============================
-   TEMA OSCURO
-   ============================= */
+/* TEMA OSCURO */
 html:has(body.theme-dark) {
     color-scheme: dark;
 }
@@ -1263,22 +1298,28 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             </div>
         </div>
         <div class="header-actions">
-            <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
-                <span class="theme-toggle-icon" id="themeToggleIcon">☾</span>
-                <span class="theme-toggle-label" id="themeToggleLabel">Modo oscuro</span>
-                <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
-            </button>
-            <div class="btn-header-container">
-            <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="cargarExcel(event)">
-            <button class="btn btn-backup-export" onclick="exportarRespaldoJSON()">💾 Exportar Respaldo</button>
-            </div>
+    <div class="btn-header-container">
+        <input type="file" id="excelFileInput" accept=".xlsx, .xls, .csv" style="display:none;" onchange="cargarExcel(event)">
+        <button class="btn btn-backup-export" onclick="exportarRespaldoJSON()">💾 Exportar Respaldo</button>
+    </div>
 
-            <span class="header-separator" aria-hidden="true"></span>
+    <!-- Interruptor Modo Oscuro -->
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
+        <span class="theme-toggle-icon" id="themeToggleIcon">☾</span>
+        <span class="theme-toggle-label" id="themeToggleLabel">Modo oscuro</span>
+        <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
+    </button>
 
-            <button type="button" class="btn btn-return" onclick="history.back()" title="Regresar al módulo anterior">
-                ← Regresar
-            </button>
-        </div>
+    <span class="header-separator" aria-hidden="true"></span>
+
+    <!-- Botón Regresar ubicado al lado del badge de usuario -->
+    <button type="button" class="btn btn-return" onclick="window.location.href='index.html'" title="Regresar al panel principal">
+        ← Regresar
+    </button>
+
+    <!-- Contenedor dinámico de Login / Sesión (Badge de usuario) -->
+    <div id="userAuthContainer"></div>
+</div>
     </header>
 
     <div class="container">
@@ -1462,7 +1503,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
         </div>
     </div>
 
-    <!-- MODAL DE CLAVE DE SEGURIDAD (CON ASTERISCOS ****) -->
+    <!-- MODAL DE CLAVE DE SEGURIDAD -->
     <div class="modal-overlay" id="modalClaveSeguridad" style="z-index: 1100;">
         <div class="modal-card" style="max-width: 400px;">
             <div class="modal-header" style="background-color: var(--red);">
@@ -1485,7 +1526,6 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
     <script>
         let registros = [];
         let filtroEstadoActual = 'todos';
-        let db;
         let itemSeleccionadoActual = null;
         let sortDirections = {};
         let timeoutBusqueda = null;
@@ -1493,11 +1533,39 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
         let paginaActual = 1;
         const registrosPorPagina = 100;
 
-        // CLAVE DE SEGURIDAD PARA ELIMINAR (Puedes cambiar "1234" por la clave que prefieras)
         const CLAVE_ELIMINACION = "1234";
         let callbackClaveExito = null;
 
         document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
+
+        // --- AUTENTICACIÓN Y SESIÓN COMPARTIDA ---
+        async function ejecutarLogout() {
+            if (typeof supabaseClient !== 'undefined') {
+                await supabaseClient.auth.signOut();
+                window.location.href = 'index.html';
+            }
+        }
+
+        function gestionarEstadoSesion(session) {
+            const authContainer = document.getElementById('userAuthContainer');
+
+            if (session && session.user) {
+                const metadata = session.user.user_metadata || {};
+                const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
+                const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+
+                if (authContainer) {
+                    authContainer.innerHTML = `
+                        <div class="user-profile-badge">
+                            <span>Bienvenido, <strong>${nombreFormateado}</strong></span>
+                            <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
+                        </div>
+                    `;
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
 
         function verificarClaveAdmin(callback) {
             callbackClaveExito = callback;
@@ -1587,70 +1655,67 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             }
         }
 
-        
         async function cargarDatosDB() {
-        const { data, error } = await supabaseClient
-        .from('recepcion_fechas')
-        .select('*')
-        .order('id', { ascending: false });
+            if (typeof supabaseClient === 'undefined') return;
 
-    if (error) {
-        console.error("Error al consultar Supabase:", error);
-        alert("Error al cargar datos desde la nube: " + error.message);
-        return;
-    }
+            const { data, error } = await supabaseClient
+                .from('recepcion_fechas')
+                .select('*')
+                .order('id', { ascending: false });
 
-    registros = data || [];
-    
-    // Normalizar fechas y valores predeterminados
-    registros.forEach(item => {
-        item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion);
-        item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento);
-        if (item.inhabilitado === undefined) item.inhabilitado = false;
-    });
+            if (error) {
+                console.error("Error al consultar Supabase:", error);
+                alert("Error al cargar datos desde la nube: " + error.message);
+                return;
+            }
 
-    actualizarTodo();
-    sincronizarDashboardLocalStorage();
-}
+            registros = data || [];
+            
+            registros.forEach(item => {
+                item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion);
+                item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento);
+                if (item.inhabilitado === undefined) item.inhabilitado = false;
+            });
 
-        // --- GUARDAR O ACTUALIZAR REGISTROS (UPSERT) ---
-    async function guardarDatosDB(nuevosItems) {
-    // Formatear fechas vacías a null para evitar incompatibilidad con el tipo 'date' de Postgres
-    const itemsFormateados = nuevosItems.map(item => ({
-        ...item,
-        fechaRecepcion: normalizarFechaGuardada(item.fechaRecepcion) || null,
-        fechaVencimiento: normalizarFechaGuardada(item.fechaVencimiento) || null,
-        inhabilitado: item.inhabilitado !== undefined ? item.inhabilitado : false
-    }));
+            actualizarTodo();
+            sincronizarDashboardLocalStorage();
+        }
 
-    const { error } = await supabaseClient
-        .from('recepcion_fechas')
-        .upsert(itemsFormateados);
+        async function guardarDatosDB(nuevosItems) {
+            const itemsFormateados = nuevosItems.map(item => ({
+                ...item,
+                fechaRecepcion: normalizarFechaGuardada(item.fechaRecepcion) || null,
+                fechaVencimiento: normalizarFechaGuardada(item.fechaVencimiento) || null,
+                inhabilitado: item.inhabilitado !== undefined ? item.inhabilitado : false
+            }));
 
-    if (error) {
-        console.error("Error al guardar en Supabase:", error);
-        alert("Error al guardar en la nube: " + error.message);
-        return;
-    }
+            const { error } = await supabaseClient
+                .from('recepcion_fechas')
+                .upsert(itemsFormateados);
 
-    await cargarDatosDB();
-}
+            if (error) {
+                console.error("Error al guardar en Supabase:", error);
+                alert("Error al guardar en la nube: " + error.message);
+                return;
+            }
 
-        // --- ELIMINAR REGISTRO DE SUPABASE ---
-    async function eliminarRegistroDB(idItem) {
-    const { error } = await supabaseClient
-        .from('recepcion_fechas')
-        .delete()
-        .eq('id', idItem);
+            await cargarDatosDB();
+        }
 
-    if (error) {
-        console.error("Error al eliminar en Supabase:", error);
-        alert("Error al eliminar en la nube: " + error.message);
-        return;
-    }
+        async function eliminarRegistroDB(idItem) {
+            const { error } = await supabaseClient
+                .from('recepcion_fechas')
+                .delete()
+                .eq('id', idItem);
 
-    await cargarDatosDB();
-}
+            if (error) {
+                console.error("Error al eliminar en Supabase:", error);
+                alert("Error al eliminar en la nube: " + error.message);
+                return;
+            }
+
+            await cargarDatosDB();
+        }
 
         function normalizarFechaGuardada(val) {
             if (!val || val === 'S/F' || val === '-') return '';
@@ -1726,40 +1791,39 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             return normalizarFechaGuardada(fechaStr);
         }
 
-    
-    async function registrarProducto(event) {
-    event.preventDefault();
-    
-    const editId = document.getElementById('editId').value;
-    const existenteAntiguo = editId ? registros.find(r => String(r.id) === String(editId)) : null;
+        async function registrarProducto(event) {
+            event.preventDefault();
+            
+            const editId = document.getElementById('editId').value;
+            const existenteAntiguo = editId ? registros.find(r => String(r.id) === String(editId)) : null;
 
-    const nuevo = {
-        id: editId ? parseFloat(editId) : Date.now(),
-        codBarra: document.getElementById('codBarra').value || 'S/C',
-        codInterno: document.getElementById('codInterno').value || 'S/C',
-        producto: document.getElementById('producto').value,
-        departamento: document.getElementById('departamento').value || 'GENERAL',
-        proveedor: document.getElementById('proveedor').value || 'S/P',
-        numFactura: document.getElementById('numFactura').value || 'S/F',
-        personaRecibe: document.getElementById('personaRecibe').value || 'S/N',
-        lote: document.getElementById('lote').value || 'S/L',
-        cantidad: parseInt(document.getElementById('cantidad').value) || 1,
-        costoUnitario: parseFloat(document.getElementById('costoUnitario').value) || 0,
-        costoTotal: parseFloat(document.getElementById('costoTotal').value) || 0,
-        fechaRecepcion: normalizarFechaGuardada(document.getElementById('fechaRecepcion').value),
-        fechaVencimiento: normalizarFechaGuardada(document.getElementById('fechaCaducidad').value),
-        observaciones: document.getElementById('observaciones').value || '',
-        inhabilitado: existenteAntiguo ? !!existenteAntiguo.inhabilitado : false
-    };
+            const nuevo = {
+                id: editId ? parseFloat(editId) : Date.now(),
+                codBarra: document.getElementById('codBarra').value || 'S/C',
+                codInterno: document.getElementById('codInterno').value || 'S/C',
+                producto: document.getElementById('producto').value,
+                departamento: document.getElementById('departamento').value || 'GENERAL',
+                proveedor: document.getElementById('proveedor').value || 'S/P',
+                numFactura: document.getElementById('numFactura').value || 'S/F',
+                personaRecibe: document.getElementById('personaRecibe').value || 'S/N',
+                lote: document.getElementById('lote').value || 'S/L',
+                cantidad: parseInt(document.getElementById('cantidad').value) || 1,
+                costoUnitario: parseFloat(document.getElementById('costoUnitario').value) || 0,
+                costoTotal: parseFloat(document.getElementById('costoTotal').value) || 0,
+                fechaRecepcion: normalizarFechaGuardada(document.getElementById('fechaRecepcion').value),
+                fechaVencimiento: normalizarFechaGuardada(document.getElementById('fechaCaducidad').value),
+                observaciones: document.getElementById('observaciones').value || '',
+                inhabilitado: existenteAntiguo ? !!existenteAntiguo.inhabilitado : false
+            };
 
-    await guardarDatosDB([nuevo]);
+            await guardarDatosDB([nuevo]);
 
-    document.getElementById('formRecepcion').reset();
-    document.getElementById('editId').value = '';
-    document.getElementById('btnEliminarForm').style.display = 'none';
-    document.getElementById('btnCancelarEdicion').style.display = 'none';
-    document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
-}
+            document.getElementById('formRecepcion').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('btnEliminarForm').style.display = 'none';
+            document.getElementById('btnCancelarEdicion').style.display = 'none';
+            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
+        }
 
         function cancelarEdicionForm() {
             document.getElementById('formRecepcion').reset();
@@ -2145,17 +2209,17 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
         }
 
         function verKardex(codBarra) {
-    const item = registros.find(r => String(r.codBarra) === String(codBarra) || String(r.id) === String(codBarra));
-    
-    if (!item) {
-        alert("No se encontró el historial para el código especificado.");
-        return;
-    }
+            const item = registros.find(r => String(r.codBarra) === String(codBarra) || String(r.id) === String(codBarra));
+            
+            if (!item) {
+                alert("No se encontró el historial para el código especificado.");
+                return;
+            }
 
-    const estado = item.inhabilitado ? { texto: 'INHABILITADO', clase: 'badge-inhabilitado' } : calcularEstado(item.fechaVencimiento);
-    const ventanaKardex = window.open('', '_blank', 'width=1100,height=750');
-    
-    const htmlKardex = `<!DOCTYPE html>
+            const estado = item.inhabilitado ? { texto: 'INHABILITADO', clase: 'badge-inhabilitado' } : calcularEstado(item.fechaVencimiento);
+            const ventanaKardex = window.open('', '_blank', 'width=1100,height=750');
+            
+            const htmlKardex = `<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -2213,9 +2277,9 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
 </body>
 </html>`;
 
-    ventanaKardex.document.write(htmlKardex);
-    ventanaKardex.document.close();
-}
+            ventanaKardex.document.write(htmlKardex);
+            ventanaKardex.document.close();
+        }
 
         function actualizarTodo() {
             actualizarDashboard();
@@ -2320,29 +2384,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             downloadAnchor.remove();
         }
 
-        function importarRespaldoJSON(event) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const datosImportados = JSON.parse(e.target.result);
-                    if (Array.isArray(datosImportados)) {
-                        guardarDatosDB(datosImportados).then(() => {
-                            cargarDatosDB().then(() => {
-                                alert('Respaldo masivo importado y guardado correctamente.');
-                            });
-                        });
-                    } else {
-                        alert('El archivo JSON no es válido.');
-                    }
-                } catch (err) {
-                    alert('Error al leer el archivo JSON.');
-                }
-            };
-            reader.readAsText(event.target.files[0]);
-        }
-
-
-        // --- TEMA VISUAL (no interviene en la lógica de datos existente) ---
+        // --- MANEJO DE TEMA (UNIFICADO CON INDEX) ---
         function aplicarTema(oscuro) {
             document.body.classList.toggle('theme-dark', oscuro);
             const toggle = document.getElementById('themeToggle');
@@ -2358,29 +2400,36 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
         }
 
         function inicializarTema() {
-            const preferenciaGuardada = localStorage.getItem('hipergalerias_tema_recepcion');
-            const usaPreferenciaSistema = preferenciaGuardada === null && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-            aplicarTema(preferenciaGuardada === 'dark' || usaPreferenciaSistema);
+            const preferenciaGuardada = localStorage.getItem('hipergalerias_theme');
+            const esOscuro = preferenciaGuardada === 'dark';
+            aplicarTema(esOscuro);
 
             const toggle = document.getElementById('themeToggle');
             if (toggle) {
                 toggle.addEventListener('click', () => {
                     const oscuro = !document.body.classList.contains('theme-dark');
                     aplicarTema(oscuro);
-                    localStorage.setItem('hipergalerias_tema_recepcion', oscuro ? 'dark' : 'light');
+                    localStorage.setItem('hipergalerias_theme', oscuro ? 'dark' : 'light');
                 });
             }
         }
 
-        inicializarTema();
+        window.addEventListener('DOMContentLoaded', async () => {
+            inicializarTema();
 
-        window.onload = function() {
-            cargarDatosDB();
-        };
+            if (typeof supabaseClient !== 'undefined') {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                gestionarEstadoSesion(session);
+
+                supabaseClient.auth.onAuthStateChange((_event, session) => {
+                    gestionarEstadoSesion(session);
+                });
+                
+                await cargarDatosDB();
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Archivo local de credenciales -->
-    <script src="conexion.js"></script>
 </body>
 </html>
