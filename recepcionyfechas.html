@@ -1421,7 +1421,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
                 <button class="pill-btn" onclick="filtrarEstado('optimo', this)">🟢 Óptimos</button>
                 <button class="pill-btn" onclick="filtrarEstado('por_vencer', this)">⚠️ Por Vencer</button>
                 <button class="pill-btn" onclick="filtrarEstado('vencido', this)">🔴 Vencidos</button>
-                <button class="pill-btn pill-inhabilitados" onclick="filtrarEstado('inhabilitados', this)">🚫 Inhabilitados</button>
+                <button class="pill-btn pill-inhabilitados" onclick="filtrarEstado('inhabilitados', this)">🚫 Inhabilitados <span id="contadorInhabilitados" style="background:rgba(255,255,255,0.25); padding:1px 7px; border-radius:10px; margin-left:4px; font-size:0.75em;">0</span></button>
                 <button class="btn btn-excel" onclick="descargarExcelFiltrado()" style="padding: 6px 14px; font-size: 0.82rem; border-radius: 20px;">📥 Descargar Filtro en Excel</button>
             </div>
             <div class="search-box">
@@ -1889,6 +1889,8 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             document.getElementById('dashOptimos').innerText = optimos.toLocaleString();
             document.getElementById('dashPorVencer').innerText = porVencer.toLocaleString();
             document.getElementById('dashVencidos').innerText = vencidos.toLocaleString();
+        
+        actualizarContadorInhabilitados();
         }
 
         function filtrarEstado(estado, btn) {
@@ -2412,6 +2414,12 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
                     localStorage.setItem('hipergalerias_theme', oscuro ? 'dark' : 'light');
                 });
             }
+        }
+
+        function actualizarContadorInhabilitados() {
+            const total = registros.filter(item => item.inhabilitado).length;
+            const el = document.getElementById('contadorInhabilitados');
+            if (el) el.innerText = total.toLocaleString();
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
