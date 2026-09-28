@@ -1760,7 +1760,11 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             return str;
         }
 
-        function sincronizarDashboard() {
+        async function sincronizarDashboard() {
+            // ==========================================
+            // 1. MÓDULO 1: RECEPCIÓN Y FECHAS
+            // ==========================================
+            // Lectura inicial inmediata desde LocalStorage
             let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
             let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
             let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
@@ -1773,6 +1777,65 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
             actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
 
+            // Consulta en tiempo real a Supabase (Tabla: recepcion_fechas)
+            if (typeof supabaseClient !== 'undefined') {
+                try {
+                    const { data: fecheros, error } = await supabaseClient
+                        .from('recepcion_fechas')
+                        .select('*');
+
+                    if (!error && fecheros) {
+                        let countOptimos = 0;
+                        let countPorVencer = 0;
+                        let countVencidos = 0;
+
+                        const hoy = new Date();
+                        hoy.setHours(0, 0, 0, 0);
+
+                        fecheros.forEach(item => {
+                            const estado = (item.estado || item.status || '').toUpperCase();
+
+                            if (estado.includes('ÓPTIMO') || estado.includes('OPTIMO')) {
+                                countOptimos++;
+                            } else if (estado.includes('POR VENCER') || estado.includes('VENCER')) {
+                                countPorVencer++;
+                            } else if (estado.includes('VENCIDO')) {
+                                countVencidos++;
+                            } else if (item.fecha_vencimiento) {
+                                // Cálculo dinámico por fecha si el campo estado no viene explícito
+                                const fVenc = new Date(item.fecha_vencimiento);
+                                fVenc.setHours(0, 0, 0, 0);
+                                const diffDias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
+
+                                if (diffDias < 0) countVencidos++;
+                                else if (diffDias <= 15) countPorVencer++;
+                                else countOptimos++;
+                            } else {
+                                countOptimos++;
+                            }
+                        });
+
+                        document.getElementById('val-mod1-optimos').innerText = countOptimos;
+                        document.getElementById('val-mod1-porvencer').innerText = countPorVencer;
+                        document.getElementById('val-mod1-vencidos').innerText = countVencidos;
+
+                        actualizarColorMetrica('box-mod1-optimos', countOptimos, 'green');
+                        actualizarColorMetrica('box-mod1-porvencer', countPorVencer, 'orange');
+                        actualizarColorMetrica('box-mod1-vencidos', countVencidos, 'red');
+
+                        // Respaldar en localStorage
+                        localStorage.setItem('dashboard_mod1_optimos', countOptimos);
+                        localStorage.setItem('dashboard_mod1_porvencer', countPorVencer);
+                        localStorage.setItem('dashboard_mod1_vencidos', countVencidos);
+                    }
+                } catch (err) {
+                    console.error("Error consultando recepcion_fechas en Supabase:", err);
+                }
+            }
+
+            // ==========================================
+            // 2. MÓDULO 2: DESCUENTOS EMPLEADOS
+            // ==========================================
             try {
                 const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
                 let cantPendientes = 0;
@@ -1802,8 +1865,9 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
                 console.error("Error al sincronizar descuentos en el index:", e);
             }
 
-            // --- CONTEO DE RECETAS E INGREDIENTES ---
-            // 1. Respaldo de lectura inmediata desde LocalStorage
+            // ==========================================
+            // 3. MÓDULO 3: RECETAS Y COSTOS
+            // ==========================================
             try {
                 const recetasDB = JSON.parse(localStorage.getItem('catalogo_recetario')) || JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
                 const insumosDB = JSON.parse(localStorage.getItem('insumos_recetario')) || JSON.parse(localStorage.getItem('hipergalerias_insumos_db')) || [];
@@ -1817,7 +1881,6 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
                 console.error("Error al sincronizar recetas en localStorage:", e);
             }
 
-            // 2. Consulta en tiempo real a Supabase
             if (typeof supabaseClient !== 'undefined') {
                 supabaseClient.from('insumos').select('*', { count: 'exact', head: true }).then(({ count, error }) => {
                     if (!error && count !== null) {
@@ -1834,6 +1897,9 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
                 });
             }
 
+            // ==========================================
+            // 4. MÓDULO 4: TI EQUIPOS
+            // ==========================================
             try {
                 const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
                 document.getElementById('val-mod4-equipos').innerText = tiDB.length;
