@@ -1567,6 +1567,62 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             }
         }
 
+        // --- MANEJO DE FECHAS SEGURO ---
+        function normalizarFechaGuardada(val) {
+            if (!val || val === 'S/F' || val === '-') return '';
+            
+            if (val instanceof Date && !isNaN(val.getTime())) {
+                const yyyy = val.getFullYear();
+                const mm = String(val.getMonth() + 1).padStart(2, '0');
+                const dd = String(val.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            let str = String(val).trim();
+            if (str === '' || str === 'Invalid Date') return '';
+
+            if (str.includes('GMT') || str.includes('hora de')) {
+                const parsed = new Date(str);
+                if (!isNaN(parsed.getTime())) {
+                    const yyyy = parsed.getFullYear();
+                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+                    const dd = String(parsed.getDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                }
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+                const partes = str.split('/');
+                return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            }
+
+            const dGen = new Date(str);
+            if (!isNaN(dGen.getTime())) {
+                const yyyy = dGen.getFullYear();
+                const mm = String(dGen.getMonth() + 1).padStart(2, '0');
+                const dd = String(dGen.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            return str;
+        }
+
+        function formatearFechaMostrar(val) {
+            const norm = normalizarFechaGuardada(val);
+            if (!norm) return 'S/F';
+            const partes = norm.split('-');
+            if (partes.length === 3) {
+                return `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+            return norm;
+        }
+
+        function formatearFechaInput(val) {
+            return normalizarFechaGuardada(val);
+        }
+
         function verificarClaveAdmin(callback) {
             callbackClaveExito = callback;
             const inputClave = document.getElementById('inputClaveAdmin');
@@ -1655,6 +1711,21 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             }
         }
 
+        function sincronizarDashboardLocalStorage() {
+            let optimos = 0, porVencer = 0, vencidos = 0;
+            registros.forEach(item => {
+                if (item.inhabilitado) return;
+                const st = calcularEstado(item.fechaVencimiento).status;
+                if (st === 'optimo') optimos++;
+                if (st === 'por_vencer') porVencer++;
+                if (st === 'vencido') vencidos++;
+            });
+
+            localStorage.setItem('dashboard_mod1_optimos', optimos);
+            localStorage.setItem('dashboard_mod1_porvencer', porVencer);
+            localStorage.setItem('dashboard_mod1_vencidos', vencidos);
+        }
+
         async function cargarDatosDB() {
             if (typeof supabaseClient === 'undefined') return;
 
@@ -1672,8 +1743,10 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             registros = data || [];
             
             registros.forEach(item => {
-                item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion);
-                item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento);
+                item.codBarra = item.codBarra || item.cod_barra || 'S/C';
+                item.codInterno = item.codInterno || item.codinterno || item.cod_interno || 'S/C';
+                item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion || item.fecha_recepcion);
+                item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento || item.fecha_vencimiento);
                 if (item.inhabilitado === undefined) item.inhabilitado = false;
             });
 
@@ -1717,256 +1790,43 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             await cargarDatosDB();
         }
 
-        function normalizarFechaGuardada(val) {
-            if (!val || val === 'S/F' || val === '-') return '';
-            
-            if (val instanceof Date && !isNaN(val.getTime())) {
-                const yyyy = val.getFullYear();
-                const mm = String(val.getMonth() + 1).padStart(2, '0');
-                const dd = String(val.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-
-            let str = String(val).trim();
-            if (str === '' || str === 'Invalid Date') return '';
-
-            if (str.includes('GMT') || str.includes('hora de')) {
-                const parsed = new Date(str);
-                if (!isNaN(parsed.getTime())) {
-                    const yyyy = parsed.getFullYear();
-                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-                    const dd = String(parsed.getDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
-                }
-            }
-
-            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-                return str;
-            }
-
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
-                const partes = str.split('/');
-                return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-            }
-
-            const dGen = new Date(str);
-            if (!isNaN(dGen.getTime())) {
-                const yyyy = dGen.getFullYear();
-                const mm = String(dGen.getMonth() + 1).padStart(2, '0');
-                const dd = String(dGen.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-
-            return str;
-        }
-
-        async function sincronizarDashboard() {
-            // ==========================================
-            // 1. MÓDULO 1: RECEPCIÓN Y FECHAS
-            // ==========================================
-            // Lectura inicial inmediata desde LocalStorage
-            let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
-            let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
-            let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
-
-            document.getElementById('val-mod1-optimos').innerText = optimos;
-            document.getElementById('val-mod1-porvencer').innerText = porVencer;
-            document.getElementById('val-mod1-vencidos').innerText = vencidos;
-
-            actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
-            actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
-            actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
-
-            // Consulta en tiempo real a Supabase (Tabla: recepcion_fechas)
-            if (typeof supabaseClient !== 'undefined') {
-                try {
-                    const { data: fecheros, error } = await supabaseClient
-                        .from('recepcion_fechas')
-                        .select('*');
-
-                    if (!error && fecheros) {
-                        let countOptimos = 0;
-                        let countPorVencer = 0;
-                        let countVencidos = 0;
-
-                        const hoy = new Date();
-                        hoy.setHours(0, 0, 0, 0);
-
-                        fecheros.forEach(item => {
-                            const estado = (item.estado || item.status || '').toUpperCase();
-
-                            if (estado.includes('ÓPTIMO') || estado.includes('OPTIMO')) {
-                                countOptimos++;
-                            } else if (estado.includes('POR VENCER') || estado.includes('VENCER')) {
-                                countPorVencer++;
-                            } else if (estado.includes('VENCIDO')) {
-                                countVencidos++;
-                            } else if (item.fecha_vencimiento) {
-                                // Cálculo dinámico por fecha si el campo estado no viene explícito
-                                const fVenc = new Date(item.fecha_vencimiento);
-                                fVenc.setHours(0, 0, 0, 0);
-                                const diffDias = Math.ceil((fVenc - hoy) / (1000 * 60 * 60 * 24));
-
-                                if (diffDias < 0) countVencidos++;
-                                else if (diffDias <= 15) countPorVencer++;
-                                else countOptimos++;
-                            } else {
-                                countOptimos++;
-                            }
-                        });
-
-                        document.getElementById('val-mod1-optimos').innerText = countOptimos;
-                        document.getElementById('val-mod1-porvencer').innerText = countPorVencer;
-                        document.getElementById('val-mod1-vencidos').innerText = countVencidos;
-
-                        actualizarColorMetrica('box-mod1-optimos', countOptimos, 'green');
-                        actualizarColorMetrica('box-mod1-porvencer', countPorVencer, 'orange');
-                        actualizarColorMetrica('box-mod1-vencidos', countVencidos, 'red');
-
-                        // Respaldar en localStorage
-                        localStorage.setItem('dashboard_mod1_optimos', countOptimos);
-                        localStorage.setItem('dashboard_mod1_porvencer', countPorVencer);
-                        localStorage.setItem('dashboard_mod1_vencidos', countVencidos);
-                    }
-                } catch (err) {
-                    console.error("Error consultando recepcion_fechas en Supabase:", err);
-                }
-            }
-
-            // ==========================================
-            // 2. MÓDULO 2: DESCUENTOS EMPLEADOS
-            // ==========================================
-            try {
-                const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
-                let cantPendientes = 0;
-                let cantParciales = 0;
-                let montoPorCobrar = 0;
-
-                descuentosDB.forEach(item => {
-                    const montoTotal = parseFloat(item.monto || item.total || 0);
-                    const abonado = parseFloat(item.abonado || 0);
-                    const saldoPendiente = parseFloat(item.saldoPendiente !== undefined ? item.saldoPendiente : (montoTotal - abonado));
-
-                    if (saldoPendiente > 0) {
-                        montoPorCobrar += saldoPendiente;
-                        if (abonado > 0) cantParciales++;
-                        else cantPendientes++;
-                    }
-                });
-
-                document.getElementById('val-mod2-pendientes').innerText = cantPendientes;
-                document.getElementById('val-mod2-parciales').innerText = cantParciales;
-                document.getElementById('val-mod2-porcobrar').innerText = '$' + montoPorCobrar.toFixed(2);
-
-                actualizarColorMetrica('box-mod2-pendientes', cantPendientes, 'orange');
-                actualizarColorMetrica('box-mod2-parciales', cantParciales, 'orange');
-                actualizarColorMetrica('box-mod2-porcobrar', montoPorCobrar, 'red');
-            } catch (e) {
-                console.error("Error al sincronizar descuentos en el index:", e);
-            }
-
-            // ==========================================
-            // 3. MÓDULO 3: RECETAS Y COSTOS
-            // ==========================================
-            try {
-                const recetasDB = JSON.parse(localStorage.getItem('catalogo_recetario')) || JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
-                const insumosDB = JSON.parse(localStorage.getItem('insumos_recetario')) || JSON.parse(localStorage.getItem('hipergalerias_insumos_db')) || [];
-
-                document.getElementById('val-mod3-recetas').innerText = recetasDB.length;
-                document.getElementById('val-mod3-ingredientes').innerText = insumosDB.length;
-
-                actualizarColorMetrica('box-mod3-recetas', recetasDB.length, 'green');
-                actualizarColorMetrica('box-mod3-ingredientes', insumosDB.length, 'blue');
-            } catch (e) {
-                console.error("Error al sincronizar recetas en localStorage:", e);
-            }
-
-            if (typeof supabaseClient !== 'undefined') {
-                supabaseClient.from('insumos').select('*', { count: 'exact', head: true }).then(({ count, error }) => {
-                    if (!error && count !== null) {
-                        document.getElementById('val-mod3-ingredientes').innerText = count;
-                        actualizarColorMetrica('box-mod3-ingredientes', count, 'blue');
-                    }
-                });
-
-                supabaseClient.from('recetas').select('*', { count: 'exact', head: true }).then(({ count, error }) => {
-                    if (!error && count !== null) {
-                        document.getElementById('val-mod3-recetas').innerText = count;
-                        actualizarColorMetrica('box-mod3-recetas', count, 'green');
-                    }
-                });
-            }
-
-            // ==========================================
-            // 4. MÓDULO 4: TI EQUIPOS
-            // ==========================================
-            try {
-                const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
-                document.getElementById('val-mod4-equipos').innerText = tiDB.length;
-                document.getElementById('val-mod4-mant').innerText = '0';
-                
-                actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
-                actualizarColorMetrica('box-mod4-mant', 0, 'orange');
-            } catch (e) {
-                console.error("Error al sincronizar TI Equipos en el index:", e);
-            }
-        }
-
-        function formatearFechaMostrar(fechaStr) {
-            const norm = normalizarFechaGuardada(fechaStr);
-            if (!norm) return 'S/F';
-            
-            const partes = norm.split('-');
-            if (partes.length === 3) {
-                return `${partes[2]}/${partes[1]}/${partes[0]}`;
-            }
-            return norm;
-        }
-
-        function formatearFechaInput(fechaStr) {
-            return normalizarFechaGuardada(fechaStr);
-        }
-
         async function registrarProducto(event) {
             event.preventDefault();
             
             const editId = document.getElementById('editId').value;
-            const existenteAntiguo = editId ? registros.find(r => String(r.id) === String(editId)) : null;
-
-            const nuevo = {
-                id: editId ? parseFloat(editId) : Date.now(),
-                codBarra: document.getElementById('codBarra').value || 'S/C',
-                codInterno: document.getElementById('codInterno').value || 'S/C',
-                producto: document.getElementById('producto').value,
-                departamento: document.getElementById('departamento').value || 'GENERAL',
-                proveedor: document.getElementById('proveedor').value || 'S/P',
-                numFactura: document.getElementById('numFactura').value || 'S/F',
-                personaRecibe: document.getElementById('personaRecibe').value || 'S/N',
-                lote: document.getElementById('lote').value || 'S/L',
+            const itemData = {
+                codBarra: document.getElementById('codBarra').value.trim() || 'S/C',
+                codInterno: document.getElementById('codInterno').value.trim() || 'S/C',
+                producto: document.getElementById('producto').value.trim(),
+                departamento: document.getElementById('departamento').value.trim() || 'GENERAL',
+                proveedor: document.getElementById('proveedor').value.trim() || 'S/P',
+                numFactura: document.getElementById('numFactura').value.trim() || 'S/F',
+                personaRecibe: document.getElementById('personaRecibe').value.trim() || 'S/N',
+                lote: document.getElementById('lote').value.trim() || 'S/L',
                 cantidad: parseInt(document.getElementById('cantidad').value) || 1,
                 costoUnitario: parseFloat(document.getElementById('costoUnitario').value) || 0,
                 costoTotal: parseFloat(document.getElementById('costoTotal').value) || 0,
-                fechaRecepcion: normalizarFechaGuardada(document.getElementById('fechaRecepcion').value),
-                fechaVencimiento: normalizarFechaGuardada(document.getElementById('fechaCaducidad').value),
-                observaciones: document.getElementById('observaciones').value || '',
-                inhabilitado: existenteAntiguo ? !!existenteAntiguo.inhabilitado : false
+                fechaRecepcion: document.getElementById('fechaRecepcion').value || new Date().toISOString().substring(0, 10),
+                fechaVencimiento: document.getElementById('fechaCaducidad').value || null,
+                observaciones: document.getElementById('observaciones').value.trim(),
+                inhabilitado: false
             };
 
-            await guardarDatosDB([nuevo]);
+            if (editId) {
+                itemData.id = editId;
+            }
 
-            document.getElementById('formRecepcion').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('btnEliminarForm').style.display = 'none';
-            document.getElementById('btnCancelarEdicion').style.display = 'none';
-            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
+            await guardarDatosDB([itemData]);
+            cancelarEdicionForm();
+            alert(editId ? "¡Producto actualizado con éxito!" : "¡Producto registrado con éxito!");
         }
 
         function cancelarEdicionForm() {
             document.getElementById('formRecepcion').reset();
             document.getElementById('editId').value = '';
+            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
             document.getElementById('btnEliminarForm').style.display = 'none';
             document.getElementById('btnCancelarEdicion').style.display = 'none';
-            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
         }
 
         function eliminarItemActualForm() {
@@ -1974,10 +1834,10 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             if (!editId) return;
 
             verificarClaveAdmin(() => {
-                if (confirm("¿Estás seguro de que deseas eliminar este registro permanentemente?")) {
+                if (confirm("¿Está seguro de eliminar este ítem permanentemente?")) {
                     eliminarRegistroDB(editId).then(() => {
                         cancelarEdicionForm();
-                        alert("Registro eliminado exitosamente.");
+                        alert("Ítem eliminado correctamente.");
                     });
                 }
             });
@@ -2026,7 +1886,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             document.getElementById('dashPorVencer').innerText = porVencer.toLocaleString();
             document.getElementById('dashVencidos').innerText = vencidos.toLocaleString();
         
-        actualizarContadorInhabilitados();
+            actualizarContadorInhabilitados();
         }
 
         function filtrarEstado(estado, btn) {
@@ -2522,7 +2382,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             downloadAnchor.remove();
         }
 
-        // --- MANEJO DE TEMA (UNIFICADO CON INDEX) ---
+        // --- MANEJO DE TEMA ---
         function aplicarTema(oscuro) {
             document.body.classList.toggle('theme-dark', oscuro);
             const toggle = document.getElementById('themeToggle');
