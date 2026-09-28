@@ -1760,20 +1760,90 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             return str;
         }
 
-        function sincronizarDashboardLocalStorage() {
-            let optimos = 0, porVencer = 0, vencidos = 0;
+        function sincronizarDashboard() {
+            let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
+            let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
+            let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
 
-            registros.forEach(item => {
-                if (item.inhabilitado) return;
-                const st = calcularEstado(item.fechaVencimiento).status;
-                if (st === 'optimo') optimos++;
-                if (st === 'por_vencer') porVencer++;
-                if (st === 'vencido') vencidos++;
-            });
+            document.getElementById('val-mod1-optimos').innerText = optimos;
+            document.getElementById('val-mod1-porvencer').innerText = porVencer;
+            document.getElementById('val-mod1-vencidos').innerText = vencidos;
 
-            localStorage.setItem('dashboard_mod1_optimos', optimos);
-            localStorage.setItem('dashboard_mod1_porvencer', porVencer);
-            localStorage.setItem('dashboard_mod1_vencidos', vencidos);
+            actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
+            actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
+            actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
+
+            try {
+                const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
+                let cantPendientes = 0;
+                let cantParciales = 0;
+                let montoPorCobrar = 0;
+
+                descuentosDB.forEach(item => {
+                    const montoTotal = parseFloat(item.monto || item.total || 0);
+                    const abonado = parseFloat(item.abonado || 0);
+                    const saldoPendiente = parseFloat(item.saldoPendiente !== undefined ? item.saldoPendiente : (montoTotal - abonado));
+
+                    if (saldoPendiente > 0) {
+                        montoPorCobrar += saldoPendiente;
+                        if (abonado > 0) cantParciales++;
+                        else cantPendientes++;
+                    }
+                });
+
+                document.getElementById('val-mod2-pendientes').innerText = cantPendientes;
+                document.getElementById('val-mod2-parciales').innerText = cantParciales;
+                document.getElementById('val-mod2-porcobrar').innerText = '$' + montoPorCobrar.toFixed(2);
+
+                actualizarColorMetrica('box-mod2-pendientes', cantPendientes, 'orange');
+                actualizarColorMetrica('box-mod2-parciales', cantParciales, 'orange');
+                actualizarColorMetrica('box-mod2-porcobrar', montoPorCobrar, 'red');
+            } catch (e) {
+                console.error("Error al sincronizar descuentos en el index:", e);
+            }
+
+            // --- CONTEO DE RECETAS E INGREDIENTES ---
+            // 1. Respaldo de lectura inmediata desde LocalStorage
+            try {
+                const recetasDB = JSON.parse(localStorage.getItem('catalogo_recetario')) || JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
+                const insumosDB = JSON.parse(localStorage.getItem('insumos_recetario')) || JSON.parse(localStorage.getItem('hipergalerias_insumos_db')) || [];
+
+                document.getElementById('val-mod3-recetas').innerText = recetasDB.length;
+                document.getElementById('val-mod3-ingredientes').innerText = insumosDB.length;
+
+                actualizarColorMetrica('box-mod3-recetas', recetasDB.length, 'green');
+                actualizarColorMetrica('box-mod3-ingredientes', insumosDB.length, 'blue');
+            } catch (e) {
+                console.error("Error al sincronizar recetas en localStorage:", e);
+            }
+
+            // 2. Consulta en tiempo real a Supabase
+            if (typeof supabaseClient !== 'undefined') {
+                supabaseClient.from('insumos').select('*', { count: 'exact', head: true }).then(({ count, error }) => {
+                    if (!error && count !== null) {
+                        document.getElementById('val-mod3-ingredientes').innerText = count;
+                        actualizarColorMetrica('box-mod3-ingredientes', count, 'blue');
+                    }
+                });
+
+                supabaseClient.from('recetas').select('*', { count: 'exact', head: true }).then(({ count, error }) => {
+                    if (!error && count !== null) {
+                        document.getElementById('val-mod3-recetas').innerText = count;
+                        actualizarColorMetrica('box-mod3-recetas', count, 'green');
+                    }
+                });
+            }
+
+            try {
+                const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
+                document.getElementById('val-mod4-equipos').innerText = tiDB.length;
+                document.getElementById('val-mod4-mant').innerText = '0';
+                
+                actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
+                actualizarColorMetrica('box-mod4-mant', 0, 'orange');
+            } catch (e) {
+                console.error("Error al sincronizar TI Equipos en el index:", e);
+            }
         }
 
         function formatearFechaMostrar(fechaStr) {

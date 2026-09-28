@@ -50,7 +50,7 @@
       font-weight: bold;
     }
 
-    /* ===== ENCABEZADO CONSISTENTE (igual a recepcionyfechas / index) ===== */
+    /* ===== ENCABEZADO CONSISTENTE ===== */
     header {
         background: rgba(255,255,255,.96);
         border-bottom: 1px solid #e5ebe7;
@@ -92,13 +92,6 @@
 
     .btn-backup-export { background: #0b76b9; color: #fff; }
     .btn-backup-export:hover { background: #0369a1; }
-    .btn-backup-import { background: #fff; color: #334155; border-color: #d5dde5; }
-    .btn-backup-import:hover { background: #f1f5f9; }
-    .btn-recargar { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-    .btn-recargar:hover { background: #fef3c7; }
-
-    .header-separator { width: 1px; height: 30px; background: #d7e0da; margin: 0 6px; flex: 0 0 1px; }
-
     .btn-return {
         background: #fff; color: #dc2626; border: 1px solid #f0b7b7;
         min-height: 38px; padding: 8px 15px; border-radius: 999px;
@@ -125,25 +118,182 @@
         box-shadow: 0 1px 3px rgba(0,0,0,.2); transform: translateX(0); transition: transform .2s ease;
     }
 
+    /* ESTILOS DE AUTENTICACIÓN Y INSIGNIA */
     .user-profile-badge {
-        display: flex; align-items: center; gap: 10px;
-        background-color: #ecfdf5; padding: 6px 14px; border-radius: 20px;
-        border: 1px solid #d7e0da; font-size: 0.82rem; font-weight: 600;
-        color: #17211b; white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background-color: #e8f5e9;
+        padding: 6px 14px;
+        border-radius: 999px;
+        border: 1px solid #a7f3d0;
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #123e1b;
+        white-space: nowrap;
     }
+
+    body.theme-dark .user-profile-badge {
+        background-color: #173329;
+        border-color: #263b34;
+        color: #86efac;
+    }
+
+    .btn-login-trigger {
+        background-color: #123e1b;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.82rem;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-family: inherit;
+    }
+
+    .btn-login-trigger:hover {
+        background-color: #2e7d32;
+    }
+
     .btn-logout {
-        background-color: #ef4444; color: white; border: none; padding: 4px 10px;
-        border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
-        font-family: inherit; transition: background-color 0.2s;
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: inherit;
     }
-    .btn-logout:hover { background-color: #dc2626; }
+
+    .btn-logout:hover {
+        background-color: #dc2626;
+    }
+
+    /* MODAL DE LOGIN BLOQUEANTE */
+    .modal-overlay-login {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(15, 23, 42, 0.75);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay-login.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .login-card {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        width: 100%;
+        max-width: 400px;
+        padding: 32px;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+    }
+
+    body.theme-dark .login-card {
+        background-color: #101c18;
+        border-color: #263b34;
+        color: #e7f1ec;
+    }
+
+    .login-card h3 {
+        margin: 0 0 8px 0;
+        color: #123e1b;
+        font-size: 1.3rem;
+        font-weight: 700;
+    }
+
+    body.theme-dark .login-card h3 {
+        color: #86efac;
+    }
+
+    .login-card p {
+        margin: 0 0 20px 0;
+        color: #64748b;
+        font-size: 0.88rem;
+    }
+
+    .form-group-login {
+        margin-bottom: 16px;
+        text-align: left;
+    }
+
+    .form-group-login label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .form-control-login {
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 10px;
+        border: 1px solid #cbd5e1;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-family: inherit;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+    }
+
+    body.theme-dark .form-control-login {
+        background-color: #14231f;
+        border-color: #2b453b;
+        color: #e8f3ed;
+    }
+
+    .login-error-msg {
+        color: #ef4444;
+        font-size: 0.82rem;
+        margin-bottom: 14px;
+        display: none;
+        font-weight: 600;
+    }
+
+    .btn-submit-login {
+        width: 100%;
+        background-color: #2e7d32;
+        color: #ffffff;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background-color 0.2s;
+    }
+
+    .btn-submit-login:hover {
+        background-color: #123e1b;
+    }
 
     @media (max-width: 760px) {
         header { flex-direction: column; align-items: flex-start; }
         .header-actions { width: 100%; justify-content: flex-start; }
     }
 
-    /* ===== MODO OSCURO (persistente vía localStorage, igual que los demás módulos) ===== */
+    /* ===== MODO OSCURO ===== */
     html:has(body.theme-dark) { color-scheme: dark; }
 
     body.theme-dark {
@@ -159,18 +309,10 @@
     body.theme-dark .theme-switch { background: #25a45a; }
     body.theme-dark .theme-switch-thumb { transform: translateX(14px); }
     body.theme-dark .theme-toggle-icon { color: #facc15; }
-    body.theme-dark .btn-backup-import { background: #12201c; color: #d5e4de; border-color: #2c4138; }
-    body.theme-dark .btn-recargar { background: #3a2f14; color: #ffd27b; border-color: #92600e; }
-    body.theme-dark .header-separator { background: #31473f; }
     body.theme-dark .btn-return { background: #231719; color: #ff8d8d; border-color: #6a3437; }
     body.theme-dark .btn-return:hover { background: #321d20; border-color: #ff6b6b; color: #ff9e9e; }
-    body.theme-dark .user-profile-badge { background-color: #163a26; border-color: #263b34; color: #e7f1ec; }
     body.theme-dark .tab-active { border-bottom-color: #4ade80 !important; color: #4ade80 !important; }
 
-    /* Overrides de utilidades Tailwind usadas en el contenido, para el tema oscuro */
-    body.theme-dark .bg-\[\#f4f6f8\],
-    body.theme-dark .bg-\[\#f4f4f4\] { background-color: #0b1411 !important; }
-    body.theme-dark .text-\[\#333\] { color: #e7f1ec !important; }
     body.theme-dark .bg-white { background-color: #101c18 !important; }
     body.theme-dark .border-gray-200,
     body.theme-dark .border-gray-300,
@@ -184,39 +326,17 @@
     body.theme-dark .bg-gray-50,
     body.theme-dark .bg-gray-100 { background-color: #14241f !important; }
     body.theme-dark .bg-gray-200 { background-color: #233b33 !important; color: #e7f1ec !important; }
-    body.theme-dark .hover\:bg-gray-50:hover { background-color: #142b23 !important; }
-    body.theme-dark .hover\:bg-gray-300:hover { background-color: #233b33 !important; }
-    body.theme-dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
-    body.theme-dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) { border-color: #22372f !important; }
     body.theme-dark .bg-\[\#e8f5e9\] { background-color: #173329 !important; }
     body.theme-dark .text-\[\#123e1b\] { color: #86efac !important; }
-    body.theme-dark .border-\[\#2e7d32\]\/20,
-    body.theme-dark .border-\[\#2e7d32\]\/30,
-    body.theme-dark .border-\[\#2e7d32\] { border-color: #2f7147 !important; }
     body.theme-dark .bg-\[\#2e7d32\] { background-color: #1f6b3a !important; }
-    body.theme-dark .hover\:bg-\[\#123e1b\]:hover { background-color: #0a2510 !important; }
-    body.theme-dark .bg-blue-50,
-    body.theme-dark .bg-blue-100 { background-color: #0f2a3d !important; }
-    body.theme-dark .text-blue-800,
-    body.theme-dark .text-blue-600 { color: #7cc4ff !important; }
-    body.theme-dark .bg-red-100 { background-color: #3a1f21 !important; }
-    body.theme-dark .text-red-700,
-    body.theme-dark .text-red-500 { color: #ff8585 !important; }
-    body.theme-dark .bg-amber-100,
-    body.theme-dark .bg-amber-50 { background-color: #3a2f14 !important; }
-    body.theme-dark .text-amber-800 { color: #ffd27b !important; }
-    body.theme-dark .border-amber-600 { border-color: #a86200 !important; }
-    body.theme-dark .bg-emerald-100 { background-color: #153c28 !important; }
-    body.theme-dark .bg-black.bg-opacity-50 { background-color: rgba(0,0,0,.65) !important; }
     body.theme-dark input,
     body.theme-dark select,
     body.theme-dark textarea { background-color: #14231f !important; color: #e8f3ed !important; border-color: #2b453b !important; }
-    body.theme-dark input::placeholder { color: #7c9086 !important; }
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
 
-  <!-- ENCABEZADO PRINCIPAL (mismo patrón que recepcionyfechas.html / index.html) -->
+  <!-- ENCABEZADO PRINCIPAL -->
   <header>
     <div class="header-brand-container">
         <div class="logo-container">
@@ -228,10 +348,9 @@
     </div>
     <div class="header-actions">
         <div class="btn-header-container">
-            <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar</button>
+            <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar JSON</button>
         </div>
 
-        <!-- Interruptor Modo Oscuro -->
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
             <span class="theme-toggle-icon" id="themeToggleIcon">☾</span>
             <span class="theme-toggle-label" id="themeToggleLabel">Modo oscuro</span>
@@ -240,12 +359,11 @@
 
         <span class="header-separator" aria-hidden="true"></span>
 
-        <!-- Botón Regresar -->
         <button type="button" class="btn-return" onclick="window.location.href='index.html'" title="Regresar al panel principal">
             ← Regresar
         </button>
 
-        <!-- Contenedor dinámico de Login / Sesión -->
+        <!-- CONTENEDOR DE SESIÓN -->
         <div id="userAuthContainer"></div>
     </div>
   </header>
@@ -272,7 +390,7 @@
     <section id="tab-insumos" class="space-y-4">
       <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="w-full sm:w-96 relative">
-          <input type="text" id="buscarInsumo" oninput="renderizarTablaInsumos()" placeholder="🔍 Buscar ingrediente, base o código..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
+          <input type="text" id="buscarInsumo" oninput="buscarInsumoInput()" placeholder="🔍 Buscar ingrediente, base o código..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
         </div>
         <button onclick="nuevoInsumoPrompt()" class="w-full sm:w-auto bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs px-4 py-2.5 rounded-md font-bold transition-all shadow">
           + Agregar Nuevo Insumo Primario
@@ -281,15 +399,22 @@
 
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div class="max-h-[600px] overflow-y-auto">
-          <table class="w-full text-left text-sm text-gray-700">
+          <table class="w-full table-fixed text-left text-sm text-gray-700">
+            <colgroup>
+              <col style="width:10%">
+              <col style="width:33%">
+              <col style="width:8%">
+              <col style="width:15%">
+              <col style="width:15%">
+              <col style="width:19%">
+            </colgroup>
             <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold sticky top-0 border-b border-[#2e7d32]/20">
               <tr>
                 <th class="p-3">Código</th>
-                <th class="p-3">Tipo</th>
-                <th class="p-3">Nombre del Insumo / Base</th>
+                <th class="p-3 pr-1">Nombre del Insumo</th>
                 <th class="p-3 text-center">Unidad</th>
                 <th class="p-3 text-right">Costo Unitario ($)</th>
-                <th class="p-3 text-center">Historial Precios</th>
+                <th class="p-3 text-right">Costo Venta ($)</th>
                 <th class="p-3 text-center">Acción</th>
               </tr>
             </thead>
@@ -299,15 +424,25 @@
           </table>
         </div>
       </div>
+
+      <!-- BARRA DE PAGINACIÓN -->
+      <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-600 gap-3">
+        <div id="infoPaginacionInsumos" class="font-medium">Mostrando 0 - 0 de 0 insumos</div>
+        <div class="flex items-center gap-2">
+          <button id="btnPagPrev" onclick="cambiarPaginaInsumos(-1)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            ← Anterior
+          </button>
+          <span id="labelPaginaActual" class="font-bold px-2 text-[#123e1b]">Página 1 de 1</span>
+          <button id="btnPagNext" onclick="cambiarPaginaInsumos(1)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            Siguiente →
+          </button>
+        </div>
+      </div>
     </section>
 
     <!-- PESTAÑA 2: CREADOR DE RECETAS -->
     <section id="tab-creador" class="hidden grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
-      <!-- Izquierda: Formulario e Ingredientes -->
       <div class="lg:col-span-2 space-y-6">
-        
-        <!-- Cabecera de la receta -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
           <div class="flex justify-between items-center border-b border-gray-100 pb-2">
             <h2 id="tituloSeccionCreador" class="text-base font-bold text-[#123e1b]">Datos Principales de la Preparación</h2>
@@ -316,7 +451,7 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre de la Receta / Producto</label>
-              <input type="text" id="nombreReceta" placeholder="Ej. GALLETAS NEW YORK o PIZZA PEQUEÑA" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none">
+              <input type="text" id="nombreReceta" placeholder="Ej. GALLETAS NEW YORK" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none">
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Área / Categoría</label>
@@ -334,8 +469,8 @@
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Tipo de Cálculo / Venta</label>
               <select id="tipoCalculo" onchange="actualizarEtiquetaRendimiento()" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white font-bold text-[#123e1b]">
-                <option value="kg">Venta por KG / LT (Ej. Galletas / Masas)</option>
-                <option value="und">Venta por UNIDADES / RACIÓN (Ej. Pizzas / Hojaldres)</option>
+                <option value="kg">Venta por KG / LT</option>
+                <option value="und">Venta por UNIDADES / RACIÓN</option>
               </select>
             </div>
             <div>
@@ -349,9 +484,12 @@
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Unidad de Medida Base</label>
               <select id="rendimientoUnidad" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white">
-                <option value="kg">Kilogramos (KG)</option>
-                <option value="und">Unidades (UND)</option>
-                <option value="lt">Litros (LTS)</option>
+                <option value="kg">Kilogramos (kg)</option>
+                <option value="und">Unidades (und)</option>
+                <option value="lt">Litros (lt)</option>
+                <option value="g">Gramos (g)</option>
+                <option value="ml">Mililitros (ml)</option>
+                <option value="paq">Paquete (paq)</option>
               </select>
             </div>
           </div>
@@ -364,7 +502,6 @@
           </div>
         </div>
 
-        <!-- Tabla de Escandallo -->
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
           <div class="flex justify-between items-center border-b border-gray-100 pb-3">
             <h2 class="text-base font-bold text-[#123e1b]">Ingredientes y Productos Base</h2>
@@ -390,10 +527,8 @@
             </table>
           </div>
         </div>
-
       </div>
 
-      <!-- Derecha: Resumen Financiero -->
       <div class="space-y-6">
         <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-[#2e7d32] space-y-4">
           <h2 class="text-lg font-bold text-[#123e1b] border-b border-gray-100 pb-2">Análisis de Costos y PVP</h2>
@@ -431,7 +566,6 @@
           </button>
         </div>
       </div>
-
     </section>
 
     <!-- PESTAÑA 3: COSTOS Y CATÁLOGO -->
@@ -467,12 +601,60 @@
 
   </main>
 
-  <!-- MODAL DE FICHA TÉCNICA DETALLADA -->
+  <!-- MODAL EDITAR INSUMO -->
+  <div id="editarInsumoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden opacity-0 transition-opacity duration-300 ease-in-out flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative">
+      <button onclick="cerrarEditarInsumoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+      
+      <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-4">
+        <div class="p-2.5 bg-[#e8f5e9] rounded-lg text-[#123e1b] font-bold text-lg">✏️</div>
+        <div>
+          <h3 class="text-lg font-bold text-[#123e1b]">Editar Insumo</h3>
+          <p class="text-xs text-gray-500">Modifica los detalles del ingrediente o base</p>
+        </div>
+      </div>
+
+      <form id="formEditarInsumo" onsubmit="guardarEdicionInsumo(event)" class="space-y-4">
+        <input type="hidden" id="editInsumoId">
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre del Insumo</label>
+          <input type="text" id="editInsumoNombre" required placeholder="Ej. HARINA DE TRIGO 1KG" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none uppercase font-semibold text-gray-800">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Unidad de Medida</label>
+          <select id="editInsumoUnidad" required class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white font-medium">
+            <option value="kg">Kilogramos (kg)</option>
+            <option value="und">Unidades (und)</option>
+            <option value="lt">Litros (lt)</option>
+            <option value="g">Gramos (g)</option>
+            <option value="ml">Mililitros (ml)</option>
+            <option value="paq">Paquete (paq)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Costo Venta ($)</label>
+          <div class="relative">
+            <span class="absolute left-3 top-2.5 text-gray-500 font-bold">$</span>
+            <input type="number" id="editInsumoCostoVenta" step="0.0001" min="0" required class="w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none font-bold text-[#123e1b]">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+          <button type="button" onclick="cerrarEditarInsumoModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition-all">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs font-bold rounded-lg transition-all shadow">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE FICHA TÉCNICA -->
   <div id="fichaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-8 relative max-h-[90vh] overflow-y-auto">
         <button onclick="cerrarFichaModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
         
-        <!-- Membrete Ficha -->
         <div class="flex justify-between items-center border-b pb-4 mb-6">
             <div class="flex items-center gap-3">
               <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-10 w-auto object-contain" style="mix-blend-mode: multiply;">
@@ -487,7 +669,6 @@
             </div>
         </div>
 
-        <!-- Detalles Receta -->
         <div class="mb-6">
             <h3 id="modalNombre" class="text-2xl font-extrabold text-gray-800 mb-2">-</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg text-sm border border-gray-100">
@@ -498,7 +679,6 @@
             </div>
         </div>
 
-        <!-- Tabla de Ingredientes -->
         <div class="mb-6">
             <h4 class="font-bold text-gray-700 mb-2 text-xs uppercase tracking-wider">Composición de Ingredientes / Sub-recetas</h4>
             <div class="border border-gray-200 rounded-lg overflow-hidden">
@@ -525,906 +705,113 @@
     </div>
   </div>
 
-  <script>
-    // CATÁLOGO COMPLETO OFICIAL: 271 INGREDIENTES + 17 PRODUCTOS BASE
-    const INSUMOS_DEFAULT = [
-  {"id": "ing_0", "codigo": "ING-001", "tipo": "primario", "nombre": "AREQUIPE 1KG", "precio": 8.0, "unidad": "kg"},
-  {"id": "ing_1", "codigo": "ING-002", "tipo": "primario", "nombre": "AZUCAR 1KG", "precio": 1.96, "unidad": "kg"},
-  {"id": "ing_2", "codigo": "ING-003", "tipo": "primario", "nombre": "CACAO EN POLVO KG", "precio": 23.1, "unidad": "kg"},
-  {"id": "ing_3", "codigo": "ING-004", "tipo": "primario", "nombre": "CEBOLLA BLANCA X KG", "precio": 2.1, "unidad": "kg"},
-  {"id": "ing_4", "codigo": "ING-005", "tipo": "primario", "nombre": "CHANTILLY 1LT", "precio": 10.5, "unidad": "kg"},
-  {"id": "ing_5", "codigo": "ING-006", "tipo": "primario", "nombre": "CHOCOLATE BITTER 1KG", "precio": 32.0, "unidad": "kg"},
-  {"id": "ing_6", "codigo": "ING-007", "tipo": "primario", "nombre": "CHOCOLATE EN GOTA 1KG", "precio": 15.26, "unidad": "kg"},
-  {"id": "ing_7", "codigo": "ING-008", "tipo": "primario", "nombre": "DISCO 1UND", "precio": 0.55, "unidad": "kg"},
-  {"id": "ing_8", "codigo": "ING-009", "tipo": "primario", "nombre": "ESENCIA VAINILLA 1KG", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_9", "codigo": "ING-010", "tipo": "primario", "nombre": "FRESA 1KG", "precio": 8.5, "unidad": "kg"},
-  {"id": "ing_10", "codigo": "ING-011", "tipo": "primario", "nombre": "HARINA DE TRIGO 1KG", "precio": 1.24, "unidad": "kg"},
-  {"id": "ing_11", "codigo": "ING-012", "tipo": "primario", "nombre": "HUEVO X UND(PESO APROX 0,060KG)", "precio": 0.23, "unidad": "kg"},
-  {"id": "ing_12", "codigo": "ING-013", "tipo": "primario", "nombre": "LECHE PASTOREÑA 1L", "precio": 2.8, "unidad": "kg"},
-  {"id": "ing_13", "codigo": "ING-014", "tipo": "primario", "nombre": "LEVADURA 1KG", "precio": 14.54, "unidad": "kg"},
-  {"id": "ing_14", "codigo": "ING-015", "tipo": "primario", "nombre": "MALTA X UND 222 ML", "precio": 0.6, "unidad": "kg"},
-  {"id": "ing_15", "codigo": "ING-016", "tipo": "primario", "nombre": "MANTECA TRESCO LT 1KG", "precio": 6.5, "unidad": "kg"},
-  {"id": "ing_16", "codigo": "ING-017", "tipo": "primario", "nombre": "MANTEQUILLA CHEF 1K", "precio": 5.75, "unidad": "kg"},
-  {"id": "ing_17", "codigo": "ING-018", "tipo": "primario", "nombre": "OREGANO MOLIDO X KG", "precio": 18.0, "unidad": "kg"},
-  {"id": "ing_18", "codigo": "ING-019", "tipo": "primario", "nombre": "QUESO AMARILLO TABLON X KG", "precio": 20.0, "unidad": "kg"},
-  {"id": "ing_19", "codigo": "ING-020", "tipo": "primario", "nombre": "SAL ARECIFE 1KG", "precio": 0.87, "unidad": "kg"},
-  {"id": "ing_20", "codigo": "ING-021", "tipo": "primario", "nombre": "TOCINETA AHUMADA 1KG", "precio": 25.22, "unidad": "kg"},
-  {"id": "ing_21", "codigo": "ING-022", "tipo": "primario", "nombre": "PAPA 1KG", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_22", "codigo": "ING-023", "tipo": "primario", "nombre": "ESENCIA MANTEQUILLA 1LT", "precio": 7.76, "unidad": "kg"},
-  {"id": "ing_23", "codigo": "ING-024", "tipo": "primario", "nombre": "ESENCIA DE MANTECADO 1L", "precio": 15.0, "unidad": "kg"},
-  {"id": "ing_24", "codigo": "ING-025", "tipo": "primario", "nombre": "FRUTAS IMPORTADA 1KG", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_25", "codigo": "ING-026", "tipo": "primario", "nombre": "PIRULIN 1KG", "precio": 33.8, "unidad": "kg"},
-  {"id": "ing_26", "codigo": "ING-027", "tipo": "primario", "nombre": "HARINA PAN DE ARROZ 1KG", "precio": 1.44, "unidad": "kg"},
-  {"id": "ing_27", "codigo": "ING-028", "tipo": "primario", "nombre": "RELAX 1KG", "precio": 20.0, "unidad": "kg"},
-  {"id": "ing_28", "codigo": "ING-029", "tipo": "primario", "nombre": "ACEITE ORIENTAL 0,828L", "precio": 4.0, "unidad": "kg"},
-  {"id": "ing_29", "codigo": "ING-030", "tipo": "primario", "nombre": "POLVO DE HORNEAR 1KG", "precio": 7.5, "unidad": "kg"},
-  {"id": "ing_30", "codigo": "ING-031", "tipo": "primario", "nombre": "BICARBONATO 1KG", "precio": 16.8, "unidad": "kg"},
-  {"id": "ing_31", "codigo": "ING-032", "tipo": "primario", "nombre": "LECHE CONDENSADA 1L", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_32", "codigo": "ING-033", "tipo": "primario", "nombre": "ENVASE TRIANGULAR ALTO UND", "precio": 0.25, "unidad": "kg"},
-  {"id": "ing_33", "codigo": "ING-034", "tipo": "primario", "nombre": "MAIZINA 1KG", "precio": 7.75, "unidad": "kg"},
-  {"id": "ing_34", "codigo": "ING-035", "tipo": "primario", "nombre": "CARAMELINA 1KG", "precio": 26.0, "unidad": "kg"},
-  {"id": "ing_35", "codigo": "ING-036", "tipo": "primario", "nombre": "SALSA DE AJO 1L", "precio": 6.5, "unidad": "kg"},
-  {"id": "ing_36", "codigo": "ING-037", "tipo": "primario", "nombre": "AJO PORRO 1KG", "precio": 5.6, "unidad": "kg"},
-  {"id": "ing_37", "codigo": "ING-038", "tipo": "primario", "nombre": "CILANTRO 1KG", "precio": 3.5, "unidad": "kg"},
-  {"id": "ing_38", "codigo": "ING-039", "tipo": "primario", "nombre": "PEREJIL 1KG", "precio": 3.92, "unidad": "kg"},
-  {"id": "ing_39", "codigo": "ING-040", "tipo": "primario", "nombre": "ZANAHORIA 1KG", "precio": 5.1, "unidad": "kg"},
-  {"id": "ing_40", "codigo": "ING-041", "tipo": "primario", "nombre": "REPOLLO MORADO 1KG", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_41", "codigo": "ING-042", "tipo": "primario", "nombre": "REPOLLO BLANCO 1KG", "precio": 3.0, "unidad": "kg"},
-  {"id": "ing_42", "codigo": "ING-043", "tipo": "primario", "nombre": "MAYONESA 1KG", "precio": 6.99, "unidad": "kg"},
-  {"id": "ing_43", "codigo": "ING-044", "tipo": "primario", "nombre": "ESENCIA DE MANTECA 1KG", "precio": 7.0, "unidad": "kg"},
-  {"id": "ing_44", "codigo": "ING-045", "tipo": "primario", "nombre": "COCO RAYADO 1KG", "precio": 21.0, "unidad": "kg"},
-  {"id": "ing_45", "codigo": "ING-046", "tipo": "primario", "nombre": "LECHE EN POLVO LA CAMPIÑA COMP 1KG", "precio": 13.42, "unidad": "kg"},
-  {"id": "ing_46", "codigo": "ING-047", "tipo": "primario", "nombre": "CANELA EN POLVO X KG", "precio": 40.0, "unidad": "kg"},
-  {"id": "ing_47", "codigo": "ING-048", "tipo": "primario", "nombre": "LLUVIA DE MANI X KG", "precio": 8.79, "unidad": "kg"},
-  {"id": "ing_48", "codigo": "ING-049", "tipo": "primario", "nombre": "CHOCOLATE GRANULADO X KG", "precio": 14.0, "unidad": "kg"},
-  {"id": "ing_49", "codigo": "ING-050", "tipo": "primario", "nombre": "ESENCIA DE NARANJA 1L", "precio": 8.57, "unidad": "kg"},
-  {"id": "ing_50", "codigo": "ING-051", "tipo": "primario", "nombre": "VASO #12 GALERIA INSUMO UND", "precio": 1.0, "unidad": "kg"},
-  {"id": "ing_51", "codigo": "ING-052", "tipo": "primario", "nombre": "VASO #16 GALERIA INSUMO UND", "precio": 1.0, "unidad": "kg"},
-  {"id": "ing_52", "codigo": "ING-053", "tipo": "primario", "nombre": "FRUTA CONFITADA 1KG", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_53", "codigo": "ING-054", "tipo": "primario", "nombre": "AJO IMPORTADO 1KG", "precio": 10.0, "unidad": "kg"},
-  {"id": "ing_54", "codigo": "ING-055", "tipo": "primario", "nombre": "PIMIENTA 1 KG", "precio": 37.5, "unidad": "kg"},
-  {"id": "ing_55", "codigo": "ING-056", "tipo": "primario", "nombre": "GARBANZOS COCIDOS LA FRAGUA 540G", "precio": 7.6, "unidad": "kg"},
-  {"id": "ing_56", "codigo": "ING-057", "tipo": "primario", "nombre": "CEBOLLIN 1KG", "precio": 3.5, "unidad": "kg"},
-  {"id": "ing_57", "codigo": "ING-058", "tipo": "primario", "nombre": "SODA EN POLVO 1KG", "precio": 13.5, "unidad": "kg"},
-  {"id": "ing_58", "codigo": "ING-059", "tipo": "primario", "nombre": "ADOBO MERIDA 1KG", "precio": 16.44, "unidad": "kg"},
-  {"id": "ing_59", "codigo": "ING-060", "tipo": "primario", "nombre": "AJINOMOTO  1KG", "precio": 8.42, "unidad": "kg"},
-  {"id": "ing_60", "codigo": "ING-061", "tipo": "primario", "nombre": "TOMATE 1KG", "precio": 4.2, "unidad": "kg"},
-  {"id": "ing_61", "codigo": "ING-062", "tipo": "primario", "nombre": "PAQ DE PAN ARABE", "precio": 1.7, "unidad": "kg"},
-  {"id": "ing_62", "codigo": "ING-063", "tipo": "primario", "nombre": "AZUCAR PULVERIZADA 1KG GLASS", "precio": 6.6, "unidad": "kg"},
-  {"id": "ing_63", "codigo": "ING-064", "tipo": "primario", "nombre": "HARINA CACHAPA 1KG", "precio": 5.4, "unidad": "kg"},
-  {"id": "ing_64", "codigo": "ING-065", "tipo": "primario", "nombre": "GELATINA X KG", "precio": 19.5, "unidad": "kg"},
-  {"id": "ing_65", "codigo": "ING-066", "tipo": "primario", "nombre": "PIMENTON ROJO 1KG", "precio": 5.0, "unidad": "kg"},
-  {"id": "ing_66", "codigo": "ING-067", "tipo": "primario", "nombre": "PIMENTON VERDE 1KG", "precio": 4.0, "unidad": "kg"},
-  {"id": "ing_67", "codigo": "ING-068", "tipo": "primario", "nombre": "JAMON ESPALDA EL VALLE 1KG", "precio": 10.29, "unidad": "kg"},
-  {"id": "ing_68", "codigo": "ING-069", "tipo": "primario", "nombre": "QUESO PAISA EL TABLON X KG", "precio": 14.5, "unidad": "kg"},
-  {"id": "ing_69", "codigo": "ING-070", "tipo": "primario", "nombre": "SIROPE DE CHOCOLATE 1LT", "precio": 12.5, "unidad": "kg"},
-  {"id": "ing_70", "codigo": "ING-071", "tipo": "primario", "nombre": "LECHE LIQUIDA PARA CAFÉ 1LT", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_71", "codigo": "ING-072", "tipo": "primario", "nombre": "HIELO X 1KG", "precio": 1.0, "unidad": "kg"},
-  {"id": "ing_73", "codigo": "ING-074", "tipo": "primario", "nombre": "VINAGRE TURIAMO 3.79L", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_74", "codigo": "ING-075", "tipo": "primario", "nombre": "MIEL MIL FLORES 1KG", "precio": 15.9, "unidad": "kg"},
-  {"id": "ing_75", "codigo": "ING-076", "tipo": "primario", "nombre": "AVENA EN HOJUELAS 1KG", "precio": 5.25, "unidad": "kg"},
-  {"id": "ing_76", "codigo": "ING-077", "tipo": "primario", "nombre": "AJO MOLIDO X KG", "precio": 28.0, "unidad": "kg"},
-  {"id": "ing_77", "codigo": "ING-078", "tipo": "primario", "nombre": "AFRECHO X KG", "precio": 8.5, "unidad": "kg"},
-  {"id": "ing_78", "codigo": "ING-079", "tipo": "primario", "nombre": "LECHUGA ROMANA X KG", "precio": 2.4, "unidad": "kg"},
-  {"id": "ing_79", "codigo": "ING-080", "tipo": "primario", "nombre": "HARINA LEUDANTE X KG", "precio": 1.62, "unidad": "kg"},
-  {"id": "ing_80", "codigo": "ING-081", "tipo": "primario", "nombre": "ANIS DULCE X KG", "precio": 21.0, "unidad": "kg"},
-  {"id": "ing_81", "codigo": "ING-082", "tipo": "primario", "nombre": "MELAZA 500ML", "precio": 2.64, "unidad": "kg"},
-  {"id": "ing_82", "codigo": "ING-083", "tipo": "primario", "nombre": "QUESO DURO X KG", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_83", "codigo": "ING-084", "tipo": "primario", "nombre": "MOSTAZA PREPARADA FRITZ", "precio": 4.61, "unidad": "kg"},
-  {"id": "ing_84", "codigo": "ING-085", "tipo": "primario", "nombre": "VINO TINTO SECO CASTEL GANDOLFO 1L", "precio": 6.45, "unidad": "kg"},
-  {"id": "ing_85", "codigo": "ING-086", "tipo": "primario", "nombre": "MALTA MALTIN POLAR 1.5L", "precio": 2.6, "unidad": "kg"},
-  {"id": "ing_86", "codigo": "ING-087", "tipo": "primario", "nombre": "JAM AHU L´PRADO X KG", "precio": 14.0, "unidad": "kg"},
-  {"id": "ing_87", "codigo": "ING-088", "tipo": "primario", "nombre": "ACEITUNAS VERDES C/P X KG", "precio": 13.0, "unidad": "kg"},
-  {"id": "ing_88", "codigo": "ING-089", "tipo": "primario", "nombre": "UVAS PASAS X KG", "precio": 12.69, "unidad": "kg"},
-  {"id": "ing_89", "codigo": "ING-090", "tipo": "primario", "nombre": "ALCAPARRAS X KG", "precio": 8.0, "unidad": "kg"},
-  {"id": "ing_90", "codigo": "ING-091", "tipo": "primario", "nombre": "MEJORADOR", "precio": 14.62, "unidad": "kg"},
-  {"id": "ing_91", "codigo": "ING-092", "tipo": "primario", "nombre": "MANI TRILLADO", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_92", "codigo": "ING-093", "tipo": "primario", "nombre": "ALMENDRAS FILETIADAS", "precio": 44.0, "unidad": "kg"},
-  {"id": "ing_93", "codigo": "ING-094", "tipo": "primario", "nombre": "NESTEA DE DURAZNO 1 KG", "precio": 17.2, "unidad": "kg"},
-  {"id": "ing_94", "codigo": "ING-095", "tipo": "primario", "nombre": "NESTEA DE LIMON 1 KG", "precio": 16.52, "unidad": "kg"},
-  {"id": "ing_95", "codigo": "ING-096", "tipo": "primario", "nombre": "PECHUGA 1 KG", "precio": 6.6, "unidad": "kg"},
-  {"id": "ing_96", "codigo": "ING-097", "tipo": "primario", "nombre": "AJI JOVITO 1 KG", "precio": 3.5, "unidad": "kg"},
-  {"id": "ing_97", "codigo": "ING-098", "tipo": "primario", "nombre": "CUBITO 1 KG", "precio": 29.0, "unidad": "kg"},
-  {"id": "ing_98", "codigo": "ING-099", "tipo": "primario", "nombre": "COLOR AMARILLO 1 KG", "precio": 19.0, "unidad": "kg"},
-  {"id": "ing_99", "codigo": "ING-100", "tipo": "primario", "nombre": "COLOR BACKET 1 KG", "precio": 22.2, "unidad": "kg"},
-  {"id": "ing_100", "codigo": "ING-101", "tipo": "primario", "nombre": "CARNE MECHADA 1 KG", "precio": 13.49, "unidad": "kg"},
-  {"id": "ing_101", "codigo": "ING-102", "tipo": "primario", "nombre": "CURRY 1 KG", "precio": 14.87, "unidad": "kg"},
-  {"id": "ing_102", "codigo": "ING-103", "tipo": "primario", "nombre": "SALSA DE TOMATE FRITZ 1 KG", "precio": 4.51, "unidad": "kg"},
-  {"id": "ing_103", "codigo": "ING-104", "tipo": "primario", "nombre": "CARNE MOLIDA 1 KG", "precio": 13.49, "unidad": "kg"},
-  {"id": "ing_104", "codigo": "ING-105", "tipo": "primario", "nombre": "ALBAHACA 1 KG", "precio": 4.1, "unidad": "kg"},
-  {"id": "ing_105", "codigo": "ING-106", "tipo": "primario", "nombre": "HARINA AMARILLA KALY 1 KG", "precio": 1.15, "unidad": "kg"},
-  {"id": "ing_106", "codigo": "ING-107", "tipo": "primario", "nombre": "PASTICHO DIRECTO AL HORNO SINDONI 250", "precio": 2.16, "unidad": "kg"},
-  {"id": "ing_107", "codigo": "ING-108", "tipo": "primario", "nombre": "MOZARELLA ARTESANAL X KG", "precio": 10.65, "unidad": "kg"},
-  {"id": "ing_108", "codigo": "ING-109", "tipo": "primario", "nombre": "QUESO PECORINO C/P QUENACA X KG", "precio": 39.6, "unidad": "kg"},
-  {"id": "ing_109", "codigo": "ING-110", "tipo": "primario", "nombre": "NUEZ MOSCADA X KG", "precio": 30.0, "unidad": "kg"},
-  {"id": "ing_110", "codigo": "ING-111", "tipo": "primario", "nombre": "CARAOTA X KG", "precio": 3.9, "unidad": "kg"},
-  {"id": "ing_111", "codigo": "ING-112", "tipo": "primario", "nombre": "PLATANO", "precio": 2.52, "unidad": "kg"},
-  {"id": "ing_112", "codigo": "ING-113", "tipo": "primario", "nombre": "FILET DE POLLO X KG", "precio": 9.5, "unidad": "kg"},
-  {"id": "ing_113", "codigo": "ING-114", "tipo": "primario", "nombre": "CANILLA X KG", "precio": 1.64, "unidad": "kg"},
-  {"id": "ing_114", "codigo": "ING-115", "tipo": "primario", "nombre": "SALAMI EL VALLE X KG", "precio": 21.0, "unidad": "kg"},
-  {"id": "ing_115", "codigo": "ING-116", "tipo": "primario", "nombre": "PAPAS FRIT 10MM 2.5K FARM FRITES", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_116", "codigo": "ING-117", "tipo": "primario", "nombre": "PAN DE HAMBURGUESA 8 UND", "precio": 1.78, "unidad": "kg"},
-  {"id": "ing_117", "codigo": "ING-118", "tipo": "primario", "nombre": "MUSLO DE POLLO X KG", "precio": 5.72, "unidad": "kg"},
-  {"id": "ing_118", "codigo": "ING-119", "tipo": "primario", "nombre": "SALSA INGLESA 1 L  KIERO", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_119", "codigo": "ING-120", "tipo": "primario", "nombre": "CARMENCITA X KG", "precio": 21.5, "unidad": "kg"},
-  {"id": "ing_120", "codigo": "ING-121", "tipo": "primario", "nombre": "LAUREL ENTERO X KG NELLA", "precio": 17.5, "unidad": "kg"},
-  {"id": "ing_121", "codigo": "ING-122", "tipo": "primario", "nombre": "POLLO ENTERO", "precio": 4.6, "unidad": "kg"},
-  {"id": "ing_122", "codigo": "ING-123", "tipo": "primario", "nombre": "HARINA DE AVENA 400G VENELA", "precio": 1.48, "unidad": "kg"},
-  {"id": "ing_123", "codigo": "ING-124", "tipo": "primario", "nombre": "BEBIDA ALMENDRA VAINILLA VILAY 1LT", "precio": 4.2, "unidad": "kg"},
-  {"id": "ing_124", "codigo": "ING-125", "tipo": "primario", "nombre": "TE MANZANILLA MCK 1 BOL", "precio": 0.24, "unidad": "kg"},
-  {"id": "ing_125", "codigo": "ING-126", "tipo": "primario", "nombre": "INFUSION ROSA JAMAICA MCK 1 BOL", "precio": 0.24, "unidad": "kg"},
-  {"id": "ing_126", "codigo": "ING-127", "tipo": "primario", "nombre": "APIO ESPAÑA / CELERY X KG", "precio": 2.8, "unidad": "kg"},
-  {"id": "ing_127", "codigo": "ING-128", "tipo": "primario", "nombre": "7 ESPECIAS 20G NELLA", "precio": 2.4, "unidad": "kg"},
-  {"id": "ing_128", "codigo": "ING-129", "tipo": "primario", "nombre": "LAGARTO", "precio": 7.69, "unidad": "kg"},
-  {"id": "ing_129", "codigo": "ING-130", "tipo": "primario", "nombre": "PERNIL", "precio": 8.7, "unidad": "kg"},
-  {"id": "ing_130", "codigo": "ING-131", "tipo": "primario", "nombre": "CHORIZO DE POLLO", "precio": 8.0, "unidad": "kg"},
-  {"id": "ing_131", "codigo": "ING-132", "tipo": "primario", "nombre": "ALAS", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_132", "codigo": "ING-133", "tipo": "primario", "nombre": "CHORIZO PICANTE", "precio": 7.2, "unidad": "kg"},
-  {"id": "ing_133", "codigo": "ING-134", "tipo": "primario", "nombre": "CHULETA AHUMADA EN TROZOS", "precio": 12.15, "unidad": "kg"},
-  {"id": "ing_134", "codigo": "ING-135", "tipo": "primario", "nombre": "AJI ROSA", "precio": 2.0, "unidad": "kg"},
-  {"id": "ing_135", "codigo": "ING-136", "tipo": "primario", "nombre": "AJO CRIOLLO", "precio": 7.99, "unidad": "kg"},
-  {"id": "ing_136", "codigo": "ING-137", "tipo": "primario", "nombre": "MORTADELA DE POLLO EL VALLE", "precio": 2.7, "unidad": "kg"},
-  {"id": "ing_137", "codigo": "ING-138", "tipo": "primario", "nombre": "MADEJA", "precio": 34.0, "unidad": "kg"},
-  {"id": "ing_138", "codigo": "ING-139", "tipo": "primario", "nombre": "BANDEJA", "precio": 0.08, "unidad": "kg"},
-  {"id": "ing_139", "codigo": "ING-140", "tipo": "primario", "nombre": "ACEITUNAS CON HUESO", "precio": 13.0, "unidad": "kg"},
-  {"id": "ing_140", "codigo": "ING-141", "tipo": "primario", "nombre": "PALETA DE CERDO", "precio": 8.45, "unidad": "kg"},
-  {"id": "ing_141", "codigo": "ING-142", "tipo": "primario", "nombre": "PULPA NEGRA", "precio": 13.49, "unidad": "kg"},
-  {"id": "ing_142", "codigo": "ING-143", "tipo": "primario", "nombre": "CUERO PP X KG", "precio": 2.59, "unidad": "kg"},
-  {"id": "ing_143", "codigo": "ING-144", "tipo": "primario", "nombre": "VINO SAGRADA FAMILIA", "precio": 7.54, "unidad": "kg"},
-  {"id": "ing_144", "codigo": "ING-145", "tipo": "primario", "nombre": "PAPELON PANELA", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_145", "codigo": "ING-146", "tipo": "primario", "nombre": "HOJAS DE HALLACAS", "precio": 4.2, "unidad": "kg"},
-  {"id": "ing_146", "codigo": "ING-147", "tipo": "primario", "nombre": "HILO PABILO", "precio": 0.64, "unidad": "kg"},
-  {"id": "ing_147", "codigo": "ING-148", "tipo": "primario", "nombre": "CEREZAS EN ALMIBAR INPA 3.1KG", "precio": 35.0, "unidad": "kg"},
-  {"id": "ing_148", "codigo": "ING-149", "tipo": "primario", "nombre": "MORTADELA VILLA JULIA 500GR", "precio": 1.4, "unidad": "kg"},
-  {"id": "ing_149", "codigo": "ING-150", "tipo": "primario", "nombre": "SABROSEADOR CONDIANDES 1KG", "precio": 5.01, "unidad": "kg"},
-  {"id": "ing_150", "codigo": "ING-151", "tipo": "primario", "nombre": "CHORIZO MEXICANO BELLOTA 1 KGR", "precio": 12.93, "unidad": "kg"},
-  {"id": "ing_151", "codigo": "ING-152", "tipo": "primario", "nombre": "CUCHARA DE POSTRE", "precio": 0.03, "unidad": "kg"},
-  {"id": "ing_152", "codigo": "ING-153", "tipo": "primario", "nombre": "VAZO N 5", "precio": 0.06, "unidad": "kg"},
-  {"id": "ing_153", "codigo": "ING-154", "tipo": "primario", "nombre": "LLUVIA CHOCOLATE LA MARCONA 1KG", "precio": 15.26, "unidad": "kg"},
-  {"id": "ing_154", "codigo": "ING-155", "tipo": "primario", "nombre": "LLUVIA DE COLORES 1KG", "precio": 6.5, "unidad": "kg"},
-  {"id": "ing_155", "codigo": "ING-156", "tipo": "primario", "nombre": "CAJA PARA PAN DE JAMON", "precio": 1.06, "unidad": "kg"},
-  {"id": "ing_156", "codigo": "ING-157", "tipo": "primario", "nombre": "RACION DE PAN DE JAMON PARA PLATO", "precio": 1.15, "unidad": "kg"},
-  {"id": "ing_157", "codigo": "ING-158", "tipo": "primario", "nombre": "AJONJOLY", "precio": 23.5, "unidad": "kg"},
-  {"id": "ing_158", "codigo": "ING-159", "tipo": "primario", "nombre": "PECH PAVO EL VALLE X KG", "precio": 10.0, "unidad": "kg"},
-  {"id": "ing_159", "codigo": "ING-160", "tipo": "primario", "nombre": "QUESO CREMA GABY PANELON 1 KG", "precio": 17.0, "unidad": "kg"},
-  {"id": "ing_160", "codigo": "ING-161", "tipo": "primario", "nombre": "BATATA", "precio": 2.25, "unidad": "kg"},
-  {"id": "ing_161", "codigo": "ING-162", "tipo": "primario", "nombre": "HALLACA GALERIA UND", "precio": 2.64, "unidad": "kg"},
-  {"id": "ing_162", "codigo": "ING-163", "tipo": "primario", "nombre": "NUECES PELADAS X KG", "precio": 21.0, "unidad": "kg"},
-  {"id": "ing_163", "codigo": "ING-164", "tipo": "primario", "nombre": "MANI DULCE X KG", "precio": 17.0, "unidad": "kg"},
-  {"id": "ing_164", "codigo": "ING-165", "tipo": "primario", "nombre": "AVELLANAS X KG", "precio": 31.2, "unidad": "kg"},
-  {"id": "ing_165", "codigo": "ING-166", "tipo": "primario", "nombre": "RON LA FLORIDA BES ROJO 1L", "precio": 4.79, "unidad": "kg"},
-  {"id": "ing_166", "codigo": "ING-167", "tipo": "primario", "nombre": "MEREY POR KGRS", "precio": 45.69, "unidad": "kg"},
-  {"id": "ing_167", "codigo": "ING-168", "tipo": "primario", "nombre": "CAPUCHOS PANETTONE 500GR", "precio": 0.52, "unidad": "kg"},
-  {"id": "ing_168", "codigo": "ING-169", "tipo": "primario", "nombre": "ESENCIA PANETTONE S/C F22CL FLAVORS", "precio": 39.13, "unidad": "kg"},
-  {"id": "ing_169", "codigo": "ING-170", "tipo": "primario", "nombre": "MAIZ ENTERO PAFIA 1 KG", "precio": 6.1, "unidad": "kg"},
-  {"id": "ing_170", "codigo": "ING-171", "tipo": "primario", "nombre": "PEPPERONI GIIOS X KG", "precio": 22.5, "unidad": "kg"},
-  {"id": "ing_171", "codigo": "ING-172", "tipo": "primario", "nombre": "PIÑA ALM PAFIA 850 GR", "precio": 11.0, "unidad": "kg"},
-  {"id": "ing_172", "codigo": "ING-173", "tipo": "primario", "nombre": "COBERTURA GOTA MAVALERIO 1.01KG", "precio": 16.0, "unidad": "kg"},
-  {"id": "ing_173", "codigo": "ING-174", "tipo": "primario", "nombre": "HARINA DE TRIGO RONCO LEUDANTE 1 KG", "precio": 1.94, "unidad": "kg"},
-  {"id": "ing_174", "codigo": "ING-175", "tipo": "primario", "nombre": "LENGUA DE RES X KG", "precio": 4.5, "unidad": "kg"},
-  {"id": "ing_175", "codigo": "ING-176", "tipo": "primario", "nombre": "CHORIZO CRIOLLO PICANTE X KG", "precio": 4.33, "unidad": "kg"},
-  {"id": "ing_176", "codigo": "ING-177", "tipo": "primario", "nombre": "PAPADA DE CERDO", "precio": 5.99, "unidad": "kg"},
-  {"id": "ing_177", "codigo": "ING-178", "tipo": "primario", "nombre": "SALCH POLLO EL VALLE X KG", "precio": 10.0, "unidad": "kg"},
-  {"id": "ing_178", "codigo": "ING-179", "tipo": "primario", "nombre": "PAPAS MADOS 1KG", "precio": 5.83, "unidad": "kg"},
-  {"id": "ing_179", "codigo": "ING-180", "tipo": "primario", "nombre": "MANZA ROJA/IMP TIPO B X KG", "precio": 4.51, "unidad": "kg"},
-  {"id": "ing_180", "codigo": "ING-181", "tipo": "primario", "nombre": "CLAVOS ENTEROS NELLA 10G", "precio": 1.06, "unidad": "kg"},
-  {"id": "ing_181", "codigo": "ING-182", "tipo": "primario", "nombre": "COLADO GERBER MANZANA 113G", "precio": 0.84, "unidad": "kg"},
-  {"id": "ing_182", "codigo": "ING-183", "tipo": "primario", "nombre": "AZUCAR GLASS FLOWER 1K", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_183", "codigo": "ING-184", "tipo": "primario", "nombre": "CAMARONES X KG", "precio": 15.0, "unidad": "kg"},
-  {"id": "ing_184", "codigo": "ING-185", "tipo": "primario", "nombre": "TINA NRO 8 ONZ C/TAPA UND", "precio": 0.41, "unidad": "kg"},
-  {"id": "ing_185", "codigo": "ING-186", "tipo": "primario", "nombre": "BERENJENA LARGA X KG", "precio": 1.57, "unidad": "kg"},
-  {"id": "ing_186", "codigo": "ING-187", "tipo": "primario", "nombre": "CHORIZO CRIOLLO X KG", "precio": 6.6, "unidad": "kg"},
-  {"id": "ing_187", "codigo": "ING-188", "tipo": "primario", "nombre": "CHORIZO AJO X KG", "precio": 7.59, "unidad": "kg"},
-  {"id": "ing_188", "codigo": "ING-189", "tipo": "primario", "nombre": "CHORIZO AHUMADO X KG", "precio": 7.71, "unidad": "kg"},
-  {"id": "ing_189", "codigo": "ING-190", "tipo": "primario", "nombre": "CABELLO DE ANGEL INPA X KG", "precio": 5.5, "unidad": "kg"},
-  {"id": "ing_190", "codigo": "ING-191", "tipo": "primario", "nombre": "MERMELADA DE GUAYABA INPA", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_191", "codigo": "ING-192", "tipo": "primario", "nombre": "CIRUELA PASAS POR KGRS", "precio": 13.7, "unidad": "kg"},
-  {"id": "ing_192", "codigo": "ING-193", "tipo": "primario", "nombre": "CANELA ENTERA KG", "precio": 36.0, "unidad": "kg"},
-  {"id": "ing_193", "codigo": "ING-194", "tipo": "primario", "nombre": "PECH PAVO MALLORCA X KG", "precio": 11.32, "unidad": "kg"},
-  {"id": "ing_194", "codigo": "ING-195", "tipo": "primario", "nombre": "GELATINA SIN SABOR SONRISA 33G", "precio": 2.18, "unidad": "kg"},
-  {"id": "ing_195", "codigo": "ING-196", "tipo": "primario", "nombre": "VASO C/TAPADOMO 10 ONZ 100U MAXIPLAS", "precio": 0.16, "unidad": "kg"},
-  {"id": "ing_196", "codigo": "ING-197", "tipo": "primario", "nombre": "DUMBO KING COLA 300CM", "precio": 0.49, "unidad": "kg"},
-  {"id": "ing_197", "codigo": "ING-198", "tipo": "primario", "nombre": "VINAGRE TURIAMO 1L", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_198", "codigo": "ING-199", "tipo": "primario", "nombre": "ACEITE DE OLIVA 250CC E/VIRGE CAPRI", "precio": 9.59, "unidad": "kg"},
-  {"id": "ing_199", "codigo": "ING-200", "tipo": "primario", "nombre": "VINAGRE DE PERA GOLDEN 500ML", "precio": 4.38, "unidad": "kg"},
-  {"id": "ing_200", "codigo": "ING-201", "tipo": "primario", "nombre": "ANIS DULCE KG", "precio": 16.81, "unidad": "kg"},
-  {"id": "ing_201", "codigo": "ING-202", "tipo": "primario", "nombre": "YOGURT BENI 7 ONZ", "precio": 1.32, "unidad": "kg"},
-  {"id": "ing_202", "codigo": "ING-203", "tipo": "primario", "nombre": "MORA X KG", "precio": 7.5, "unidad": "kg"},
-  {"id": "ing_203", "codigo": "ING-204", "tipo": "primario", "nombre": "ACEITE DE COCO", "precio": 12.57, "unidad": "kg"},
-  {"id": "ing_204", "codigo": "ING-205", "tipo": "primario", "nombre": "LECHOZA X KG", "precio": 1.26, "unidad": "kg"},
-  {"id": "ing_205", "codigo": "ING-206", "tipo": "primario", "nombre": "FRESAS PREMIUN", "precio": 8.4, "unidad": "kg"},
-  {"id": "ing_206", "codigo": "ING-207", "tipo": "primario", "nombre": "MELON", "precio": 1.8, "unidad": "kg"},
-  {"id": "ing_207", "codigo": "ING-208", "tipo": "primario", "nombre": "PIÑA X KG", "precio": 2.4, "unidad": "kg"},
-  {"id": "ing_208", "codigo": "ING-209", "tipo": "primario", "nombre": "NARANJA X KG", "precio": 1.99, "unidad": "kg"},
-  {"id": "ing_209", "codigo": "ING-210", "tipo": "primario", "nombre": "PARCHITA X KG", "precio": 3.2, "unidad": "kg"},
-  {"id": "ing_210", "codigo": "ING-211", "tipo": "primario", "nombre": "REMOLACHA X KG", "precio": 1.3, "unidad": "kg"},
-  {"id": "ing_211", "codigo": "ING-212", "tipo": "primario", "nombre": "CREMA COCO VILAY 330ML", "precio": 4.92, "unidad": "kg"},
-  {"id": "ing_212", "codigo": "ING-213", "tipo": "primario", "nombre": "LECHE EVAP CARNATION 395G", "precio": 7.41, "unidad": "kg"},
-  {"id": "ing_213", "codigo": "ING-214", "tipo": "primario", "nombre": "CR LECHE BELLA HOLANDESA 170GR", "precio": 3.12, "unidad": "kg"},
-  {"id": "ing_214", "codigo": "ING-215", "tipo": "primario", "nombre": "MARGARINA DELINE 500G", "precio": 2.94, "unidad": "kg"},
-  {"id": "ing_215", "codigo": "ING-216", "tipo": "primario", "nombre": "HARINA TRIGO BLANCA FLOR 1KG LEUDANTE", "precio": 1.23, "unidad": "kg"},
-  {"id": "ing_216", "codigo": "ING-217", "tipo": "primario", "nombre": "PIÑA X UND", "precio": 1.98, "unidad": "kg"},
-  {"id": "ing_217", "codigo": "ING-218", "tipo": "primario", "nombre": "COLORANTE ROJO  FLAVORS INSUMOS", "precio": 14.42, "unidad": "kg"},
-  {"id": "ing_218", "codigo": "ING-219", "tipo": "primario", "nombre": "SOPA DE POLLO MAGGI C/FIDEO 62G", "precio": 1.3, "unidad": "kg"},
-  {"id": "ing_219", "codigo": "ING-220", "tipo": "primario", "nombre": "AUYAMA X KG", "precio": 0.83, "unidad": "kg"},
-  {"id": "ing_220", "codigo": "ING-221", "tipo": "primario", "nombre": "HIERBABUENA X KG", "precio": 2.5, "unidad": "kg"},
-  {"id": "ing_221", "codigo": "ING-222", "tipo": "primario", "nombre": "YUCA X KG", "precio": 1.1, "unidad": "kg"},
-  {"id": "ing_222", "codigo": "ING-223", "tipo": "primario", "nombre": "OCUMO BLANCO X KG", "precio": 2.2, "unidad": "kg"},
-  {"id": "ing_223", "codigo": "ING-224", "tipo": "primario", "nombre": "OCUMO CHINO X KG", "precio": 1.6, "unidad": "kg"},
-  {"id": "ing_224", "codigo": "ING-225", "tipo": "primario", "nombre": "BATATA X KG", "precio": 1.6, "unidad": "kg"},
-  {"id": "ing_225", "codigo": "ING-226", "tipo": "primario", "nombre": "GALLINA PREMIUN", "precio": 2.38, "unidad": "kg"},
-  {"id": "ing_226", "codigo": "ING-227", "tipo": "primario", "nombre": "ARVEJAS VERDES PARTIDAS VENELA", "precio": 3.3, "unidad": "kg"},
-  {"id": "ing_227", "codigo": "ING-228", "tipo": "primario", "nombre": "COSTILLA", "precio": 7.39, "unidad": "kg"},
-  {"id": "ing_228", "codigo": "ING-229", "tipo": "primario", "nombre": "LAGARTO CON HUESO", "precio": 7.39, "unidad": "kg"},
-  {"id": "ing_229", "codigo": "ING-230", "tipo": "primario", "nombre": "HUESO AUMADO", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_230", "codigo": "ING-231", "tipo": "primario", "nombre": "SIROPE FRESA GALON 1KG MC LAWS", "precio": 12.24, "unidad": "kg"},
-  {"id": "ing_231", "codigo": "ING-232", "tipo": "primario", "nombre": "ALBAHACA POR KGRS", "precio": 3.78, "unidad": "kg"},
-  {"id": "ing_232", "codigo": "ING-233", "tipo": "primario", "nombre": "QUESO PECORINO C/PIM B.DEL CAMPO KG", "precio": 34.48, "unidad": "kg"},
-  {"id": "ing_233", "codigo": "ING-234", "tipo": "primario", "nombre": "ESENCIA FLAVORS 1L LECHE CONDESAS S/D", "precio": 15.23, "unidad": "kg"},
-  {"id": "ing_234", "codigo": "ING-235", "tipo": "primario", "nombre": "ESENCIA FLAVORS 1L SAMBA FRESA C/C", "precio": 10.41, "unidad": "kg"},
-  {"id": "ing_235", "codigo": "ING-236", "tipo": "primario", "nombre": "ESENCIA FLAVORS 1L AREQUIPE", "precio": 16.74, "unidad": "kg"},
-  {"id": "ing_236", "codigo": "ING-237", "tipo": "primario", "nombre": "COLORANTES", "precio": 18.0, "unidad": "kg"},
-  {"id": "ing_237", "codigo": "ING-238", "tipo": "primario", "nombre": "CONTENEDOR RECT. HH11 S/D MAXIPLAST", "precio": 0.5, "unidad": "kg"},
-  {"id": "ing_238", "codigo": "ING-239", "tipo": "primario", "nombre": "MOLLEJA DE POLLO", "precio": 3.89, "unidad": "kg"},
-  {"id": "ing_239", "codigo": "ING-240", "tipo": "primario", "nombre": "MORT POLLO EL VALLE 900G", "precio": 2.9, "unidad": "kg"},
-  {"id": "ing_240", "codigo": "ING-241", "tipo": "primario", "nombre": "PAPADA DE CERDO X KG", "precio": 2.8, "unidad": "kg"},
-  {"id": "ing_241", "codigo": "ING-242", "tipo": "primario", "nombre": "COMINO MOLINO X KG LE CREMEUS", "precio": 38.5, "unidad": "kg"},
-  {"id": "ing_242", "codigo": "ING-243", "tipo": "primario", "nombre": "CALAMARES X KG", "precio": 9.8, "unidad": "kg"},
-  {"id": "ing_243", "codigo": "ING-244", "tipo": "primario", "nombre": "RAYA DESMENUZADA X KG", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_244", "codigo": "ING-245", "tipo": "primario", "nombre": "TINA 24 ONZ", "precio": 0.35, "unidad": "kg"},
-  {"id": "ing_245", "codigo": "ING-246", "tipo": "primario", "nombre": "MUSLO DE POLLO", "precio": 4.41, "unidad": "kg"},
-  {"id": "ing_246", "codigo": "ING-247", "tipo": "primario", "nombre": "LOMITO", "precio": 16.54, "unidad": "kg"},
-  {"id": "ing_247", "codigo": "ING-248", "tipo": "primario", "nombre": "LECHE DOBOM 1 KG", "precio": 12.5, "unidad": "kg"},
-  {"id": "ing_248", "codigo": "ING-249", "tipo": "primario", "nombre": "ARVEJAS AMARILLAS KG", "precio": 2.0, "unidad": "kg"},
-  {"id": "ing_249", "codigo": "ING-250", "tipo": "primario", "nombre": "CONTENEDOR TRIANGULAR ALTO", "precio": 0.3, "unidad": "kg"},
-  {"id": "ing_250", "codigo": "ING-251", "tipo": "primario", "nombre": "CONTENEDOR DELI 500CC ALTO MAXIPLAST", "precio": 0.35, "unidad": "kg"},
-  {"id": "ing_251", "codigo": "ING-252", "tipo": "primario", "nombre": "GEL BRILLO SUGLASS NEUTRO 5KG INSUMO", "precio": 6.43, "unidad": "kg"},
-  {"id": "ing_252", "codigo": "ING-253", "tipo": "primario", "nombre": "LLUVIA DE CHOCOLATE KG", "precio": 20.58, "unidad": "kg"},
-  {"id": "ing_253", "codigo": "ING-254", "tipo": "primario", "nombre": "PASTA CAPRI DEDAL EX.ESP 1KG", "precio": 0.8, "unidad": "kg"},
-  {"id": "ing_254", "codigo": "ING-255", "tipo": "primario", "nombre": "YOGURT MI GRIEGO", "precio": 12.0, "unidad": "kg"},
-  {"id": "ing_255", "codigo": "ING-256", "tipo": "primario", "nombre": "FRIJOL BAYO VICONE", "precio": 3.0, "unidad": "kg"},
-  {"id": "ing_256", "codigo": "ING-257", "tipo": "primario", "nombre": "HUESO AHUMADO X KG", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_257", "codigo": "ING-258", "tipo": "primario", "nombre": "CHULETA AHUMADA X KG", "precio": 12.63, "unidad": "kg"},
-  {"id": "ing_258", "codigo": "ING-259", "tipo": "primario", "nombre": "QUE POLLO CONGELADO X KG", "precio": 3.8, "unidad": "kg"},
-  {"id": "ing_259", "codigo": "ING-260", "tipo": "primario", "nombre": "QUESO TELITA X KG", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_260", "codigo": "ING-261", "tipo": "primario", "nombre": "QUESO GUAYANES", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_261", "codigo": "ING-262", "tipo": "primario", "nombre": "JAMON SHOULDER DON SIMON (AHUMADO)", "precio": 10.49, "unidad": "kg"},
-  {"id": "ing_262", "codigo": "ING-263", "tipo": "primario", "nombre": "OREO AMERICANA TUBO 96GR", "precio": 1.32, "unidad": "kg"},
-  {"id": "ing_263", "codigo": "ING-264", "tipo": "primario", "nombre": "ENVASE TIPO DOMO16OZ", "precio": 0.21, "unidad": "kg"},
-  {"id": "ing_264", "codigo": "ING-265", "tipo": "primario", "nombre": "DISCO DORADO #8 ALUCAY", "precio": 0.49, "unidad": "kg"},
-  {"id": "ing_265", "codigo": "ING-266", "tipo": "primario", "nombre": "PAPEL CELOFAN", "precio": 0.7, "unidad": "kg"},
-  {"id": "ing_266", "codigo": "ING-267", "tipo": "primario", "nombre": "HOJALPAN 2KG MARGARINA", "precio": 9.0, "unidad": "kg"},
-  {"id": "ing_267", "codigo": "ING-268", "tipo": "primario", "nombre": "JAM ESP AHU FIESTA X KG INST", "precio": 12.67, "unidad": "kg"},
-  {"id": "ing_268", "codigo": "ING-269", "tipo": "primario", "nombre": "MELOCOTON EN ALMIBAR", "precio": 6.0, "unidad": "kg"},
-  {"id": "ing_269", "codigo": "ING-270", "tipo": "primario", "nombre": "ALMIDON X KG", "precio": 4.84, "unidad": "kg"},
-  {"id": "ing_270", "codigo": "ING-271", "tipo": "primario", "nombre": "ENVASE ALUMINIO 420/45 C/T", "precio": 0.55, "unidad": "kg"},
-  {"id": "sub_0", "codigo": "BAS-001", "tipo": "base", "nombre": "MASA HOJALDRE 1KG", "precio": 3.48, "unidad": "kg"},
-  {"id": "sub_1", "codigo": "BAS-002", "tipo": "base", "nombre": "MASA PAN SOBADO 1KG", "precio": 2.06, "unidad": "kg"},
-  {"id": "sub_2", "codigo": "BAS-003", "tipo": "base", "nombre": "CREMA PASTELERA 1KG", "precio": 4.41, "unidad": "kg"},
-  {"id": "sub_3", "codigo": "BAS-004", "tipo": "base", "nombre": "MASA DANESA 1KG", "precio": 2.52, "unidad": "kg"},
-  {"id": "sub_4", "codigo": "BAS-005", "tipo": "base", "nombre": "MASA DULCE 1KG", "precio": 2.22, "unidad": "kg"},
-  {"id": "sub_5", "codigo": "BAS-006", "tipo": "base", "nombre": "GANACCE DE CHOCOLATE 1KG", "precio": 20.82, "unidad": "kg"},
-  {"id": "sub_6", "codigo": "BAS-007", "tipo": "base", "nombre": "MAZA DE PIZZA X KG", "precio": 1.8, "unidad": "kg"},
-  {"id": "sub_7", "codigo": "BAS-008", "tipo": "base", "nombre": "GUISO DE POLLO", "precio": 8.41, "unidad": "kg"},
-  {"id": "sub_8", "codigo": "BAS-009", "tipo": "base", "nombre": "GUISO DE MECHADA", "precio": 10.48, "unidad": "kg"},
-  {"id": "sub_9", "codigo": "BAS-010", "tipo": "base", "nombre": "GUISO DE MOLIDA", "precio": 10.0, "unidad": "kg"},
-  {"id": "sub_10", "codigo": "BAS-011", "tipo": "base", "nombre": "GUISO DE CARAOTA", "precio": 4.23, "unidad": "kg"},
-  {"id": "sub_11", "codigo": "BAS-012", "tipo": "base", "nombre": "GUISO DE HALLACA", "precio": 12.2, "unidad": "kg"},
-  {"id": "sub_12", "codigo": "BAS-013", "tipo": "base", "nombre": "MASA DE CROASAN X KG", "precio": 2.53, "unidad": "kg"},
-  {"id": "sub_13", "codigo": "BAS-014", "tipo": "base", "nombre": "MASA PARA PAN DE BANQUETTE", "precio": 1.5, "unidad": "kg"},
-  {"id": "sub_14", "codigo": "BAS-015", "tipo": "base", "nombre": "MASA PARA DESAYUNO", "precio": 1.74, "unidad": "kg"},
-  {"id": "sub_15", "codigo": "BAS-016", "tipo": "base", "nombre": "MASA PARA PAN CANILLA, CAMPÉSINO Y FRANCES", "precio": 1.5, "unidad": "kg"},
-  {"id": "sub_16", "codigo": "BAS-017", "tipo": "base", "nombre": "SALSA PARA PIZZAS", "precio": 0.2, "unidad": "kg"}
-];
-
-    // Carga inicial o recuperación desde localStorage
-    let insumosBase = [];
-    let storedInsumosStr = localStorage.getItem('hipergalerias_insumos_db');
-    if (storedInsumosStr) {
-      try {
-        let storedInsumos = JSON.parse(storedInsumosStr);
-        if (Array.isArray(storedInsumos) && storedInsumos.length > 0) {
-          const mapExistentes = new Map(storedInsumos.map(item => [String(item.id), item]));
-          INSUMOS_DEFAULT.forEach(itemDefault => {
-            if (!mapExistentes.has(String(itemDefault.id))) {
-              storedInsumos.push(itemDefault);
-            }
-          });
-          insumosBase = storedInsumos;
-        } else {
-          insumosBase = [...INSUMOS_DEFAULT];
-        }
-      } catch (e) {
-        insumosBase = [...INSUMOS_DEFAULT];
-      }
-    } else {
-      insumosBase = [...INSUMOS_DEFAULT];
-    }
-
-    let productosFinales = JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
-    let recetaActual = [];
-    let modoEdicionIndex = null;
-
-    function guardarEnStorage() {
-      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-      localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(productosFinales));
-      document.getElementById('count-insumos').innerText = insumosBase.length;
-      document.getElementById('count-catalogo').innerText = productosFinales.length;
-    }
-
-    // FUNCIONES DE RESPALDO Y RESTAURACIÓN
-    function respaldarSistema() {
-      const datosBackup = {
-        insumos: insumosBase,
-        recetas: productosFinales,
-        fecha: new Date().toISOString()
-      };
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(datosBackup, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `respaldo_costos_galerias_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function restaurarSistema() {
-      document.getElementById('inputRestaurar').click();
-    }
-
-    function procesarRestauracion(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const contenido = JSON.parse(e.target.result);
-          if (contenido.insumos && Array.isArray(contenido.insumos)) {
-            insumosBase = contenido.insumos;
-          }
-          if (contenido.recetas && Array.isArray(contenido.recetas)) {
-            productosFinales = contenido.recetas;
-          }
-          guardarEnStorage();
-          renderizarCatalogo();
-          renderizarTablaInsumos();
-          alert("¡Sistema restaurado exitosamente desde el respaldo!");
-        } catch (err) {
-          alert("Error al leer el archivo de respaldo. Asegúrate de que sea un archivo JSON válido.");
-        }
-      };
-      reader.readAsText(file);
-      event.target.value = '';
-    }
-
-    function forzarRecargaCatalogo() {
-      if(confirm("Esta opción repondrá cualquier insumo faltante. ¿Deseas continuar?")) {
-        const mapExistentes = new Map(insumosBase.map(item => [String(item.id), item]));
-        INSUMOS_DEFAULT.forEach(itemDefault => {
-          if (!mapExistentes.has(String(itemDefault.id))) {
-            insumosBase.push(itemDefault);
-          }
-        });
-        guardarEnStorage();
-        renderizarTablaInsumos();
-        alert(`¡Catálogo sincronizado! Total de insumos actuales: ${insumosBase.length}`);
-      }
-    }
-
-    function cambiarPestana(pestana) {
-      document.getElementById('tab-insumos').classList.add('hidden');
-      document.getElementById('tab-creador').classList.add('hidden');
-      document.getElementById('tab-catalogo').classList.add('hidden');
-      
-      document.getElementById('btn-tab-insumos').classList.remove('tab-active');
-      document.getElementById('btn-tab-creador').classList.remove('tab-active');
-      document.getElementById('btn-tab-catalogo').classList.remove('tab-active');
-
-      document.getElementById(`tab-${pestana}`).classList.remove('hidden');
-      document.getElementById(`btn-tab-${pestana}`).classList.add('tab-active');
-
-      if(pestana === 'insumos') renderizarTablaInsumos();
-      if(pestana === 'creador') renderizarFilasCreador();
-      if(pestana === 'catalogo') renderizarCatalogo();
-    }
-
-    function renderizarTablaInsumos() {
-      const tbody = document.getElementById('tablaInsumosBody');
-      const filtro = document.getElementById('buscarInsumo').value.toLowerCase();
-      tbody.innerHTML = '';
-
-      const filtrados = insumosBase.filter(i => (i.nombre && i.nombre.toLowerCase().includes(filtro)) || (i.codigo && String(i.codigo).toLowerCase().includes(filtro)));
-
-      filtrados.forEach(insumo => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-gray-50 border-b";
-        tr.innerHTML = `
-          <td class="p-3 font-mono text-xs">${insumo.codigo || 'N/A'}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded text-xs font-bold ${insumo.tipo === 'base' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'}">${insumo.tipo === 'base' ? 'PRODUCTO BASE' : 'PRIMARIO'}</span></td>
-          <td class="p-3 font-bold text-gray-800">${insumo.nombre}</td>
-          <td class="p-3 text-center uppercase text-xs">${insumo.unidad}</td>
-          <td class="p-3 text-right font-bold text-[#123e1b]">$${Number(insumo.precio).toFixed(4)}</td>
-          <td class="p-3 text-center text-xs text-gray-500">Vigente</td>
-          <td class="p-3 text-center">
-            <button onclick="editarPrecioInsumo('${insumo.id}')" class="text-blue-600 hover:underline text-xs font-bold">Editar Costo</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      guardarEnStorage();
-    }
-
-    function editarPrecioInsumo(id) {
-      const insumo = insumosBase.find(i => String(i.id) === String(id));
-      if(!insumo) return;
-      const nuevoPrecioStr = prompt(`Ingrese el nuevo costo para ${insumo.nombre}:`, insumo.precio);
-      if(nuevoPrecioStr !== null) {
-        const nuevoPrecio = parseFloat(nuevoPrecioStr.replace(',', '.'));
-        if(!isNaN(nuevoPrecio)) {
-          insumo.precio = nuevoPrecio;
-          recalcularBasesYRecetas();
-          renderizarTablaInsumos();
-        }
-      }
-    }
-
-    function nuevoInsumoPrompt() {
-      const nombre = prompt("Nombre del ingrediente:");
-      if(!nombre) return;
-      const precioStr = prompt("Costo Unitario ($):", "0.00");
-      const precio = parseFloat((precioStr || "0").replace(',', '.'));
-      const unidad = prompt("Unidad (kg, und, lt, paquete, ml):", "kg");
-
-      insumosBase.push({
-        id: `ing_custom_${Date.now()}`,
-        codigo: `ING-${String(insumosBase.length + 1).padStart(3, '0')}`,
-        tipo: "primario",
-        nombre: nombre.toUpperCase(),
-        precio: isNaN(precio) ? 0 : precio,
-        unidad: (unidad || 'kg').toLowerCase()
-      });
-      renderizarTablaInsumos();
-    }
-
-    function agregarFilaReceta() {
-      recetaActual.push({ insumoId: insumosBase[0]?.id || null, cantidad: 1.0 });
-      renderizarFilasCreador();
-    }
-
-    function renderizarFilasCreador() {
-      const tbody = document.getElementById('filasRecetaBody');
-      tbody.innerHTML = '';
-
-      recetaActual.forEach((item, index) => {
-        const insumoSeleccionado = insumosBase.find(i => String(i.id) === String(item.insumoId)) || insumosBase[0];
-        const costoUnit = obtenerPrecioInsumo(item.insumoId);
-        const total = costoUnit * item.cantidad;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="p-2 relative">
-            <div class="relative">
-              <input type="text" id="inputSearch_${index}" value="${insumoSeleccionado ? insumoSeleccionado.nombre + ' ($' + Number(insumoSeleccionado.precio).toFixed(4) + ' / ' + insumoSeleccionado.unidad + ')' : ''}" 
-                oninput="filtrarDropdownInsumos(${index}, this.value)" 
-                onfocus="mostrarDropdownInsumos(${index})"
-                placeholder="🔍 Buscar ingrediente..." 
-                class="w-full p-2 border border-gray-300 rounded text-xs bg-white font-semibold outline-none focus:ring-2 focus:ring-[#2e7d32]">
-              
-              <div id="dropdown_${index}" class="absolute z-50 left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden"></div>
+  <!-- MODAL DE LOGIN BLOQUEANTE -->
+  <div class="modal-overlay-login" id="loginModal">
+    <div class="login-card">
+        <h3>Acceso al Sistema</h3>
+        <p>Ingresa tus credenciales corporativas para continuar.</p>
+        
+        <form id="loginForm" onsubmit="ejecutarLogin(event)">
+            <div class="form-group-login">
+                <label for="loginEmail">Correo Electrónico</label>
+                <input type="email" id="loginEmail" class="form-control-login" placeholder="usuario@hipergalerias.com" required>
             </div>
-          </td>
-          <td class="p-2 text-center">
-            <input type="number" step="any" min="0" value="${item.cantidad}" oninput="actualizarItemReceta(${index}, 'cantidad', this.value)" class="w-24 p-1.5 border border-gray-300 rounded text-center text-xs font-bold focus:ring-2 focus:ring-[#2e7d32] outline-none">
-          </td>
-          <td class="p-2 text-right text-xs font-bold text-gray-600" id="costoUnit_${index}">
-            $${costoUnit.toFixed(4)}
-          </td>
-          <td class="p-2 text-right text-xs font-bold text-[#123e1b]" id="total_${index}">
-            $${total.toFixed(4)}
-          </td>
-          <td class="p-2 text-center">
-            <button onclick="eliminarFilaReceta(${index})" class="text-red-500 font-bold hover:text-red-700">&times;</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-        poblarOpcionesDropdown(index, '');
-      });
-      recalcularEscandallo();
-    }
+            
+            <div class="form-group-login">
+                <label for="loginPassword">Contraseña</label>
+                <input type="password" id="loginPassword" class="form-control-login" placeholder="••••••••" required>
+            </div>
 
-    function mostrarDropdownInsumos(index) {
-      document.querySelectorAll('[id^="dropdown_"]').forEach(el => el.classList.add('hidden'));
-      const dropdown = document.getElementById(`dropdown_${index}`);
-      if(dropdown) dropdown.classList.remove('hidden');
-    }
+            <div id="loginError" class="login-error-msg"></div>
 
-    function filtrarDropdownInsumos(index, filtro) {
-      poblarOpcionesDropdown(index, filtro);
-      mostrarDropdownInsumos(index);
-    }
+            <div class="login-actions">
+                <button type="submit" class="btn-submit-login" id="btnSubmitLogin">Ingresar</button>
+            </div>
+        </form>
+    </div>
+  </div>
 
-    function poblarOpcionesDropdown(index, filtro = '') {
-      const dropdown = document.getElementById(`dropdown_${index}`);
-      if(!dropdown) return;
-      dropdown.innerHTML = '';
+  <script>
+    let insumosBase = [];
+    let recetasCatalogo = [];
+    let recetaActual = { filas: [] };
+    let idRecetaEditando = null;
 
-      const filtrados = insumosBase.filter(i => (i.nombre && i.nombre.toLowerCase().includes(filtro.toLowerCase())) || (i.codigo && String(i.codigo).toLowerCase().includes(filtro.toLowerCase())));
+    // PAGINACIÓN CLIENTE
+    let paginaActualInsumos = 1;
+    const itemsPorPaginaInsumos = 50;
 
-      if(filtrados.length === 0) {
-        dropdown.innerHTML = `<div class="p-2 text-xs text-gray-400">No se encontraron ingredientes</div>`;
-        return;
-      }
+    // INICIALIZACIÓN ASÍNCRONA
+    document.addEventListener('DOMContentLoaded', async () => {
+      initTheme();
+      await cargarDeSupabase();
+      agregarFilaReceta();
 
-      filtrados.forEach(insumo => {
-        const div = document.createElement('div');
-        div.className = "p-2 hover:bg-[#e8f5e9] hover:text-[#123e1b] cursor-pointer text-xs font-semibold border-b border-gray-100 flex justify-between items-center";
-        div.innerHTML = `<span>${insumo.nombre}</span> <span class="text-gray-500 font-normal">($${Number(insumo.precio).toFixed(4)} / ${insumo.unidad})</span>`;
-        div.onmousedown = function(e) {
-          e.preventDefault();
-          seleccionarInsumoFila(index, insumo.id);
-        };
-        dropdown.appendChild(div);
-      });
-    }
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        gestionarEstadoSesion(session);
 
-    function seleccionarInsumoFila(index, insumoId) {
-      recetaActual[index].insumoId = insumoId;
-      const insumo = insumosBase.find(i => String(i.id) === String(insumoId));
-      const inputSearch = document.getElementById(`inputSearch_${index}`);
-      if(inputSearch && insumo) {
-        inputSearch.value = `${insumo.nombre} ($${Number(insumo.precio).toFixed(4)} / ${insumo.unidad})`;
-      }
-      const dropdown = document.getElementById(`dropdown_${index}`);
-      if(dropdown) dropdown.classList.add('hidden');
-
-      recalcularEscandallo();
-      
-      const costoUnit = obtenerPrecioInsumo(insumoId);
-      const total = costoUnit * recetaActual[index].cantidad;
-      const elCostoUnit = document.getElementById(`costoUnit_${index}`);
-      const elTotal = document.getElementById(`total_${index}`);
-      if(elCostoUnit) elCostoUnit.innerText = `$${costoUnit.toFixed(4)}`;
-      if(elTotal) elTotal.innerText = `$${total.toFixed(4)}`;
-    }
-
-    document.addEventListener('click', function(e) {
-      if (!e.target.closest('[id^="inputSearch_"]') && !e.target.closest('[id^="dropdown_"]')) {
-        document.querySelectorAll('[id^="dropdown_"]').forEach(el => el.classList.add('hidden'));
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+          gestionarEstadoSesion(session);
+        });
       }
     });
 
-    function obtenerPrecioInsumo(id) {
-      const item = insumosBase.find(i => String(i.id) === String(id));
-      return item ? (parseFloat(item.precio) || 0.0) : 0.0;
-    }
-
-    function actualizarItemReceta(index, campo, valor) {
-      if (campo === 'cantidad') {
-        const cantLimpia = parseFloat(String(valor).replace(',', '.'));
-        recetaActual[index][campo] = isNaN(cantLimpia) ? 0 : cantLimpia;
-      } else {
-        recetaActual[index][campo] = valor;
-      }
-      recalcularEscandallo();
-      
-      const costoUnit = obtenerPrecioInsumo(recetaActual[index].insumoId);
-      const total = costoUnit * recetaActual[index].cantidad;
-      const elTotal = document.getElementById(`total_${index}`);
-      if(elTotal) elTotal.innerText = `$${total.toFixed(4)}`;
-    }
-
-    function eliminarFilaReceta(index) {
-      recetaActual.splice(index, 1);
-      renderizarFilasCreador();
-    }
-
-    function recalcularEscandallo() {
-      let costoBatch = 0;
-      recetaActual.forEach(item => {
-        costoBatch += obtenerPrecioInsumo(item.insumoId) * item.cantidad;
-      });
-
-      const tipoCalculo = document.getElementById('tipoCalculo').value;
-      const pesoTotal = parseFloat(document.getElementById('rendimientoCant').value) || 1.0;
-      const piezasCant = parseInt(document.getElementById('piezasCant').value) || 1;
-      const factorUtilidad = parseFloat(document.getElementById('margenUtilidad').value) || 1.0;
-
-      let costoUnitario = 0;
-      let pvp = 0;
-
-      if (tipoCalculo === 'kg') {
-        costoUnitario = pesoTotal > 0 ? (costoBatch / pesoTotal) : 0;
-        pvp = costoUnitario * factorUtilidad;
-      } else {
-        const rendimientoPiezas = piezasCant > 0 ? piezasCant : 1;
-        costoUnitario = costoBatch / rendimientoPiezas;
-        pvp = costoUnitario * factorUtilidad;
-      }
-
-      const ganancia = pvp - costoUnitario;
-
-      document.getElementById('costoTotalBatch').innerText = `$${costoBatch.toFixed(4)}`;
-      document.getElementById('costoUnitario').innerText = `$${costoUnitario.toFixed(4)}`;
-      document.getElementById('pvpSugerido').innerText = `$${pvp.toFixed(2)}`;
-      document.getElementById('gananciaDolares').innerText = `$${ganancia.toFixed(2)}`;
-    }
-
-    function actualizarEtiquetaRendimiento() {
-      const tipo = document.getElementById('tipoCalculo').value;
-      const labelCosto = document.getElementById('labelCostoUnitario');
-      const labelPvp = document.getElementById('labelPvpSugerido');
-      const labelGanancia = document.getElementById('labelGananciaUnidad');
-      const labelRend = document.getElementById('labelRendimiento');
-      const divPiezas = document.getElementById('piezasCant').parentElement;
-
-      if (tipo === 'kg') {
-        labelCosto.innerText = `Costo Unitario / KG:`;
-        labelPvp.innerText = `PVP Sugerido (Por KG):`;
-        labelGanancia.innerText = `Ganancia Estimada por KG:`;
-        labelRend.innerText = `Peso Total Lote (Peso T / KG)`;
-        divPiezas.style.display = 'none';
-      } else {
-        labelCosto.innerText = `Costo Unitario / UNIDAD:`;
-        labelPvp.innerText = `PVP Sugerido (Por UNIDAD):`;
-        labelGanancia.innerText = `Ganancia Estimada por UNIDAD:`;
-        labelRend.innerText = `Peso Total Lote (Peso T / KG)`;
-        divPiezas.style.display = 'block';
-      }
-      recalcularEscandallo();
-    }
-
-    function guardarRecetaCatalogo() {
-      const nombre = document.getElementById('nombreReceta').value.trim();
-      const categoria = document.getElementById('categoriaReceta').value;
-      const tipoCalculo = document.getElementById('tipoCalculo').value;
-      const rendimiento = parseFloat(document.getElementById('rendimientoCant').value) || 1.0;
-      const piezasCant = parseInt(document.getElementById('piezasCant').value) || 1;
-      const unidad = document.getElementById('rendimientoUnidad').value;
-      const factorUtilidad = parseFloat(document.getElementById('margenUtilidad').value) || 1.4;
-      const esSubreceta = document.getElementById('esSubreceta').checked;
-
-      if(!nombre) { alert("Por favor ingresa un nombre para la receta"); return; }
-      if(recetaActual.length === 0) { alert("Agrega al menos un ingrediente"); return; }
-
-      let costoBatch = 0;
-      recetaActual.forEach(item => {
-        costoBatch += obtenerPrecioInsumo(item.insumoId) * item.cantidad;
-      });
-
-      let costoUnitario = 0;
-      let pvp = 0;
-
-      if (tipoCalculo === 'kg') {
-        costoUnitario = rendimiento > 0 ? (costoBatch / rendimiento) : 0;
-      } else {
-        costoUnitario = costoBatch / (piezasCant > 0 ? piezasCant : 1);
-      }
-      pvp = costoUnitario * factorUtilidad;
-
-      const producto = {
-        id: modoEdicionIndex !== null ? productosFinales[modoEdicionIndex].id : Date.now(),
-        nombre, categoria, tipoCalculo, rendimiento, piezasCant, unidad, factorUtilidad, costoBatch, costoUnitario, pvp,
-        ingredientes: [...recetaActual]
-      };
-
-      if(modoEdicionIndex !== null) {
-        productosFinales[modoEdicionIndex] = producto;
-        modoEdicionIndex = null;
-      } else {
-        productosFinales.push(producto);
-      }
-
-      if(esSubreceta || categoria === 'MASAS' || categoria === 'GUISOS') {
-        const existeInsumo = insumosBase.find(i => i.nombre.toUpperCase() === nombre.toUpperCase());
-        if(existeInsumo) {
-          existeInsumo.precio = costoUnitario;
-        } else {
-          insumosBase.push({
-            id: `bas_${Date.now()}`,
-            codigo: `BAS-${String(insumosBase.length + 1).padStart(3, '0')}`,
-            tipo: "base",
-            nombre: nombre.toUpperCase(),
-            precio: costoUnitario,
-            unidad: unidad
-          });
-        }
-      }
-
-      guardarEnStorage();
-      alert("¡Producto guardado exitosamente!");
-      limpiarCreador();
-      cambiarPestana('catalogo');
-    }
-
-    function limpiarCreador() {
-      document.getElementById('nombreReceta').value = '';
-      document.getElementById('rendimientoCant').value = '1.0';
-      document.getElementById('piezasCant').value = '1';
-      document.getElementById('margenUtilidad').value = '1.4';
-      document.getElementById('esSubreceta').checked = false;
-      document.getElementById('tipoCalculo').value = 'kg';
-      actualizarEtiquetaRendimiento();
-      document.getElementById('tituloSeccionCreador').innerText = "Datos Principales de la Preparación";
-      document.getElementById('btnCancelarEdicion').classList.add('hidden');
-      document.getElementById('btnGuardarReceta').innerText = "💾 Guardar Producto en Catálogo";
-      recetaActual = [];
-      modoEdicionIndex = null;
-    }
-
-    function cancelarEdicionReceta() {
-      limpiarCreador();
-      cambiarPestana('catalogo');
-    }
-
-    // ACCIÓN 1: VER FICHA
-    function verFichaReceta(index) {
-      const prod = productosFinales[index];
-      if(!prod) return;
-
-      document.getElementById('modalNombre').innerText = prod.nombre;
-      document.getElementById('modalCategoria').innerText = prod.categoria;
-      document.getElementById('modalRendimiento').innerText = prod.tipoCalculo === 'kg' ? `${prod.rendimiento} KG Lote` : `${prod.piezasCant} Unidades`;
-      document.getElementById('modalCosto').innerText = `$${Number(prod.costoUnitario).toFixed(4)}`;
-      document.getElementById('modalPvp').innerText = `$${Number(prod.pvp).toFixed(2)}`;
-      
-      const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
-      document.getElementById('fichaFecha').innerText = `Fecha: ${new Date().toLocaleDateString('es-ES', options)}`;
-
-      const tbody = document.getElementById('modalIngredientesBody');
-      tbody.innerHTML = '';
-
-      prod.ingredientes.forEach(item => {
-        const insumo = insumosBase.find(i => String(i.id) === String(item.insumoId));
-        const nombreInsumo = insumo ? insumo.nombre : 'Ingrediente no encontrado';
-        const unidadInsumo = insumo ? insumo.unidad : '';
-        const costoUnit = obtenerPrecioInsumo(item.insumoId);
-        const costoTotal = costoUnit * item.cantidad;
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="p-2.5 border-b font-medium text-gray-800">${nombreInsumo}</td>
-          <td class="p-2.5 border-b text-center font-bold text-gray-600">${item.cantidad} ${unidadInsumo}</td>
-          <td class="p-2.5 border-b text-right text-gray-600">$${costoUnit.toFixed(4)}</td>
-          <td class="p-2.5 border-b text-right font-bold text-[#123e1b]">$${costoTotal.toFixed(4)}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('fichaModal').classList.remove('hidden');
-    }
-
-    function cerrarFichaModal() {
-      document.getElementById('fichaModal').classList.add('hidden');
-    }
-
-    // ACCIÓN 2: EDITAR RECETA
-    function editarReceta(index) {
-      const prod = productosFinales[index];
-      if(!prod) return;
-
-      modoEdicionIndex = index;
-      document.getElementById('nombreReceta').value = prod.nombre;
-      document.getElementById('categoriaReceta').value = prod.categoria;
-      document.getElementById('tipoCalculo').value = prod.tipoCalculo || 'kg';
-      document.getElementById('rendimientoCant').value = prod.rendimiento || 1.0;
-      document.getElementById('piezasCant').value = prod.piezasCant || 1;
-      document.getElementById('rendimientoUnidad').value = prod.unidad || 'kg';
-      document.getElementById('margenUtilidad').value = prod.factorUtilidad || 1.4;
-      document.getElementById('esSubreceta').checked = false;
-
-      actualizarEtiquetaRendimiento();
-
-      document.getElementById('tituloSeccionCreador').innerText = `Editando Receta: ${prod.nombre}`;
-      document.getElementById('btnCancelarEdicion').classList.remove('hidden');
-      document.getElementById('btnGuardarReceta').innerText = "💾 Actualizar Producto en Catálogo";
-
-      recetaActual = JSON.parse(JSON.stringify(prod.ingredientes));
-      
-      cambiarPestana('creador');
-    }
-
-    // ACCIÓN 3: ELIMINAR CON PIN
-    function eliminarRecetaCatalogo(index) {
-      const codigoSeguridad = "1234";
-      const ingreso = prompt(`⚠️ ACCIÓN PROTEGIDA\nPara eliminar "${productosFinales[index].nombre}" del catálogo, ingrese el código de autorización:`);
-      
-      if(ingreso === null) return;
-
-      if(ingreso === codigoSeguridad) {
-        productosFinales.splice(index, 1);
-        guardarEnStorage();
-        renderizarCatalogo();
-        alert("✅ Receta eliminada exitosamente del sistema.");
-      } else {
-        alert("❌ Código incorrecto. No se pudo eliminar la receta.");
+    // ==========================================
+    // AUTENTICACIÓN Y SESIÓN
+    // ==========================================
+    function abrirModalLogin() {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        document.getElementById('loginError').style.display = 'none';
       }
     }
 
-    function recalcularBasesYRecetas() {
-      let cambiosRealizados = true;
-      let iteraciones = 0;
-      const maxIteraciones = 10;
-
-      while (cambiosRealizados && iteraciones < maxIteraciones) {
-        cambiosRealizados = false;
-        iteraciones++;
-
-        productosFinales.forEach(prod => {
-          let costoBatch = 0;
-          prod.ingredientes.forEach(item => {
-            costoBatch += obtenerPrecioInsumo(item.insumoId) * item.cantidad;
-          });
-          
-          let nuevoCostoUnitario = 0;
-          if (prod.tipoCalculo === 'kg') {
-            nuevoCostoUnitario = prod.rendimiento > 0 ? (costoBatch / prod.rendimiento) : 0;
-          } else {
-            const piezas = prod.piezasCant > 0 ? prod.piezasCant : 1;
-            nuevoCostoUnitario = costoBatch / piezas;
-          }
-          const nuevoPvp = nuevoCostoUnitario * prod.factorUtilidad;
-
-          if (Math.abs(prod.costoBatch - costoBatch) > 0.00001 || 
-              Math.abs(prod.costoUnitario - nuevoCostoUnitario) > 0.00001) {
-            cambiosRealizados = true;
-          }
-
-          prod.costoBatch = costoBatch;
-          prod.costoUnitario = nuevoCostoUnitario;
-          prod.pvp = nuevoPvp;
-
-          let insumoBase = insumosBase.find(i => i.nombre.toUpperCase() === prod.nombre.toUpperCase() && (i.tipo === 'base' || prod.categoria === 'MASAS' || prod.categoria === 'GUISOS'));
-          if (insumoBase) {
-            if (Math.abs(insumoBase.precio - nuevoCostoUnitario) > 0.00001) {
-              insumoBase.precio = nuevoCostoUnitario;
-              cambiosRealizados = true;
-            }
-          }
-        });
+    function cerrarModalLogin() {
+      const modal = document.getElementById('loginModal');
+      if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = 'auto';
       }
-
-      guardarEnStorage();
     }
 
-    function renderizarCatalogo() {
-      const tbody = document.getElementById('tablaCatalogoBody');
-      const filtro = document.getElementById('buscarCatalogo') ? document.getElementById('buscarCatalogo').value.toLowerCase() : '';
-      tbody.innerHTML = '';
+    async function ejecutarLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const errorDiv = document.getElementById('loginError');
+      const btnSubmit = document.getElementById('btnSubmitLogin');
 
-      const filtrados = productosFinales.map((p, originalIndex) => ({p, originalIndex})).filter(({p}) => 
-        p.nombre.toLowerCase().includes(filtro) || p.categoria.toLowerCase().includes(filtro)
-      );
+      errorDiv.style.display = 'none';
+      btnSubmit.innerText = 'Verificando...';
+      btnSubmit.disabled = true;
 
-      if(filtrados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400">No hay recetas guardadas en el catálogo.</td></tr>`;
-        guardarEnStorage();
+      if (typeof supabaseClient === 'undefined') {
+        alert("Error: No se encontró la configuración de Supabase.");
+        btnSubmit.innerText = 'Ingresar';
+        btnSubmit.disabled = false;
         return;
       }
 
-      filtrados.forEach(({p, originalIndex}) => {
-        const tipoLabel = p.tipoCalculo === 'kg' ? `KG (${p.rendimiento}kg)` : `UND (${p.piezasCant}p)`;
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-gray-50 border-b";
-        tr.innerHTML = `
-          <td class="p-3 font-bold text-gray-800">${p.nombre}</td>
-          <td class="p-3 text-xs"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-800 font-bold">${p.categoria}</span></td>
-          <td class="p-3 text-center text-xs font-semibold">${tipoLabel}</td>
-          <td class="p-3 text-right font-bold text-[#123e1b]">$${Number(p.costoUnitario).toFixed(4)}</td>
-          <td class="p-3 text-center font-bold text-blue-600">${Number(p.factorUtilidad).toFixed(2)}x</td>
-          <td class="p-3 text-right font-extrabold text-[#2e7d32]">$${Number(p.pvp).toFixed(2)}</td>
-          <td class="p-3 text-center flex justify-center gap-1.5">
-            <button onclick="verFichaReceta(${originalIndex})" class="bg-[#1b4d3e] hover:bg-emerald-800 text-white px-2.5 py-1 rounded text-xs font-bold transition-all shadow">Ver Ficha</button>
-            <button onclick="editarReceta(${originalIndex})" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold transition-all shadow">Editar</button>
-            <button onclick="eliminarRecetaCatalogo(${originalIndex})" class="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white px-2.5 py-1 rounded text-xs font-bold transition-all">Eliminar</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
       });
-      guardarEnStorage();
+
+      btnSubmit.innerText = 'Ingresar';
+      btnSubmit.disabled = false;
+
+      if (error) {
+        errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message);
+        errorDiv.style.display = 'block';
+      } else {
+        cerrarModalLogin();
+        document.getElementById('loginForm').reset();
+      }
     }
 
-    // --- AUTENTICACIÓN Y SESIÓN COMPARTIDA (igual que recepcionyfechas.html) ---
     async function ejecutarLogout() {
       if (typeof supabaseClient !== 'undefined') {
         await supabaseClient.auth.signOut();
@@ -1436,6 +823,7 @@
       const authContainer = document.getElementById('userAuthContainer');
 
       if (session && session.user) {
+        cerrarModalLogin();
         const metadata = session.user.user_metadata || {};
         const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
         const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
@@ -1449,58 +837,654 @@
           `;
         }
       } else {
-        window.location.href = 'index.html';
+        if (authContainer) {
+          authContainer.innerHTML = `
+            <button class="btn-login-trigger" onclick="abrirModalLogin()">🔑 Iniciar Sesión</button>
+          `;
+        }
+        abrirModalLogin();
       }
     }
 
-    // --- MANEJO DE TEMA (modo oscuro persistente, unificado con los demás módulos) ---
-    function aplicarTema(oscuro) {
-      document.body.classList.toggle('theme-dark', oscuro);
-      const toggle = document.getElementById('themeToggle');
-      const icon = document.getElementById('themeToggleIcon');
-      const label = document.getElementById('themeToggleLabel');
-      if (!toggle) return;
-
-      toggle.setAttribute('aria-pressed', oscuro ? 'true' : 'false');
-      toggle.setAttribute('aria-label', oscuro ? 'Activar modo claro' : 'Activar modo oscuro');
-      toggle.title = oscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
-      if (icon) icon.textContent = oscuro ? '☀' : '☾';
-      if (label) label.textContent = oscuro ? 'Modo claro' : 'Modo oscuro';
+    // MODO OSCURO PERSISTENTE
+    function initTheme() {
+      const isDark = localStorage.getItem('theme_recetario') === 'dark';
+      if (isDark) {
+        document.body.classList.add('theme-dark');
+        document.getElementById('themeToggleLabel').textContent = 'Modo claro';
+        document.getElementById('themeToggleIcon').textContent = '☀';
+      }
+      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
     }
 
-    function inicializarTema() {
-      const preferenciaGuardada = localStorage.getItem('hipergalerias_theme');
-      const esOscuro = preferenciaGuardada === 'dark';
-      aplicarTema(esOscuro);
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('theme-dark');
+      localStorage.setItem('theme_recetario', isDark ? 'dark' : 'light');
+      document.getElementById('themeToggleLabel').textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+      document.getElementById('themeToggleIcon').textContent = isDark ? '☀' : '☾';
+    }
 
-      const toggle = document.getElementById('themeToggle');
-      if (toggle) {
-        toggle.addEventListener('click', () => {
-          const oscuro = !document.body.classList.contains('theme-dark');
-          aplicarTema(oscuro);
-          localStorage.setItem('hipergalerias_theme', oscuro ? 'dark' : 'light');
-        });
+    // ==========================================
+    // CONEXIÓN CON SUPABASE
+    // ==========================================
+    async function cargarDeSupabase() {
+      try {
+        const { data: insumosData, error: errInsumos } = await supabaseClient
+          .from('insumos')
+          .select('*')
+          .order('nombre', { ascending: true });
+
+        if (errInsumos) throw errInsumos;
+
+        if (insumosData) {
+          insumosBase = insumosData.map(i => ({
+            id: i.id,
+            codigo: i.codigo,
+            tipo: i.tipo,
+            nombre: i.nombre,
+            precio: parseFloat(i.precio || 0),
+            costoVenta: parseFloat(i.costo_venta || i.precio || 0),
+            unidad: i.unidad
+          }));
+        }
+
+        const { data: recetasData, error: errRecetas } = await supabaseClient
+          .from('recetas')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (errRecetas) throw errRecetas;
+
+        if (recetasData) {
+          recetasCatalogo = recetasData.map(r => ({
+            id: r.id,
+            nombre: r.nombre,
+            categoria: r.categoria,
+            tipo: r.tipo,
+            rendimiento: parseFloat(r.rendimiento || 1),
+            piezas: parseFloat(r.piezas || 1),
+            factor: parseFloat(r.factor || 1.4),
+            costoBatch: parseFloat(r.costo_batch || 0),
+            costoUnitario: parseFloat(r.costo_unitario || 0),
+            pvp: parseFloat(r.pvp || 0),
+            esSubreceta: r.es_subreceta,
+            ingredientes: typeof r.ingredientes === 'string' ? JSON.parse(r.ingredientes) : (r.ingredientes || []),
+            fecha: r.fecha
+          }));
+        }
+
+        // Respaldar en ambas claves para compatibilidad
+        localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+        localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+        localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
+        localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
+
+      } catch (error) {
+        console.warn("⚠️ Error conectando con Supabase. Cargando respaldo local:", error);
+        const storedInsumos = localStorage.getItem('insumos_recetario') || localStorage.getItem('hipergalerias_insumos_db');
+        insumosBase = storedInsumos ? JSON.parse(storedInsumos) : [];
+
+        const storedCatalogo = localStorage.getItem('catalogo_recetario') || localStorage.getItem('hipergalerias_recetas_db');
+        recetasCatalogo = storedCatalogo ? JSON.parse(storedCatalogo) : [];
+      }
+
+      renderizarTablaInsumos();
+      renderizarCatalogo();
+    }
+
+    async function guardarInsumoSupabase(insumo) {
+      try {
+        const payload = {
+          id: String(insumo.id),
+          codigo: insumo.codigo,
+          tipo: insumo.tipo,
+          nombre: insumo.nombre,
+          precio: insumo.precio,
+          costo_venta: insumo.costoVenta,
+          unidad: insumo.unidad
+        };
+
+        const { error } = await supabaseClient
+          .from('insumos')
+          .upsert(payload, { onConflict: 'id' });
+
+        if (error) throw error;
+      } catch (err) {
+        console.error("❌ Error al guardar insumo en Supabase:", err);
       }
     }
 
-    // Inicialización al cargar la página
-    window.addEventListener('DOMContentLoaded', async () => {
-      inicializarTema();
-      guardarEnStorage();
-      actualizarEtiquetaRendimiento();
-      cambiarPestana('insumos');
+    async function guardarRecetaSupabase(receta) {
+      try {
+        const payload = {
+          id: String(receta.id),
+          nombre: receta.nombre,
+          categoria: receta.categoria,
+          tipo: receta.tipo,
+          rendimiento: receta.rendimiento,
+          piezas: receta.piezas,
+          factor: receta.factor,
+          costo_batch: receta.costoBatch,
+          costo_unitario: receta.costoUnitario,
+          pvp: receta.pvp,
+          es_subreceta: receta.esSubreceta,
+          ingredientes: receta.ingredientes,
+          fecha: receta.fecha
+        };
 
-      if (typeof supabaseClient !== 'undefined') {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        gestionarEstadoSesion(session);
+        const { error } = await supabaseClient
+          .from('recetas')
+          .upsert(payload, { onConflict: 'id' });
 
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-          gestionarEstadoSesion(session);
+        if (error) throw error;
+      } catch (err) {
+        console.error("❌ Error al guardar receta en Supabase:", err);
+      }
+    }
+
+    async function eliminarRecetaSupabase(id) {
+      try {
+        const { error } = await supabaseClient
+          .from('recetas')
+          .delete()
+          .eq('id', String(id));
+
+        if (error) throw error;
+      } catch (err) {
+        console.error("❌ Error al eliminar receta de Supabase:", err);
+      }
+    }
+
+    function respaldarSistema() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        insumos: insumosBase,
+        catalogo: recetasCatalogo
+      }));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `recetario_respaldo_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function cambiarPestana(pestana) {
+      ['insumos', 'creador', 'catalogo'].forEach(p => {
+        document.getElementById(`tab-${p}`).classList.add('hidden');
+        document.getElementById(`btn-tab-${p}`).classList.remove('tab-active');
+      });
+
+      document.getElementById(`tab-${pestana}`).classList.remove('hidden');
+      document.getElementById(`btn-tab-${pestana}`).classList.add('tab-active');
+    }
+
+    // TABLA INSUMOS Y PAGINACIÓN
+    function buscarInsumoInput() {
+      paginaActualInsumos = 1;
+      renderizarTablaInsumos();
+    }
+
+    function renderizarTablaInsumos() {
+      const busqueda = (document.getElementById('buscarInsumo').value || '').toLowerCase();
+      const tbody = document.getElementById('tablaInsumosBody');
+      tbody.innerHTML = '';
+
+      const filtrados = insumosBase.filter(i => 
+        (i.nombre || '').toLowerCase().includes(busqueda) || 
+        (i.codigo || '').toLowerCase().includes(busqueda)
+      );
+
+      document.getElementById('count-insumos').textContent = insumosBase.length;
+
+      const totalFiltrados = filtrados.length;
+      const totalPaginas = Math.ceil(totalFiltrados / itemsPorPaginaInsumos) || 1;
+
+      if (paginaActualInsumos > totalPaginas) paginaActualInsumos = totalPaginas;
+      if (paginaActualInsumos < 1) paginaActualInsumos = 1;
+
+      const inicio = (paginaActualInsumos - 1) * itemsPorPaginaInsumos;
+      const fin = inicio + itemsPorPaginaInsumos;
+      const paginaItems = filtrados.slice(inicio, fin);
+
+      paginaItems.forEach(insumo => {
+        const costoVentaVal = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.innerHTML = `
+          <td class="p-3 font-mono text-xs text-gray-500">${insumo.codigo}</td>
+          <td class="p-3 font-semibold text-gray-800">${insumo.nombre}</td>
+          <td class="p-3 text-center uppercase text-xs font-bold text-gray-600">${insumo.unidad}</td>
+          <td class="p-3 text-right font-bold">$${parseFloat(insumo.precio).toFixed(4)}</td>
+          <td class="p-3 text-right font-bold text-[#123e1b]">$${parseFloat(costoVentaVal).toFixed(4)}</td>
+          <td class="p-3 text-center">
+            <button onclick="editarInsumoModal('${insumo.id}')" class="px-3 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md text-xs font-bold transition-colors">
+              ✏️ Editar Insumo
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const inicioMostrar = totalFiltrados === 0 ? 0 : inicio + 1;
+      const finMostrar = Math.min(fin, totalFiltrados);
+      
+      const infoPaginacion = document.getElementById('infoPaginacionInsumos');
+      if (infoPaginacion) {
+        infoPaginacion.textContent = `Mostrando ${inicioMostrar} - ${finMostrar} de ${totalFiltrados} insumos`;
+      }
+      
+      const labelPagina = document.getElementById('labelPaginaActual');
+      if (labelPagina) {
+        labelPagina.textContent = `Página ${paginaActualInsumos} de ${totalPaginas}`;
+      }
+
+      const btnPrev = document.getElementById('btnPagPrev');
+      const btnNext = document.getElementById('btnPagNext');
+      if (btnPrev && btnNext) {
+        btnPrev.disabled = paginaActualInsumos === 1;
+        btnNext.disabled = paginaActualInsumos === totalPaginas || totalPaginas === 0;
+      }
+    }
+
+    function cambiarPaginaInsumos(direccion) {
+      paginaActualInsumos += direccion;
+      renderizarTablaInsumos();
+    }
+
+    function editarInsumoModal(id) {
+      const insumo = insumosBase.find(i => String(i.id) === String(id));
+      if (!insumo) return;
+
+      document.getElementById('editInsumoId').value = insumo.id;
+      document.getElementById('editInsumoNombre').value = insumo.nombre || '';
+      document.getElementById('editInsumoUnidad').value = (insumo.unidad || 'kg').toLowerCase();
+      
+      const costoActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+      document.getElementById('editInsumoCostoVenta').value = parseFloat(costoActual).toFixed(4);
+
+      const modal = document.getElementById('editarInsumoModal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modal.classList.add('opacity-100');
+      }, 10);
+    }
+
+    function cerrarEditarInsumoModal() {
+      const modal = document.getElementById('editarInsumoModal');
+      modal.classList.remove('opacity-100');
+      modal.classList.add('opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 300);
+    }
+
+    async function guardarEdicionInsumo(e) {
+      e.preventDefault();
+      const id = document.getElementById('editInsumoId').value;
+      const insumo = insumosBase.find(i => String(i.id) === String(id));
+      if (!insumo) return;
+
+      const nuevoNombre = document.getElementById('editInsumoNombre').value.trim().toUpperCase();
+      const nuevaUnidad = document.getElementById('editInsumoUnidad').value.trim().toLowerCase();
+      const nuevoCostoVenta = parseFloat(document.getElementById('editInsumoCostoVenta').value);
+
+      if (!nuevoNombre) {
+        alert("El nombre del insumo no puede estar vacío.");
+        return;
+      }
+
+      if (isNaN(nuevoCostoVenta) || nuevoCostoVenta < 0) {
+        alert("Por favor ingrese un costo de venta válido.");
+        return;
+      }
+
+      insumo.nombre = nuevoNombre;
+      insumo.unidad = nuevaUnidad;
+      insumo.costoVenta = nuevoCostoVenta;
+      insumo.precio = nuevoCostoVenta;
+
+      await guardarInsumoSupabase(insumo);
+      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+      
+      renderizarTablaInsumos();
+      renderizarFilasCreador();
+      cerrarEditarInsumoModal();
+    }
+
+    async function nuevoInsumoPrompt() {
+      const nombre = prompt("Nombre del nuevo insumo:");
+      if (!nombre) return;
+      const costo = parseFloat(prompt("Costo unitario ($):") || "0");
+      const unidad = (prompt("Unidad de medida (kg, und, lt, g, ml, paq):") || "kg").toLowerCase();
+
+      const nuevo = {
+        id: "ing_" + Date.now(),
+        codigo: "ING-" + String(insumosBase.length + 1).padStart(3, '0'),
+        tipo: "primario",
+        nombre: nombre.toUpperCase(),
+        precio: costo,
+        costoVenta: costo,
+        unidad: unidad
+      };
+
+      insumosBase.push(nuevo);
+      await guardarInsumoSupabase(nuevo);
+      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+      
+      renderizarTablaInsumos();
+    }
+
+    // CREADOR DE RECETAS
+    function agregarFilaReceta() {
+      recetaActual.filas.push({ insumoId: '', cantidad: 0 });
+      renderizarFilasCreador();
+    }
+
+    function eliminarFilaReceta(index) {
+      recetaActual.filas.splice(index, 1);
+      renderizarFilasCreador();
+      recalcularEscandallo();
+    }
+
+    function renderizarFilasCreador() {
+      const tbody = document.getElementById('filasRecetaBody');
+      tbody.innerHTML = '';
+
+      recetaActual.filas.forEach((fila, idx) => {
+        const tr = document.createElement('tr');
+        
+        let optionsHtml = '<option value="">-- Seleccionar Insumo --</option>';
+        insumosBase.forEach(ins => {
+          const selected = String(ins.id) === String(fila.insumoId) ? 'selected' : '';
+          optionsHtml += `<option value="${ins.id}" ${selected}>${ins.nombre} ($${parseFloat(ins.precio).toFixed(4)} / ${ins.unidad})</option>`;
         });
+
+        const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
+        const costoUnit = insumoObj ? insumoObj.precio : 0;
+        const totalFila = costoUnit * (fila.cantidad || 0);
+
+        tr.innerHTML = `
+          <td class="p-2">
+            <select onchange="actualizarInsumoFila(${idx}, this.value)" class="w-full p-2 border border-gray-300 rounded text-xs outline-none focus:ring-2 focus:ring-[#2e7d32]">
+              ${optionsHtml}
+            </select>
+          </td>
+          <td class="p-2">
+            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="0.00" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
+          </td>
+          <td class="p-2 text-right font-semibold text-gray-600">$${costoUnit.toFixed(4)}</td>
+          <td class="p-2 text-right font-bold text-[#123e1b]">$${totalFila.toFixed(4)}</td>
+          <td class="p-2 text-center">
+            <button onclick="eliminarFilaReceta(${idx})" class="text-red-500 hover:text-red-700 font-bold">&times;</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function actualizarInsumoFila(index, id) {
+      recetaActual.filas[index].insumoId = id;
+      renderizarFilasCreador();
+      recalcularEscandallo();
+    }
+
+    function actualizarCantidadFila(index, cant) {
+      recetaActual.filas[index].cantidad = parseFloat(cant) || 0;
+      recalcularEscandallo();
+    }
+
+    function actualizarEtiquetaRendimiento() {
+      const tipo = document.getElementById('tipoCalculo').value;
+      const labelUnit = document.getElementById('labelCostoUnitario');
+      const labelPvp = document.getElementById('labelPvpSugerido');
+
+      if (tipo === 'und') {
+        labelUnit.textContent = "Costo Unitario / Pieza:";
+        labelPvp.textContent = "PVP Sugerido (Por Unid / Ración)";
       } else {
-        window.location.href = 'index.html';
+        labelUnit.textContent = "Costo Unitario / KG:";
+        labelPvp.textContent = "PVP Sugerido (Por KG / LT)";
       }
-    });
+      recalcularEscandallo();
+    }
+
+    function recalcularEscandallo() {
+      let costoTotalBatch = 0;
+
+      recetaActual.filas.forEach(f => {
+        const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
+        if (ins && f.cantidad) {
+          costoTotalBatch += ins.precio * f.cantidad;
+        }
+      });
+
+      const tipo = document.getElementById('tipoCalculo').value;
+      const rendimiento = parseFloat(document.getElementById('rendimientoCant').value) || 1;
+      const piezas = parseFloat(document.getElementById('piezasCant').value) || 1;
+      const factor = parseFloat(document.getElementById('margenUtilidad').value) || 1.4;
+
+      let costoUnitario = 0;
+      if (tipo === 'und') {
+        costoUnitario = piezas > 0 ? (costoTotalBatch / piezas) : 0;
+      } else {
+        costoUnitario = rendimiento > 0 ? (costoTotalBatch / rendimiento) : 0;
+      }
+
+      const pvp = costoUnitario * factor;
+      const ganancia = pvp - costoUnitario;
+
+      document.getElementById('costoTotalBatch').textContent = `$${costoTotalBatch.toFixed(4)}`;
+      document.getElementById('costoUnitario').textContent = `$${costoUnitario.toFixed(4)}`;
+      document.getElementById('pvpSugerido').textContent = `$${pvp.toFixed(2)}`;
+      document.getElementById('gananciaDolares').textContent = `$${ganancia.toFixed(2)}`;
+    }
+
+    async function guardarRecetaCatalogo() {
+      const nombre = document.getElementById('nombreReceta').value.trim();
+      if (!nombre) {
+        alert("Por favor introduce un nombre para la receta.");
+        return;
+      }
+
+      const tipo = document.getElementById('tipoCalculo').value;
+      const rendimiento = parseFloat(document.getElementById('rendimientoCant').value) || 1;
+      const piezas = parseFloat(document.getElementById('piezasCant').value) || 1;
+      const factor = parseFloat(document.getElementById('margenUtilidad').value) || 1.4;
+      const categoria = document.getElementById('categoriaReceta').value;
+      const esSub = document.getElementById('esSubreceta').checked;
+      const unidadBase = document.getElementById('rendimientoUnidad').value;
+
+      let costoTotalBatch = 0;
+      const ingredientesFinales = [];
+
+      recetaActual.filas.forEach(f => {
+        const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
+        if (ins && f.cantidad > 0) {
+          const total = ins.precio * f.cantidad;
+          costoTotalBatch += total;
+          ingredientesFinales.push({
+            insumoId: ins.id,
+            nombre: ins.nombre,
+            cantidad: f.cantidad,
+            unidad: ins.unidad,
+            costoUnit: ins.precio,
+            costoTotal: total
+          });
+        }
+      });
+
+      const costoUnitario = tipo === 'und' ? (costoTotalBatch / piezas) : (costoTotalBatch / rendimiento);
+      const pvp = costoUnitario * factor;
+
+      const nuevaReceta = {
+        id: idRecetaEditando || "rec_" + Date.now(),
+        nombre: nombre.toUpperCase(),
+        categoria: categoria,
+        tipo: tipo,
+        rendimiento: rendimiento,
+        piezas: piezas,
+        factor: factor,
+        costoBatch: costoTotalBatch,
+        costoUnitario: costoUnitario,
+        pvp: pvp,
+        esSubreceta: esSub,
+        ingredientes: ingredientesFinales,
+        fecha: new Date().toLocaleDateString()
+      };
+
+      if (idRecetaEditando) {
+        const idx = recetasCatalogo.findIndex(r => r.id === idRecetaEditando);
+        if (idx !== -1) recetasCatalogo[idx] = nuevaReceta;
+      } else {
+        recetasCatalogo.push(nuevaReceta);
+      }
+
+      await guardarRecetaSupabase(nuevaReceta);
+
+      if (esSub) {
+        const insumoSub = {
+          id: "sub_" + Date.now(),
+          codigo: "BAS-" + String(insumosBase.length + 1).padStart(3, '0'),
+          tipo: "base",
+          nombre: `[BASE] ${nombre.toUpperCase()}`,
+          precio: costoUnitario,
+          costoVenta: costoUnitario,
+          unidad: unidadBase || (tipo === 'und' ? 'und' : 'kg')
+        };
+        insumosBase.push(insumoSub);
+        await guardarInsumoSupabase(insumoSub);
+      }
+
+      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+      localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
+      localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
+
+      renderizarCatalogo();
+      renderizarTablaInsumos();
+      cancelarEdicionReceta();
+      cambiarPestana('catalogo');
+    }
+
+    function cancelarEdicionReceta() {
+      idRecetaEditando = null;
+      document.getElementById('nombreReceta').value = '';
+      document.getElementById('rendimientoCant').value = '1.0';
+      document.getElementById('piezasCant').value = '1';
+      document.getElementById('margenUtilidad').value = '1.4';
+      document.getElementById('esSubreceta').checked = false;
+      document.getElementById('tituloSeccionCreador').textContent = "Datos Principales de la Preparación";
+      document.getElementById('btnCancelarEdicion').classList.add('hidden');
+      recetaActual = { filas: [] };
+      agregarFilaReceta();
+      recalcularEscandallo();
+    }
+
+    // CATÁLOGO Y FICHA TÉCNICA
+    function renderizarCatalogo() {
+      const busqueda = (document.getElementById('buscarCatalogo').value || '').toLowerCase();
+      const tbody = document.getElementById('tablaCatalogoBody');
+      tbody.innerHTML = '';
+
+      const filtrados = recetasCatalogo.filter(r => 
+        r.nombre.toLowerCase().includes(busqueda) || 
+        r.categoria.toLowerCase().includes(busqueda)
+      );
+
+      document.getElementById('count-catalogo').textContent = recetasCatalogo.length;
+
+      filtrados.forEach(receta => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.innerHTML = `
+          <td class="p-3 font-bold text-gray-800">${receta.nombre}</td>
+          <td class="p-3 text-xs text-gray-600 font-semibold">${receta.categoria}</td>
+          <td class="p-3 text-center text-xs">
+            ${receta.tipo === 'und' ? `${receta.piezas} UND` : `${receta.rendimiento} KG/LT`}
+          </td>
+          <td class="p-3 text-right font-bold text-[#123e1b]">$${parseFloat(receta.costoUnitario).toFixed(4)}</td>
+          <td class="p-3 text-center font-bold text-gray-700">${receta.factor}</td>
+          <td class="p-3 text-right font-extrabold text-galeriaOrange">$${parseFloat(receta.pvp).toFixed(2)}</td>
+          <td class="p-3 text-center space-x-2">
+            <button onclick="verFichaTecnica('${receta.id}')" class="text-xs bg-emerald-100 text-[#123e1b] px-2 py-1 rounded font-bold hover:bg-emerald-200">📋 Ficha</button>
+            <button onclick="cargarRecetaParaEditar('${receta.id}')" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold hover:bg-blue-200">✏️ Editar</button>
+            <button onclick="eliminarReceta('${receta.id}')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-bold hover:bg-red-200">🗑️</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function cargarRecetaParaEditar(id) {
+      const receta = recetasCatalogo.find(r => r.id === id);
+      if (!receta) return;
+
+      idRecetaEditando = receta.id;
+      document.getElementById('nombreReceta').value = receta.nombre;
+      document.getElementById('categoriaReceta').value = receta.categoria;
+      document.getElementById('tipoCalculo').value = receta.tipo;
+      document.getElementById('rendimientoCant').value = receta.rendimiento;
+      document.getElementById('piezasCant').value = receta.piezas;
+      document.getElementById('margenUtilidad').value = receta.factor;
+
+      document.getElementById('tituloSeccionCreador').textContent = `Editando Receta: ${receta.nombre}`;
+      document.getElementById('btnCancelarEdicion').classList.remove('hidden');
+
+      recetaActual.filas = receta.ingredientes.map(i => ({
+        insumoId: i.insumoId,
+        cantidad: i.cantidad
+      }));
+
+      renderizarFilasCreador();
+      actualizarEtiquetaRendimiento();
+      cambiarPestana('creador');
+    }
+
+    async function eliminarReceta(id) {
+      if (!confirm("¿Deseas eliminar esta receta del catálogo?")) return;
+      recetasCatalogo = recetasCatalogo.filter(r => r.id !== id);
+      
+      await eliminarRecetaSupabase(id);
+      localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
+      localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
+      
+      renderizarCatalogo();
+    }
+
+    function verFichaTecnica(id) {
+      const receta = recetasCatalogo.find(r => r.id === id);
+      if (!receta) return;
+
+      document.getElementById('modalNombre').textContent = receta.nombre;
+      document.getElementById('modalCategoria').textContent = receta.categoria;
+      document.getElementById('modalRendimiento').textContent = receta.tipo === 'und' ? `${receta.piezas} UNIDADES` : `${receta.rendimiento} KG/LT`;
+      document.getElementById('modalCosto').textContent = `$${parseFloat(receta.costoUnitario).toFixed(4)}`;
+      document.getElementById('modalPvp').textContent = `$${parseFloat(receta.pvp).toFixed(2)}`;
+      document.getElementById('fichaFecha').textContent = receta.fecha || new Date().toLocaleDateString();
+
+      const tbody = document.getElementById('modalIngredientesBody');
+      tbody.innerHTML = '';
+
+      receta.ingredientes.forEach(ing => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="p-2 border-b font-semibold text-gray-800">${ing.nombre}</td>
+          <td class="p-2 border-b text-center font-bold">${ing.cantidad} ${ing.unidad}</td>
+          <td class="p-2 border-b text-right">$${parseFloat(ing.costoUnit).toFixed(4)}</td>
+          <td class="p-2 border-b text-right font-bold text-[#123e1b]">$${parseFloat(ing.costoTotal).toFixed(4)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('fichaModal').classList.remove('hidden');
+    }
+
+    function cerrarFichaModal() {
+      document.getElementById('fichaModal').classList.add('hidden');
+    }
   </script>
 </body>
 </html>
