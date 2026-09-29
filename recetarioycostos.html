@@ -449,6 +449,20 @@
     body.theme-dark input,
     body.theme-dark select,
     body.theme-dark textarea { background-color: #14231f !important; color: #e8f3ed !important; border-color: #2b453b !important; }
+
+    /* ESTILO PARA FILAS DE SUB-RECETAS Y BASES EN VERDE INSTITUCIONAL */
+    .row-subreceta {
+      background-color: #f2f9f4 !important;
+    }
+    .row-subreceta:hover {
+      background-color: #e4f3e7 !important;
+    }
+    body.theme-dark .row-subreceta {
+      background-color: #122c22 !important;
+    }
+    body.theme-dark .row-subreceta:hover {
+      background-color: #18382c !important;
+    }
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
@@ -460,12 +474,12 @@
             <img src="logo.png" alt="Hipergalerias Logo" onerror="this.onerror=null; this.src='logo.jpeg';">
         </div>
         <div class="header-titles">
-            <p>Recetarios y Costos<span class="subt">Control de producción, recetas y rentabilidad</span></p>
+            <p>RECETARIOS Y COSTOS<span class="subt">Control de producción, recetas y rentabilidad - Hipergalerias</span></p>
         </div>
     </div>
     <div class="header-actions">
         <div class="btn-header-container">
-            <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar JSON</button>
+            <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar</button>
         </div>
 
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
@@ -563,7 +577,7 @@
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
           <div class="flex justify-between items-center border-b border-gray-100 pb-2">
             <h2 id="tituloSeccionCreador" class="text-base font-bold text-[#123e1b]">Datos Principales de la Preparación</h2>
-            <button id="btnCancelarEdicion" onclick="cancelarEdicionReceta()" class="hidden bg-gray-500 hover:bg-gray-600 text-white text-xs px-3 py-1 rounded font-semibold transition-all">Cancelar Edición</button>
+            <button id="btnCancelarEdicion" onclick="cancelarEdicionReceta()" class="hidden bg-slate-500 hover:bg-slate-600 text-white text-xs px-3 py-1.5 rounded-md font-bold transition-all">Cancelar Edición</button>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -572,11 +586,11 @@
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Área / Categoría</label>
-              <select id="categoriaReceta" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white">
-                <option value="MASAS">Masas y Bases (Sub-receta)</option>
-                <option value="GUISOS">Guisos y Salsas (Sub-receta)</option>
+              <select id="categoriaReceta" onchange="comprobarCategoriaSubreceta()" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white">
                 <option value="Panadería">Panadería</option>
                 <option value="Pastelería">Pastelería</option>
+                <option value="MASAS">Masas y Bases (Sub-receta)</option>
+                <option value="GUISOS">Guisos y Salsas (Sub-receta)</option>
                 <option value="Pizzeria">Pizzería</option>
                 <option value="Cocina Gourmet">Cocina Gourmet</option>
                 <option value="Charcutería">Charcutería</option>
@@ -586,8 +600,8 @@
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Tipo de Cálculo / Venta</label>
               <select id="tipoCalculo" onchange="actualizarEtiquetaRendimiento()" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white font-bold text-[#123e1b]">
-                <option value="kg">Venta por KG / LT</option>
                 <option value="und">Venta por UNIDADES / RACIÓN</option>
+                <option value="kg">Venta por KG / LT</option>
               </select>
             </div>
             <div>
@@ -601,8 +615,8 @@
             <div>
               <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Unidad de Medida Base</label>
               <select id="rendimientoUnidad" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white">
+                <option value="und">Unidades (UND)</option>
                 <option value="kg">Kilogramos (kg)</option>
-                <option value="und">Unidades (und)</option>
                 <option value="lt">Litros (lt)</option>
                 <option value="g">Gramos (g)</option>
                 <option value="ml">Mililitros (ml)</option>
@@ -622,7 +636,7 @@
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
           <div class="flex justify-between items-center border-b border-gray-100 pb-3">
             <h2 class="text-base font-bold text-[#123e1b]">Ingredientes y Productos Base</h2>
-            <button onclick="agregarFilaReceta()" class="bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs px-3 py-2 rounded font-semibold transition-all">
+            <button onclick="agregarFilaReceta()" class="bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs px-3.5 py-2 rounded-md font-bold transition-all shadow-xs">
               + Agregar Fila
             </button>
           </div>
@@ -656,29 +670,29 @@
           </div>
 
           <div class="flex justify-between items-center py-2 border-b border-gray-100 bg-[#e8f5e9] p-3 rounded-md">
-            <span id="labelCostoUnitario" class="text-sm font-semibold text-[#123e1b]">Costo Unitario / KG:</span>
+            <span id="labelCostoUnitario" class="text-sm font-semibold text-[#123e1b]">Costo Unitario / UNIDAD:</span>
             <span id="costoUnitario" class="text-xl font-extrabold text-[#123e1b]">$0.0000</span>
           </div>
 
           <div>
             <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Factor de Utilidad (Ej. 1.3 = 30%, 1.4 = 40%)</label>
             <div class="flex items-center space-x-2">
-              <input type="number" id="margenUtilidad" value="1.4" min="1.0" step="0.05" oninput="recalcularEscandallo()" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none font-bold text-gray-800">
-              <span class="text-gray-600 font-bold">Factor</span>
+              <input type="number" id="margenUtilidad" value="1.5" min="1.0" step="0.05" oninput="recalcularEscandallo()" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none font-bold text-gray-800">
+              <span class="text-gray-600 font-bold text-sm">Factor</span>
             </div>
           </div>
 
           <div class="pt-2 border-t border-gray-100">
-            <label id="labelPvpSugerido" class="block text-xs font-semibold text-gray-500 uppercase">PVP Sugerido (Por KG)</label>
+            <label id="labelPvpSugerido" class="block text-xs font-semibold text-gray-500 uppercase">PVP SUGERIDO (POR UNIDAD):</label>
             <div id="pvpSugerido" class="text-3xl font-black text-[#2e7d32] mt-1 bg-[#e8f5e9] border-2 border-[#2e7d32] p-3 rounded-lg text-center shadow-inner tracking-wider">$0.00</div>
           </div>
 
           <div class="flex justify-between items-center text-xs text-gray-500">
-            <span id="labelGananciaUnidad">Ganancia Estimada:</span>
+            <span id="labelGananciaUnidad">Ganancia Estimada por UNIDAD:</span>
             <span id="gananciaDolares" class="font-bold text-gray-700">$0.00</span>
           </div>
 
-          <button id="btnGuardarReceta" onclick="guardarRecetaCatalogo()" class="w-full bg-[#2e7d32] hover:bg-[#123e1b] text-white font-bold py-3 rounded-md transition-all shadow mt-4">
+          <button id="btnGuardarReceta" onclick="guardarRecetaCatalogo()" class="w-full bg-[#2e7d32] hover:bg-[#123e1b] text-white font-bold py-3 rounded-md transition-all shadow mt-4 flex items-center justify-center gap-2">
             💾 Guardar Producto en Catálogo
           </button>
         </div>
@@ -689,8 +703,8 @@
     <section id="tab-catalogo" class="hidden space-y-4">
       <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h2 class="text-lg font-bold text-[#123e1b]">Lista de Recetas y Productos Guardados</h2>
-          <div class="w-full sm:w-80">
+          <h2 class="text-lg font-bold text-gray-800">Lista de Recetas y Productos Guardados</h2>
+          <div class="w-full sm:w-80 relative">
             <input type="text" id="buscarCatalogo" oninput="renderizarCatalogo()" placeholder="🔍 Buscar receta o categoría..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
           </div>
         </div>
@@ -769,9 +783,15 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-          <button type="button" onclick="cerrarEditarInsumoModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition-all">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs font-bold rounded-lg transition-all shadow">Guardar Cambios</button>
+        <!-- ACCIONES DEL MODAL CON BOTÓN ELIMINAR -->
+        <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+          <button type="button" onclick="eliminarInsumoDesdeModal()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-lg transition-all flex items-center gap-1">
+            🗑 Eliminar Insumo
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="cerrarEditarInsumoModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition-all">Cancelar</button>
+            <button type="submit" class="px-4 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs font-bold rounded-lg transition-all shadow">Guardar Cambios</button>
+          </div>
         </div>
       </form>
     </div>
@@ -795,57 +815,77 @@
     </div>
   </div>
 
-  <!-- MODAL DE FICHA TÉCNICA -->
-  <div id="fichaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-8 relative max-h-[90vh] overflow-y-auto">
-        <button onclick="cerrarFichaModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+  <!-- MODAL DE FICHA TÉCNICA (EXACTO A SEGUNDA IMAGEN) -->
+  <div id="fichaModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 relative max-h-[92vh] overflow-y-auto border border-gray-100">
+        <button onclick="cerrarFichaModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl leading-none">&times;</button>
         
-        <div class="flex justify-between items-center border-b pb-4 mb-6">
+        <!-- ENCABEZADO FICHA -->
+        <div class="flex justify-between items-start border-b border-gray-100 pb-4 mb-5">
             <div class="flex items-center gap-3">
-              <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-10 w-auto object-contain" style="mix-blend-mode: multiply;">
+              <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-10 w-auto object-contain">
               <div>
-                  <h2 class="text-xl font-bold text-[#123e1b]">GALERÍA HIPERMARKET</h2>
-                  <p class="text-xs text-gray-500">Departamento de Costos y Producción</p>
+                  <h2 class="text-base font-bold text-gray-800 tracking-tight">GALERÍA HIPERMARKET</h2>
+                  <p class="text-xs text-gray-500 font-medium">Departamento de Costos y Producción</p>
               </div>
             </div>
             <div class="text-right">
-                <span class="bg-emerald-100 text-[#123e1b] text-xs px-3 py-1 rounded-full font-bold">Ficha Técnica de Producción</span>
-                <p id="fichaFecha" class="text-xs text-gray-400 mt-1"></p>
+                <span class="inline-block bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] px-3 py-1 rounded-full font-bold">Ficha Técnica de Producción</span>
+                <p id="fichaFecha" class="text-xs text-gray-400 mt-1 font-medium">Fecha: --/--/----</p>
             </div>
         </div>
 
-        <div class="mb-6">
-            <h3 id="modalNombre" class="text-2xl font-extrabold text-gray-800 mb-2">-</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-gray-50 p-4 rounded-lg text-sm border border-gray-100">
-                <div><span class="block text-xs text-gray-500 font-semibold uppercase">Categoría</span> <span id="modalCategoria" class="font-bold text-gray-700">-</span></div>
-                <div><span class="block text-xs text-gray-500 font-semibold uppercase">Rendimiento</span> <span id="modalRendimiento" class="font-bold text-gray-700">-</span></div>
-                <div><span class="block text-xs text-gray-500 font-semibold uppercase">Costo Unitario</span> <span id="modalCosto" class="text-[#123e1b] font-bold">-</span></div>
-                <div><span class="block text-xs text-gray-500 font-semibold uppercase">PVP Sugerido</span> <span id="modalPvp" class="text-galeriaOrange font-bold">-</span></div>
+        <!-- TÍTULO Y DATOS GENERALES -->
+        <div class="mb-5">
+            <h3 id="modalNombre" class="text-2xl font-black text-gray-900 tracking-tight mb-4 uppercase">-</h3>
+            <div class="grid grid-cols-4 gap-3 bg-gray-50/80 p-4 rounded-xl border border-gray-100 text-xs">
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">CATEGORÍA</span>
+                  <span id="modalCategoria" class="font-extrabold text-gray-800 text-sm">-</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">RENDIMIENTO</span>
+                  <span id="modalRendimiento" class="font-extrabold text-gray-800 text-sm">-</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">COSTO UNITARIO</span>
+                  <span id="modalCosto" class="font-extrabold text-[#123e1b] text-sm">-</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">PVP SUGERIDO</span>
+                  <span id="modalPvp" class="font-extrabold text-orange-600 text-sm">-</span>
+                </div>
             </div>
         </div>
 
+        <!-- TABLA COMPOSICIÓN -->
         <div class="mb-6">
-            <h4 class="font-bold text-gray-700 mb-2 text-xs uppercase tracking-wider">Composición de Ingredientes / Sub-recetas</h4>
+            <h4 class="font-bold text-gray-500 text-xs uppercase tracking-wider mb-3">COMPOSICIÓN DE INGREDIENTES / SUB-RECETAS</h4>
             <div class="border border-gray-200 rounded-lg overflow-hidden">
-              <table class="w-full text-xs">
-                  <thead class="bg-gray-100 text-gray-600 font-semibold">
+              <table class="w-full text-xs text-left">
+                  <thead class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
                       <tr>
-                          <th class="p-2.5 text-left border-b">Ingrediente / Base</th>
-                          <th class="p-2.5 text-center border-b">Cantidad Utilizada</th>
-                          <th class="p-2.5 text-right border-b">Costo Unit. ($)</th>
-                          <th class="p-2.5 text-right border-b">Costo Total ($)</th>
+                          <th class="p-3">Ingrediente / Base</th>
+                          <th class="p-3 text-center">Cantidad Utilizada</th>
+                          <th class="p-3 text-right">Costo Unit. ($)</th>
+                          <th class="p-3 text-right">Costo Total ($)</th>
                       </tr>
                   </thead>
-                  <tbody id="modalIngredientesBody" class="divide-y divide-gray-100">
+                  <tbody id="modalIngredientesBody" class="divide-y divide-gray-100 font-medium">
                       <!-- Dinámico -->
                   </tbody>
               </table>
             </div>
         </div>
 
-        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-            <button onclick="window.print()" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-semibold hover:bg-gray-300">🖨️️ Imprimir Ficha</button>
-            <button onclick="cerrarFichaModal()" class="bg-[#2e7d32] text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-[#123e1b]">Cerrar</button>
+        <!-- ACCIONES FICHA -->
+        <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+            <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
+              🖨 Imprimir Ficha
+            </button>
+            <button onclick="cerrarFichaModal()" class="bg-[#2e7d32] hover:bg-[#123e1b] text-white px-5 py-2 rounded-lg text-xs font-bold transition-all">
+              Cerrar
+            </button>
         </div>
     </div>
   </div>
@@ -942,13 +982,25 @@
     function obtenerFechaActualFormateada() {
       const d = new Date();
       const pad = n => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+    }
+
+    // VERIFICAR, MARCAR O DESMARCAR CHECKBOX DE SUB-RECETA
+    function comprobarCategoriaSubreceta() {
+      const cat = document.getElementById('categoriaReceta').value;
+      const chk = document.getElementById('esSubreceta');
+      if (cat === 'MASAS' || cat === 'GUISOS') {
+        chk.checked = true;
+      } else if (!idRecetaEditando) {
+        chk.checked = false;
+      }
     }
 
     // INICIALIZACIÓN ASÍNCRONA
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       await cargarDeSupabase();
+      comprobarCategoriaSubreceta();
       agregarFilaReceta();
 
       if (typeof supabaseClient !== 'undefined') {
@@ -1035,7 +1087,7 @@
         if (authContainer) {
           authContainer.innerHTML = `
             <div class="user-profile-badge">
-              <span>Bienvenid@, <strong>${nombreFormateado}</strong></span>
+              <span>Bienvenido, <strong>${nombreFormateado}</strong></span>
               <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
             </div>
           `;
@@ -1126,7 +1178,6 @@
             }]
         };
 
-        // Guardar en Supabase
         if (typeof supabaseClient !== 'undefined') {
             const { error } = await supabaseClient
                 .from('insumos')
@@ -1355,12 +1406,19 @@
       const paginaItems = filtrados.slice(inicio, fin);
 
       paginaItems.forEach(insumo => {
+        const esBaseSubreceta = insumo.tipo === 'base' || (insumo.nombre && insumo.nombre.startsWith('[BASE]'));
         const costoVentaVal = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+        
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.className = `transition-colors ${esBaseSubreceta ? 'row-subreceta font-medium' : 'hover:bg-gray-50'}`;
+        
+        const badgeSubreceta = esBaseSubreceta 
+          ? `<span class="ml-2 px-2 py-0.5 text-[10px] bg-[#e8f5e9] text-[#123e1b] border border-[#2e7d32]/40 rounded-full font-extrabold shadow-xs">⭐ BASE / SUB-RECETA</span>`
+          : '';
+
         tr.innerHTML = `
           <td class="p-3 font-mono text-xs text-gray-500">${insumo.codigo}</td>
-          <td class="p-3 font-semibold text-gray-800">${insumo.nombre}</td>
+          <td class="p-3 font-semibold text-gray-800">${insumo.nombre} ${badgeSubreceta}</td>
           <td class="p-3 text-center uppercase text-xs font-bold text-gray-600">${insumo.unidad}</td>
           <td class="p-3 text-right font-bold">$${parseFloat(insumo.precio).toFixed(4)}</td>
           <td class="p-3 text-right font-bold text-[#123e1b]">$${parseFloat(costoVentaVal).toFixed(4)}</td>
@@ -1403,7 +1461,7 @@
     }
 
     // ==========================================
-    // HISTORIAL Y EDICIÓN DE INSUMOS
+    // HISTORIAL, EDICIÓN Y ELIMINACIÓN DE INSUMOS
     // ==========================================
     function verHistorialInsumo(id) {
       const insumo = insumosBase.find(i => String(i.id) === String(id));
@@ -1422,7 +1480,6 @@
 
           let desglose = '';
 
-          // Si varió el costo unitario
           if (h.costoAnt !== undefined && h.costoNuevo !== undefined && h.costoAnt !== h.costoNuevo) {
             desglose += `
               <div class="flex justify-between items-center text-xs">
@@ -1435,7 +1492,6 @@
               </div>`;
           }
 
-          // Si varió el costo de venta
           if (h.costoVentaAnt !== undefined && h.costoVentaNuevo !== undefined && h.costoVentaAnt !== h.costoVentaNuevo) {
             desglose += `
               <div class="flex justify-between items-center text-xs">
@@ -1444,18 +1500,6 @@
                   <s class="text-rose-500 font-semibold mr-1.5">$${Number(h.costoVentaAnt).toFixed(4)}</s>
                   <span class="text-gray-400 mr-1.5">➔</span>
                   <strong class="text-[#123e1b] font-bold">$${Number(h.costoVentaNuevo).toFixed(4)}</strong>
-                </span>
-              </div>`;
-          }
-
-          if (h.precioAnt !== undefined && h.precioNuevo !== undefined && h.precioAnt !== h.precioNuevo) {
-            desglose += `
-              <div class="flex justify-between items-center text-xs">
-                <span class="text-gray-500 font-medium">Precio Venta:</span>
-                <span class="font-mono">
-                  <s class="text-rose-500 font-semibold mr-1.5">$${Number(h.precioAnt).toFixed(4)}</s>
-                  <span class="text-gray-400 mr-1.5">➔</span>
-                  <strong class="text-[#123e1b] font-bold">$${Number(h.precioNuevo).toFixed(4)}</strong>
                 </span>
               </div>`;
           }
@@ -1537,7 +1581,6 @@
         return;
       }
 
-      // Supabase-First: Obtener estado actual directo de la nube antes de registrar historial
       if (typeof supabaseClient !== 'undefined') {
         const { data: insumoActual, error: errFetch } = await supabaseClient
           .from('insumos')
@@ -1582,7 +1625,6 @@
             return;
           }
         } else {
-          // Fallback local
           const insumo = insumosBase.find(i => String(i.id) === String(id));
           if (insumo) {
             insumo.nombre = nuevoNombre;
@@ -1598,6 +1640,40 @@
       renderizarFilasCreador();
       if (typeof recalcularEscandallo === 'function') recalcularEscandallo();
       cerrarEditarInsumoModal();
+    }
+
+    async function eliminarInsumoDesdeModal() {
+      const id = document.getElementById('editInsumoId').value;
+      const insumo = insumosBase.find(i => String(i.id) === String(id));
+      const nombreInsumo = insumo ? insumo.nombre : 'este insumo';
+
+      if (!confirm(`¿Estás seguro de que deseas eliminar el insumo "${nombreInsumo}"?\nEsta acción eliminará el registro de la base de datos.`)) {
+        return;
+      }
+
+      if (typeof supabaseClient !== 'undefined') {
+        const { error } = await supabaseClient
+          .from('insumos')
+          .delete()
+          .eq('id', String(id));
+
+        if (error) {
+          alert("⚠️ Error al eliminar en Supabase: " + error.message);
+          return;
+        }
+      }
+
+      insumosBase = insumosBase.filter(i => String(i.id) !== String(id));
+
+      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+
+      cerrarEditarInsumoModal();
+
+      renderizarTablaInsumos();
+      renderizarFilasCreador();
+
+      alert(`✅ El insumo "${nombreInsumo}" fue eliminado exitosamente.`);
     }
 
     // ==========================================
@@ -1624,7 +1700,9 @@
         let optionsHtml = '<option value="">-- Seleccionar Insumo --</option>';
         insumosBase.forEach(ins => {
           const selected = String(ins.id) === String(fila.insumoId) ? 'selected' : '';
-          optionsHtml += `<option value="${ins.id}" ${selected}>${ins.nombre} ($${parseFloat(ins.precio).toFixed(4)} / ${ins.unidad})</option>`;
+          const esBase = ins.tipo === 'base' || (ins.nombre && ins.nombre.startsWith('[BASE]'));
+          const prefijo = esBase ? '⭐ ' : '';
+          optionsHtml += `<option value="${ins.id}" ${selected}>${prefijo}${ins.nombre} ($${parseFloat(ins.precio).toFixed(4)} / ${ins.unidad})</option>`;
         });
 
         const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
@@ -1665,13 +1743,16 @@
       const tipo = document.getElementById('tipoCalculo').value;
       const labelUnit = document.getElementById('labelCostoUnitario');
       const labelPvp = document.getElementById('labelPvpSugerido');
+      const labelGanancia = document.getElementById('labelGananciaUnidad');
 
       if (tipo === 'und') {
-        labelUnit.textContent = "Costo Unitario / Pieza:";
-        labelPvp.textContent = "PVP Sugerido (Por Unid / Ración)";
+        labelUnit.textContent = "Costo Unitario / UNIDAD:";
+        labelPvp.textContent = "PVP SUGERIDO (POR UNIDAD):";
+        labelGanancia.textContent = "Ganancia Estimada por UNIDAD:";
       } else {
         labelUnit.textContent = "Costo Unitario / KG:";
-        labelPvp.textContent = "PVP Sugerido (Por KG / LT)";
+        labelPvp.textContent = "PVP SUGERIDO (POR KG / LT):";
+        labelGanancia.textContent = "Ganancia Estimada por KG / LT:";
       }
       recalcularEscandallo();
     }
@@ -1689,7 +1770,7 @@
       const tipo = document.getElementById('tipoCalculo').value;
       const rendimiento = parseFloat(document.getElementById('rendimientoCant').value) || 1;
       const piezas = parseFloat(document.getElementById('piezasCant').value) || 1;
-      const factor = parseFloat(document.getElementById('margenUtilidad').value) || 1.4;
+      const factor = parseFloat(document.getElementById('margenUtilidad').value) || 1.5;
 
       let costoUnitario = 0;
       if (tipo === 'und') {
@@ -1717,7 +1798,7 @@
       const tipo = document.getElementById('tipoCalculo').value;
       const rendimiento = parseFloat(document.getElementById('rendimientoCant').value) || 1;
       const piezas = parseFloat(document.getElementById('piezasCant').value) || 1;
-      const factor = parseFloat(document.getElementById('margenUtilidad').value) || 1.4;
+      const factor = parseFloat(document.getElementById('margenUtilidad').value) || 1.5;
       const categoria = document.getElementById('categoriaReceta').value;
       const esSub = document.getElementById('esSubreceta').checked;
       const unidadBase = document.getElementById('rendimientoUnidad').value;
@@ -1757,11 +1838,11 @@
         pvp: pvp,
         esSubreceta: esSub,
         ingredientes: ingredientesFinales,
-        fecha: new Date().toLocaleDateString()
+        fecha: obtenerFechaActualFormateada()
       };
 
       if (idRecetaEditando) {
-        const idx = recetasCatalogo.findIndex(r => r.id === idRecetaEditando);
+        const idx = recetasCatalogo.findIndex(r => String(r.id) === String(idRecetaEditando));
         if (idx !== -1) recetasCatalogo[idx] = nuevaReceta;
       } else {
         recetasCatalogo.push(nuevaReceta);
@@ -1769,19 +1850,22 @@
 
       await guardarRecetaSupabase(nuevaReceta);
 
-      if (esSub) {
-        const insumoSub = {
-          id: "sub_" + Date.now(),
-          codigo: "BAS-" + String(insumosBase.length + 1).padStart(3, '0'),
-          tipo: "base",
-          nombre: `[BASE] ${nombre.toUpperCase()}`,
-          precio: costoUnitario,
-          costoVenta: costoUnitario,
-          unidad: unidadBase || (tipo === 'und' ? 'und' : 'kg'),
-          historial: [{ fecha: obtenerFechaActualFormateada(), costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
-        };
-        insumosBase.push(insumoSub);
-        await guardarInsumoSupabase(insumoSub);
+      if (esSub || categoria === 'MASAS' || categoria === 'GUISOS') {
+        const existeBase = insumosBase.find(i => i.nombre === `[BASE] ${nombre.toUpperCase()}`);
+        if (!existeBase) {
+          const insumoSub = {
+            id: "sub_" + Date.now(),
+            codigo: "BAS-" + String(insumosBase.length + 1).padStart(3, '0'),
+            tipo: "base",
+            nombre: `[BASE] ${nombre.toUpperCase()}`,
+            precio: costoUnitario,
+            costoVenta: costoUnitario,
+            unidad: unidadBase || (tipo === 'und' ? 'und' : 'kg'),
+            historial: [{ fecha: obtenerFechaActualFormateada(), costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
+          };
+          insumosBase.push(insumoSub);
+          await guardarInsumoSupabase(insumoSub);
+        }
       }
 
       localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
@@ -1800,11 +1884,14 @@
       document.getElementById('nombreReceta').value = '';
       document.getElementById('rendimientoCant').value = '1.0';
       document.getElementById('piezasCant').value = '1';
-      document.getElementById('margenUtilidad').value = '1.4';
+      document.getElementById('margenUtilidad').value = '1.5';
       document.getElementById('esSubreceta').checked = false;
       document.getElementById('tituloSeccionCreador').textContent = "Datos Principales de la Preparación";
       document.getElementById('btnCancelarEdicion').classList.add('hidden');
+      document.getElementById('btnGuardarReceta').innerHTML = '💾 Guardar Producto en Catálogo';
+      
       recetaActual = { filas: [] };
+      comprobarCategoriaSubreceta();
       agregarFilaReceta();
       recalcularEscandallo();
     }
@@ -1818,28 +1905,47 @@
       tbody.innerHTML = '';
 
       const filtrados = recetasCatalogo.filter(r => 
-        r.nombre.toLowerCase().includes(busqueda) || 
-        r.categoria.toLowerCase().includes(busqueda)
+        (r.nombre || '').toLowerCase().includes(busqueda) || 
+        (r.categoria || '').toLowerCase().includes(busqueda)
       );
 
       document.getElementById('count-catalogo').textContent = recetasCatalogo.length;
 
       filtrados.forEach(receta => {
+        const esSubreceta = receta.esSubreceta || receta.categoria === 'MASAS' || receta.categoria === 'GUISOS';
+        
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.className = `transition-colors hover:bg-gray-50/80 ${esSubreceta ? 'row-subreceta font-medium' : ''}`;
+
+        // Insignia de Categoría en formato píldora suave
+        const badgeCategoria = esSubreceta
+          ? `<span class="px-3 py-1 rounded-full bg-emerald-100 text-[#123e1b] font-extrabold text-xs">MASAS</span>`
+          : `<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs">${receta.categoria}</span>`;
+
+        // Rendimiento dinámico UND (1p) o KG (3.9kg)
+        const rendimientoStr = receta.tipo === 'und'
+          ? `UND (${receta.piezas || 1}p)`
+          : `KG (${receta.rendimiento || 1}kg)`;
+
         tr.innerHTML = `
           <td class="p-3 font-bold text-gray-800">${receta.nombre}</td>
-          <td class="p-3 text-xs text-gray-600 font-semibold">${receta.categoria}</td>
-          <td class="p-3 text-center text-xs">
-            ${receta.tipo === 'und' ? `${receta.piezas} UND` : `${receta.rendimiento} KG/LT`}
-          </td>
-          <td class="p-3 text-right font-bold text-[#123e1b]">$${parseFloat(receta.costoUnitario).toFixed(4)}</td>
-          <td class="p-3 text-center font-bold text-gray-700">${receta.factor}</td>
-          <td class="p-3 text-right font-extrabold text-galeriaOrange">$${parseFloat(receta.pvp).toFixed(2)}</td>
-          <td class="p-3 text-center space-x-2">
-            <button onclick="verFichaTecnica('${receta.id}')" class="text-xs bg-emerald-100 text-[#123e1b] px-2 py-1 rounded font-bold hover:bg-emerald-200">📋 Ficha</button>
-            <button onclick="cargarRecetaParaEditar('${receta.id}')" class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold hover:bg-blue-200">✏️ Editar</button>
-            <button onclick="eliminarReceta('${receta.id}')" class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-bold hover:bg-red-200">🗑️</button>
+          <td class="p-3">${badgeCategoria}</td>
+          <td class="p-3 text-center text-xs font-semibold text-gray-600">${rendimientoStr}</td>
+          <td class="p-3 text-right font-bold text-gray-800">$${parseFloat(receta.costoUnitario || 0).toFixed(4)}</td>
+          <td class="p-3 text-center font-bold text-blue-600">${parseFloat(receta.factor || 1.5).toFixed(2)}x</td>
+          <td class="p-3 text-right font-black text-emerald-600">$${parseFloat(receta.pvp || 0).toFixed(2)}</td>
+          <td class="p-3 text-center">
+            <div class="inline-flex items-center justify-center gap-1.5">
+              <button onclick="verFichaTecnica('${receta.id}')" class="bg-[#1b4d3e] hover:bg-[#123e1b] text-white px-3 py-1.5 rounded-md font-bold text-xs transition-all shadow-xs">
+                Ver Ficha
+              </button>
+              <button onclick="cargarRecetaParaEditar('${receta.id}')" class="bg-[#2563eb] hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-bold text-xs transition-all shadow-xs">
+                Editar
+              </button>
+              <button onclick="eliminarReceta('${receta.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1.5 rounded-md font-bold text-xs transition-all">
+                Eliminar
+              </button>
+            </div>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1847,24 +1953,35 @@
     }
 
     function cargarRecetaParaEditar(id) {
-      const receta = recetasCatalogo.find(r => r.id === id);
+      const receta = recetasCatalogo.find(r => String(r.id) === String(id));
       if (!receta) return;
 
       idRecetaEditando = receta.id;
       document.getElementById('nombreReceta').value = receta.nombre;
       document.getElementById('categoriaReceta').value = receta.categoria;
-      document.getElementById('tipoCalculo').value = receta.tipo;
-      document.getElementById('rendimientoCant').value = receta.rendimiento;
-      document.getElementById('piezasCant').value = receta.piezas;
-      document.getElementById('margenUtilidad').value = receta.factor;
+      document.getElementById('tipoCalculo').value = receta.tipo || 'und';
+      document.getElementById('rendimientoCant').value = receta.rendimiento || 1;
+      document.getElementById('piezasCant').value = receta.piezas || 1;
+      document.getElementById('margenUtilidad').value = receta.factor || 1.5;
+      document.getElementById('esSubreceta').checked = receta.esSubreceta || false;
 
       document.getElementById('tituloSeccionCreador').textContent = `Editando Receta: ${receta.nombre}`;
       document.getElementById('btnCancelarEdicion').classList.remove('hidden');
+      document.getElementById('btnGuardarReceta').innerHTML = '💾 Actualizar Producto en Catálogo';
 
-      recetaActual.filas = receta.ingredientes.map(i => ({
-        insumoId: i.insumoId,
-        cantidad: i.cantidad
-      }));
+      // Cargar ingredientes asociados
+      recetaActual.filas = (receta.ingredientes || []).map(i => {
+        // Buscar coincidencia en la lista actual de insumos
+        let match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || ins.nombre === i.nombre);
+        return {
+          insumoId: match ? match.id : i.insumoId,
+          cantidad: i.cantidad
+        };
+      });
+
+      if (recetaActual.filas.length === 0) {
+        recetaActual.filas = [{ insumoId: '', cantidad: 0 }];
+      }
 
       renderizarFilasCreador();
       actualizarEtiquetaRendimiento();
@@ -1873,7 +1990,7 @@
 
     async function eliminarReceta(id) {
       if (!confirm("¿Deseas eliminar esta receta del catálogo?")) return;
-      recetasCatalogo = recetasCatalogo.filter(r => r.id !== id);
+      recetasCatalogo = recetasCatalogo.filter(r => String(r.id) !== String(id));
       
       await eliminarRecetaSupabase(id);
       localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
@@ -1883,26 +2000,31 @@
     }
 
     function verFichaTecnica(id) {
-      const receta = recetasCatalogo.find(r => r.id === id);
+      const receta = recetasCatalogo.find(r => String(r.id) === String(id));
       if (!receta) return;
 
       document.getElementById('modalNombre').textContent = receta.nombre;
       document.getElementById('modalCategoria').textContent = receta.categoria;
-      document.getElementById('modalRendimiento').textContent = receta.tipo === 'und' ? `${receta.piezas} UNIDADES` : `${receta.rendimiento} KG/LT`;
-      document.getElementById('modalCosto').textContent = `$${parseFloat(receta.costoUnitario).toFixed(4)}`;
-      document.getElementById('modalPvp').textContent = `$${parseFloat(receta.pvp).toFixed(2)}`;
-      document.getElementById('fichaFecha').textContent = receta.fecha || new Date().toLocaleDateString();
+      
+      const rendimientoStr = receta.tipo === 'und'
+        ? `${receta.piezas || 1} Unidades`
+        : `${receta.rendimiento || 1} KG/LT`;
+
+      document.getElementById('modalRendimiento').textContent = rendimientoStr;
+      document.getElementById('modalCosto').textContent = `$${parseFloat(receta.costoUnitario || 0).toFixed(4)}`;
+      document.getElementById('modalPvp').textContent = `$${parseFloat(receta.pvp || 0).toFixed(2)}`;
+      document.getElementById('fichaFecha').textContent = `Fecha: ${receta.fecha || obtenerFechaActualFormateada()}`;
 
       const tbody = document.getElementById('modalIngredientesBody');
       tbody.innerHTML = '';
 
-      receta.ingredientes.forEach(ing => {
+      (receta.ingredientes || []).forEach(ing => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="p-2 border-b font-semibold text-gray-800">${ing.nombre}</td>
-          <td class="p-2 border-b text-center font-bold">${ing.cantidad} ${ing.unidad}</td>
-          <td class="p-2 border-b text-right">$${parseFloat(ing.costoUnit).toFixed(4)}</td>
-          <td class="p-2 border-b text-right font-bold text-[#123e1b]">$${parseFloat(ing.costoTotal).toFixed(4)}</td>
+          <td class="p-3 border-b border-gray-100 font-bold text-gray-800">${ing.nombre}</td>
+          <td class="p-3 border-b border-gray-100 text-center font-bold text-gray-700">${ing.cantidad} ${ing.unidad || ''}</td>
+          <td class="p-3 border-b border-gray-100 text-right font-medium text-gray-600">$${parseFloat(ing.costoUnit || 0).toFixed(4)}</td>
+          <td class="p-3 border-b border-gray-100 text-right font-bold text-gray-800">$${parseFloat(ing.costoTotal || 0).toFixed(4)}</td>
         `;
         tbody.appendChild(tr);
       });
