@@ -1567,6 +1567,62 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             }
         }
 
+        // --- MANEJO DE FECHAS SEGURO ---
+        function normalizarFechaGuardada(val) {
+            if (!val || val === 'S/F' || val === '-') return '';
+            
+            if (val instanceof Date && !isNaN(val.getTime())) {
+                const yyyy = val.getFullYear();
+                const mm = String(val.getMonth() + 1).padStart(2, '0');
+                const dd = String(val.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            let str = String(val).trim();
+            if (str === '' || str === 'Invalid Date') return '';
+
+            if (str.includes('GMT') || str.includes('hora de')) {
+                const parsed = new Date(str);
+                if (!isNaN(parsed.getTime())) {
+                    const yyyy = parsed.getFullYear();
+                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+                    const dd = String(parsed.getDate()).padStart(2, '0');
+                    return `${yyyy}-${mm}-${dd}`;
+                }
+            }
+
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
+                const partes = str.split('/');
+                return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+            }
+
+            const dGen = new Date(str);
+            if (!isNaN(dGen.getTime())) {
+                const yyyy = dGen.getFullYear();
+                const mm = String(dGen.getMonth() + 1).padStart(2, '0');
+                const dd = String(dGen.getDate()).padStart(2, '0');
+                return `${yyyy}-${mm}-${dd}`;
+            }
+
+            return str;
+        }
+
+        function formatearFechaMostrar(val) {
+            const norm = normalizarFechaGuardada(val);
+            if (!norm) return 'S/F';
+            const partes = norm.split('-');
+            if (partes.length === 3) {
+                return `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+            return norm;
+        }
+
+        function formatearFechaInput(val) {
+            return normalizarFechaGuardada(val);
+        }
+
         function verificarClaveAdmin(callback) {
             callbackClaveExito = callback;
             const inputClave = document.getElementById('inputClaveAdmin');
@@ -1655,6 +1711,21 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             }
         }
 
+        function sincronizarDashboardLocalStorage() {
+            let optimos = 0, porVencer = 0, vencidos = 0;
+            registros.forEach(item => {
+                if (item.inhabilitado) return;
+                const st = calcularEstado(item.fechaVencimiento).status;
+                if (st === 'optimo') optimos++;
+                if (st === 'por_vencer') porVencer++;
+                if (st === 'vencido') vencidos++;
+            });
+
+            localStorage.setItem('dashboard_mod1_optimos', optimos);
+            localStorage.setItem('dashboard_mod1_porvencer', porVencer);
+            localStorage.setItem('dashboard_mod1_vencidos', vencidos);
+        }
+
         async function cargarDatosDB() {
             if (typeof supabaseClient === 'undefined') return;
 
@@ -1672,8 +1743,10 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             registros = data || [];
             
             registros.forEach(item => {
-                item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion);
-                item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento);
+                item.codBarra = item.codBarra || item.cod_barra || 'S/C';
+                item.codInterno = item.codInterno || item.codinterno || item.cod_interno || 'S/C';
+                item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion || item.fecha_recepcion);
+                item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento || item.fecha_vencimiento);
                 if (item.inhabilitado === undefined) item.inhabilitado = false;
             });
 
@@ -1717,120 +1790,43 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             await cargarDatosDB();
         }
 
-        function normalizarFechaGuardada(val) {
-            if (!val || val === 'S/F' || val === '-') return '';
-            
-            if (val instanceof Date && !isNaN(val.getTime())) {
-                const yyyy = val.getFullYear();
-                const mm = String(val.getMonth() + 1).padStart(2, '0');
-                const dd = String(val.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-
-            let str = String(val).trim();
-            if (str === '' || str === 'Invalid Date') return '';
-
-            if (str.includes('GMT') || str.includes('hora de')) {
-                const parsed = new Date(str);
-                if (!isNaN(parsed.getTime())) {
-                    const yyyy = parsed.getFullYear();
-                    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-                    const dd = String(parsed.getDate()).padStart(2, '0');
-                    return `${yyyy}-${mm}-${dd}`;
-                }
-            }
-
-            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-                return str;
-            }
-
-            if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) {
-                const partes = str.split('/');
-                return `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
-            }
-
-            const dGen = new Date(str);
-            if (!isNaN(dGen.getTime())) {
-                const yyyy = dGen.getFullYear();
-                const mm = String(dGen.getMonth() + 1).padStart(2, '0');
-                const dd = String(dGen.getDate()).padStart(2, '0');
-                return `${yyyy}-${mm}-${dd}`;
-            }
-
-            return str;
-        }
-
-        function sincronizarDashboardLocalStorage() {
-            let optimos = 0, porVencer = 0, vencidos = 0;
-
-            registros.forEach(item => {
-                if (item.inhabilitado) return;
-                const st = calcularEstado(item.fechaVencimiento).status;
-                if (st === 'optimo') optimos++;
-                if (st === 'por_vencer') porVencer++;
-                if (st === 'vencido') vencidos++;
-            });
-
-            localStorage.setItem('dashboard_mod1_optimos', optimos);
-            localStorage.setItem('dashboard_mod1_porvencer', porVencer);
-            localStorage.setItem('dashboard_mod1_vencidos', vencidos);
-        }
-
-        function formatearFechaMostrar(fechaStr) {
-            const norm = normalizarFechaGuardada(fechaStr);
-            if (!norm) return 'S/F';
-            
-            const partes = norm.split('-');
-            if (partes.length === 3) {
-                return `${partes[2]}/${partes[1]}/${partes[0]}`;
-            }
-            return norm;
-        }
-
-        function formatearFechaInput(fechaStr) {
-            return normalizarFechaGuardada(fechaStr);
-        }
-
         async function registrarProducto(event) {
             event.preventDefault();
             
             const editId = document.getElementById('editId').value;
-            const existenteAntiguo = editId ? registros.find(r => String(r.id) === String(editId)) : null;
-
-            const nuevo = {
-                id: editId ? parseFloat(editId) : Date.now(),
-                codBarra: document.getElementById('codBarra').value || 'S/C',
-                codInterno: document.getElementById('codInterno').value || 'S/C',
-                producto: document.getElementById('producto').value,
-                departamento: document.getElementById('departamento').value || 'GENERAL',
-                proveedor: document.getElementById('proveedor').value || 'S/P',
-                numFactura: document.getElementById('numFactura').value || 'S/F',
-                personaRecibe: document.getElementById('personaRecibe').value || 'S/N',
-                lote: document.getElementById('lote').value || 'S/L',
+            const itemData = {
+                codBarra: document.getElementById('codBarra').value.trim() || 'S/C',
+                codInterno: document.getElementById('codInterno').value.trim() || 'S/C',
+                producto: document.getElementById('producto').value.trim(),
+                departamento: document.getElementById('departamento').value.trim() || 'GENERAL',
+                proveedor: document.getElementById('proveedor').value.trim() || 'S/P',
+                numFactura: document.getElementById('numFactura').value.trim() || 'S/F',
+                personaRecibe: document.getElementById('personaRecibe').value.trim() || 'S/N',
+                lote: document.getElementById('lote').value.trim() || 'S/L',
                 cantidad: parseInt(document.getElementById('cantidad').value) || 1,
                 costoUnitario: parseFloat(document.getElementById('costoUnitario').value) || 0,
                 costoTotal: parseFloat(document.getElementById('costoTotal').value) || 0,
-                fechaRecepcion: normalizarFechaGuardada(document.getElementById('fechaRecepcion').value),
-                fechaVencimiento: normalizarFechaGuardada(document.getElementById('fechaCaducidad').value),
-                observaciones: document.getElementById('observaciones').value || '',
-                inhabilitado: existenteAntiguo ? !!existenteAntiguo.inhabilitado : false
+                fechaRecepcion: document.getElementById('fechaRecepcion').value || new Date().toISOString().substring(0, 10),
+                fechaVencimiento: document.getElementById('fechaCaducidad').value || null,
+                observaciones: document.getElementById('observaciones').value.trim(),
+                inhabilitado: false
             };
 
-            await guardarDatosDB([nuevo]);
+            if (editId) {
+                itemData.id = editId;
+            }
 
-            document.getElementById('formRecepcion').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('btnEliminarForm').style.display = 'none';
-            document.getElementById('btnCancelarEdicion').style.display = 'none';
-            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
+            await guardarDatosDB([itemData]);
+            cancelarEdicionForm();
+            alert(editId ? "¡Producto actualizado con éxito!" : "¡Producto registrado con éxito!");
         }
 
         function cancelarEdicionForm() {
             document.getElementById('formRecepcion').reset();
             document.getElementById('editId').value = '';
+            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
             document.getElementById('btnEliminarForm').style.display = 'none';
             document.getElementById('btnCancelarEdicion').style.display = 'none';
-            document.getElementById('fechaRecepcion').value = new Date().toISOString().substring(0, 10);
         }
 
         function eliminarItemActualForm() {
@@ -1838,10 +1834,10 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             if (!editId) return;
 
             verificarClaveAdmin(() => {
-                if (confirm("¿Estás seguro de que deseas eliminar este registro permanentemente?")) {
+                if (confirm("¿Está seguro de eliminar este ítem permanentemente?")) {
                     eliminarRegistroDB(editId).then(() => {
                         cancelarEdicionForm();
-                        alert("Registro eliminado exitosamente.");
+                        alert("Ítem eliminado correctamente.");
                     });
                 }
             });
@@ -1890,7 +1886,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             document.getElementById('dashPorVencer').innerText = porVencer.toLocaleString();
             document.getElementById('dashVencidos').innerText = vencidos.toLocaleString();
         
-        actualizarContadorInhabilitados();
+            actualizarContadorInhabilitados();
         }
 
         function filtrarEstado(estado, btn) {
@@ -2386,7 +2382,7 @@ body.theme-dark #tablaRegistros tr td[style*="color"] {
             downloadAnchor.remove();
         }
 
-        // --- MANEJO DE TEMA (UNIFICADO CON INDEX) ---
+        // --- MANEJO DE TEMA ---
         function aplicarTema(oscuro) {
             document.body.classList.toggle('theme-dark', oscuro);
             const toggle = document.getElementById('themeToggle');
