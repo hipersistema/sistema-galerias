@@ -1735,8 +1735,11 @@
     }
 
     function actualizarCantidadFila(index, cant) {
-      recetaActual.filas[index].cantidad = parseFloat(cant) || 0;
-      recalcularEscandallo();
+    recetaActual.filas[index].cantidad = parseFloat(cant) || 0;
+  
+  // Actualizar la vista de la tabla y recalcular
+    renderizarFilasCreador();
+    recalcularEscandallo();
     }
 
     function actualizarEtiquetaRendimiento() {
