@@ -278,6 +278,16 @@
     body.theme-dark textarea { background-color: #14231f !important; color: #e8f3ed !important; border-color: #2b453b !important; }
     body.theme-dark .row-subreceta { background-color: #122c22 !important; }
     body.theme-dark .row-subreceta:hover { background-color: #18382c !important; }
+
+    /* ESTILOS DEL DROPDOWN BUSCADOR DE INSUMOS */
+    body.theme-dark [id^="dropdown-insumo-"] {
+      background-color: #101c18 !important;
+      border-color: #263b34 !important;
+      color: #e7f1ec !important;
+    }
+    body.theme-dark [id^="dropdown-insumo-"] div:hover {
+      background-color: #173329 !important;
+    }
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
@@ -456,14 +466,14 @@
             </button>
           </div>
 
-          <div class="overflow-x-auto min-h-[300px]">
+          <div class="overflow-visible min-h-[300px]">
             <table class="w-full text-left text-sm text-gray-700">
               <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold border-b border-[#2e7d32]/20">
                 <tr>
                   <th class="p-3 w-2/5">Ingrediente / Base</th>
-                  <th class="p-3 w-28 text-center">Peso / Cantidad</th>
-                  <th class="p-3 w-24 text-right">Costo Unit ($)</th>
-                  <th class="p-3 w-24 text-right">Total ($)</th>
+                  <th class="p-3 w-28 text-center">Cantidad / Peso</th>
+                  <th class="p-3 w-28 text-right">P. Venta Usado ($)</th>
+                  <th class="p-3 w-28 text-right">Total ($)</th>
                   <th class="p-3 w-10"></th>
                 </tr>
               </thead>
@@ -712,7 +722,7 @@
                       <tr>
                           <th class="p-3">Ingrediente / Base</th>
                           <th class="p-3 text-center">Cantidad Utilizada</th>
-                          <th class="p-3 text-right">Costo Unit. ($)</th>
+                          <th class="p-3 text-right">P. Venta Usado ($)</th>
                           <th class="p-3 text-right">Costo Total ($)</th>
                       </tr>
                   </thead>
@@ -831,6 +841,21 @@
     const CLAVE_SEGURIDAD = "1234";
     let funcionCallbackClave = null;
 
+    // LIMPIAR NOMBRE DE ETIQUETA REDUNDANTE [BASE]
+    function limpiarNombreBase(nombre) {
+      if (!nombre) return '';
+      return String(nombre).replace(/^\[BASE\]\s*/i, '').trim();
+    }
+
+    // VERIFICAR SI UN INSUMO ES CONSIDERADO BASE
+    function esInsumoBase(insumoId, nombreInsumo) {
+      const match = insumosBase.find(i => 
+        String(i.id) === String(insumoId) || 
+        limpiarNombreBase(i.nombre).toUpperCase() === limpiarNombreBase(nombreInsumo).toUpperCase()
+      );
+      return match ? match.tipo === 'base' : false;
+    }
+
     // SISTEMA DE CONTRASEÑA EN MODAL MASCARADO (ASTERISCOS)
     function solicitarClaveAcceso(callback) {
       funcionCallbackClave = callback;
@@ -867,6 +892,12 @@
     document.getElementById('inputClaveSeguridad').addEventListener('keyup', function(e) {
       if (e.key === 'Enter') {
         verificarClaveModal();
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.contenedor-insumo-dropdown')) {
+        cerrarTodosDropdowns();
       }
     });
 
@@ -1046,11 +1077,12 @@
 
         const costoUnit = parseFloat(document.getElementById('crearCostoUnitario').value) || 0;
         const costoVentaVal = parseFloat(document.getElementById('crearPrecioVenta').value) || 0;
+        const nombreIngresado = limpiarNombreBase(document.getElementById('crearNombreInsumo').value.trim().toUpperCase());
 
         const nuevoInsumo = {
             id: `ing_${Date.now()}`,
             codigo: codigoFormateado,
-            nombre: document.getElementById('crearNombreInsumo').value.trim().toUpperCase(),
+            nombre: nombreIngresado,
             unidad: document.getElementById('crearUnidadInsumo').value.toUpperCase(),
             precio: costoUnit,
             costoVenta: costoVentaVal,
@@ -1113,11 +1145,14 @@
               try { hist = JSON.parse(i.historial); } catch(e) { hist = []; }
             }
 
+            const rawNombre = i.nombre || '';
+            const esBase = i.tipo === 'base' || /^\[BASE\]/i.test(rawNombre);
+
             return {
               id: i.id,
               codigo: normalizarCodigoJava(i.codigo),
-              tipo: i.tipo,
-              nombre: i.nombre,
+              tipo: esBase ? 'base' : 'primario',
+              nombre: limpiarNombreBase(rawNombre),
               precio: parseFloat(i.precio || 0),
               costoVenta: parseFloat(i.costo_venta || i.precio || 0),
               unidad: i.unidad ? i.unidad.toUpperCase() : 'KG',
@@ -1157,9 +1192,15 @@
         localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
 
       } catch (error) {
-        console.warn("⚠️️ Error conectando con Supabase. Cargando respaldo local:", error);
+        console.warn("⚠️ Error conectando con Supabase. Cargando respaldo local:", error);
         const storedInsumos = localStorage.getItem('insumos_recetario') || localStorage.getItem('hipergalerias_insumos_db');
         insumosBase = storedInsumos ? JSON.parse(storedInsumos) : [];
+
+        // Limpiar insumos base locales
+        insumosBase = insumosBase.map(i => ({
+          ...i,
+          nombre: limpiarNombreBase(i.nombre)
+        }));
 
         const storedCatalogo = localStorage.getItem('catalogo_recetario') || localStorage.getItem('hipergalerias_recetas_db');
         recetasCatalogo = storedCatalogo ? JSON.parse(storedCatalogo) : [];
@@ -1175,7 +1216,7 @@
           id: String(insumo.id),
           codigo: insumo.codigo,
           tipo: insumo.tipo,
-          nombre: insumo.nombre,
+          nombre: limpiarNombreBase(insumo.nombre),
           precio: insumo.precio,
           costo_venta: insumo.costoVenta,
           unidad: insumo.unidad,
@@ -1286,8 +1327,9 @@
       const paginaItems = filtrados.slice(inicio, fin);
 
       paginaItems.forEach(insumo => {
-        const esBaseSubreceta = insumo.tipo === 'base' || (insumo.nombre && insumo.nombre.startsWith('[BASE]'));
+        const esBaseSubreceta = insumo.tipo === 'base';
         const costoVentaVal = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+        const nombreLimpio = limpiarNombreBase(insumo.nombre);
         
         const tr = document.createElement('tr');
         tr.className = `transition-colors ${esBaseSubreceta ? 'row-subreceta font-medium' : 'hover:bg-gray-50'}`;
@@ -1298,13 +1340,13 @@
 
         tr.innerHTML = `
           <td class="p-3 font-mono text-xs text-gray-500 font-bold">${insumo.codigo || '------'}</td>
-          <td class="p-3 font-bold text-gray-800 text-xs">${insumo.nombre} ${badgeSubreceta}</td>
+          <td class="p-3 font-bold text-gray-800 text-xs">${nombreLimpio} ${badgeSubreceta}</td>
           <td class="p-3 text-center uppercase text-xs font-bold text-gray-600">${insumo.unidad}</td>
           <td class="p-3 text-right font-medium text-gray-500 font-mono text-xs">$${parseFloat(insumo.precio).toFixed(4)}</td>
           <td class="p-3 text-center font-black text-[#15803d] dark:text-[#4ade80] font-mono text-sm bg-[#e8f5e9]/70 dark:bg-[#173329]/80 whitespace-nowrap border-l border-r border-[#2e7d32]/20 dark:border-[#263b34]">$${parseFloat(costoVentaVal).toFixed(4)}</td>
           <td class="p-3 text-center">
             <button onclick="solicitarAccesoAcciones('${insumo.id}')" class="px-3 py-1.5 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#166534] border border-[#bbf7d0] rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 mx-auto">
-              🔐 Editar / Histórico / Eliminar
+              🔐 Editar
             </button>
           </td>
         `;
@@ -1350,7 +1392,7 @@
 
       document.getElementById('idInsumoProtegido').value = insumo.id;
       document.getElementById('badgeCodigoProtegido').textContent = insumo.codigo || '000000';
-      document.getElementById('tituloNombreProtegido').textContent = insumo.nombre || '';
+      document.getElementById('tituloNombreProtegido').textContent = limpiarNombreBase(insumo.nombre) || '';
 
       document.getElementById('costoVisualInput').value = parseFloat(insumo.precio || 0).toFixed(2);
       const costoVentaActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
@@ -1435,7 +1477,7 @@
     async function eliminarInsumoProtegido() {
       const id = document.getElementById('idInsumoProtegido').value;
       const insumo = insumosBase.find(i => String(i.id) === String(id));
-      const nombre = insumo ? insumo.nombre : 'este insumo';
+      const nombre = insumo ? limpiarNombreBase(insumo.nombre) : 'este insumo';
 
       if (!confirm(`⚠ ¿Deseas eliminar definitivamente el insumo "${nombre}" del sistema?`)) {
         return;
@@ -1465,7 +1507,7 @@
       alert(`✅ Insumo "${nombre}" eliminado del sistema.`);
     }
 
-    // CREADOR DE RECETAS
+    // CREADOR DE RECETAS - BUSCADOR / DROPDOWN DE INSUMOS MEJORADO
     function agregarFilaReceta() {
       recetaActual.filas.push({ insumoId: '', cantidad: 0 });
       renderizarFilasCreador();
@@ -1484,46 +1526,142 @@
       recetaActual.filas.forEach((fila, idx) => {
         const tr = document.createElement('tr');
         
-        let optionsHtml = '<option value="">-- Seleccionar Insumo --</option>';
-        insumosBase.forEach(ins => {
-          const selected = String(ins.id) === String(fila.insumoId) ? 'selected' : '';
-          const esBase = ins.tipo === 'base' || (ins.nombre && ins.nombre.startsWith('[BASE]'));
-          const prefijo = esBase ? '⭐ ' : '';
-          optionsHtml += `<option value="${ins.id}" ${selected}>${prefijo}${ins.nombre} ($${parseFloat(ins.precio).toFixed(4)} / ${ins.unidad})</option>`;
-        });
-
         const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
-        const costoUnit = insumoObj ? insumoObj.precio : 0;
-        const totalFila = costoUnit * (fila.cantidad || 0);
+        const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
+        const totalFila = costoVentaUsado * (fila.cantidad || 0);
+
+        const nombreInsumoMostrar = insumoObj ? `${insumoObj.tipo === 'base' ? '⭐ ' : ''}${limpiarNombreBase(insumoObj.nombre)}` : '';
 
         tr.innerHTML = `
-          <td class="p-2">
-            <select onchange="actualizarInsumoFila(${idx}, this.value)" class="w-full p-2 border border-gray-300 rounded text-xs outline-none focus:ring-2 focus:ring-[#2e7d32]">
-              ${optionsHtml}
-            </select>
+          <td class="p-2 overflow-visible">
+            <div class="relative w-full contenedor-insumo-dropdown">
+              <input type="text"
+                     id="input-insumo-${idx}"
+                     value="${nombreInsumoMostrar}"
+                     placeholder="🔍 Buscar o seleccionar insumo..."
+                     onfocus="abrirDropdownInsumo(${idx})"
+                     oninput="filtrarDropdownInsumo(${idx}, this.value)"
+                     class="w-full p-2 border border-gray-300 rounded text-xs font-bold outline-none focus:ring-2 focus:ring-[#2e7d32] bg-white">
+              
+              <div id="dropdown-insumo-${idx}" 
+                   class="hidden absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-2xl z-50 divide-y divide-gray-100">
+                <!-- Dinámico con JS -->
+              </div>
+            </div>
           </td>
           <td class="p-2">
             <input type="number" step="any" min="0" value="${fila.cantidad || ''}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="0.00" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
           </td>
-          <td class="p-2 text-right font-semibold text-gray-600">$${costoUnit.toFixed(4)}</td>
-          <td class="p-2 text-right font-bold text-[#123e1b]">$${totalFila.toFixed(4)}</td>
+          <td class="p-2 text-right font-bold text-gray-700 font-mono text-xs" id="costoVentaUsadoRow-${idx}">$${costoVentaUsado.toFixed(4)}</td>
+          <td class="p-2 text-right font-black text-[#123e1b] font-mono text-xs" id="totalRow-${idx}">$${totalFila.toFixed(4)}</td>
           <td class="p-2 text-center">
-            <button onclick="eliminarFilaReceta(${idx})" class="text-red-500 hover:text-red-700 font-bold">&times;</button>
+            <button onclick="eliminarFilaReceta(${idx})" class="text-red-500 hover:text-red-700 font-bold text-lg">&times;</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    function actualizarInsumoFila(index, id) {
-      recetaActual.filas[index].insumoId = id;
-      renderizarFilasCreador();
+    function abrirDropdownInsumo(idx) {
+      cerrarTodosDropdowns();
+      const dropdown = document.getElementById(`dropdown-insumo-${idx}`);
+      if (!dropdown) return;
+      const inputVal = document.getElementById(`input-insumo-${idx}`).value;
+      renderizarOpcionesDropdown(idx, inputVal);
+      dropdown.classList.remove('hidden');
+    }
+
+    function cerrarDropdownInsumo(idx) {
+      const dropdown = document.getElementById(`dropdown-insumo-${idx}`);
+      if (dropdown) dropdown.classList.add('hidden');
+    }
+
+    function cerrarTodosDropdowns() {
+      document.querySelectorAll('[id^="dropdown-insumo-"]').forEach(d => d.classList.add('hidden'));
+    }
+
+    function filtrarDropdownInsumo(idx, texto) {
+      const dropdown = document.getElementById(`dropdown-insumo-${idx}`);
+      if (dropdown) dropdown.classList.remove('hidden');
+      renderizarOpcionesDropdown(idx, texto);
+      
+      if (!texto.trim()) {
+        recetaActual.filas[idx].insumoId = '';
+        actualizarCostosFilaVisibles(idx);
+        recalcularEscandallo();
+      }
+    }
+
+    function renderizarOpcionesDropdown(idx, filtro) {
+      const dropdown = document.getElementById(`dropdown-insumo-${idx}`);
+      if (!dropdown) return;
+
+      const query = (filtro || '').toLowerCase().trim();
+      const filtrados = insumosBase.filter(ins => 
+        limpiarNombreBase(ins.nombre).toLowerCase().includes(query) || 
+        (ins.codigo && ins.codigo.toLowerCase().includes(query))
+      );
+
+      if (filtrados.length === 0) {
+        dropdown.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center font-medium">No se encontraron insumos</div>`;
+        return;
+      }
+
+      let html = '';
+      filtrados.forEach(ins => {
+        const esBase = ins.tipo === 'base';
+        const badge = esBase ? '⭐ ' : '';
+        const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+        const precioFmt = `$${parseFloat(costoVentaUsado).toFixed(4)}`;
+        const unidadFmt = (ins.unidad || 'KG').toLowerCase();
+
+        html += `
+          <div onmousedown="seleccionarInsumoFila(${idx}, '${ins.id}')" 
+               class="p-2.5 hover:bg-[#e8f5e9] cursor-pointer flex justify-between items-center text-xs transition-colors border-b border-gray-100 last:border-0">
+            <span class="font-bold text-gray-800 ${esBase ? 'text-[#123e1b]' : ''}">
+              ${badge}${limpiarNombreBase(ins.nombre)}
+            </span>
+            <span class="text-gray-500 font-mono text-[11px] ml-3 whitespace-nowrap">
+              (${precioFmt} / ${unidadFmt})
+            </span>
+          </div>
+        `;
+      });
+      dropdown.innerHTML = html;
+    }
+
+    function seleccionarInsumoFila(idx, insumoId) {
+      const insumoObj = insumosBase.find(i => String(i.id) === String(insumoId));
+      if (!insumoObj) return;
+
+      recetaActual.filas[idx].insumoId = insumoObj.id;
+      
+      const esBase = insumoObj.tipo === 'base';
+      const badge = esBase ? '⭐ ' : '';
+      const inputEl = document.getElementById(`input-insumo-${idx}`);
+      if (inputEl) inputEl.value = `${badge}${limpiarNombreBase(insumoObj.nombre)}`;
+
+      cerrarDropdownInsumo(idx);
+      actualizarCostosFilaVisibles(idx);
       recalcularEscandallo();
+    }
+
+    function actualizarCostosFilaVisibles(idx) {
+      const fila = recetaActual.filas[idx];
+      const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
+      const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
+      const totalFila = costoVentaUsado * (fila.cantidad || 0);
+
+      const cellCosto = document.getElementById(`costoVentaUsadoRow-${idx}`);
+      const cellTotal = document.getElementById(`totalRow-${idx}`);
+
+      if (cellCosto) cellCosto.textContent = `$${costoVentaUsado.toFixed(4)}`;
+      if (cellTotal) cellTotal.textContent = `$${totalFila.toFixed(4)}`;
     }
 
     function actualizarCantidadFila(index, cant) {
       recetaActual.filas[index].cantidad = parseFloat(cant) || 0;
-      renderizarFilasCreador();
+      actualizarCostosFilaVisibles(index);
       recalcularEscandallo();
     }
 
@@ -1551,7 +1689,8 @@
       recetaActual.filas.forEach(f => {
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
         if (ins && f.cantidad) {
-          costoTotalBatch += ins.precio * f.cantidad;
+          const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+          costoTotalBatch += costoVentaUsado * f.cantidad;
         }
       });
 
@@ -1577,12 +1716,13 @@
     }
 
     async function guardarRecetaCatalogo() {
-      const nombre = document.getElementById('nombreReceta').value.trim();
-      if (!nombre) {
+      const nombreRaw = document.getElementById('nombreReceta').value.trim();
+      if (!nombreRaw) {
         alert("Por favor introduce un nombre para la receta.");
         return;
       }
 
+      const nombreLimpio = limpiarNombreBase(nombreRaw).toUpperCase();
       const tipo = document.getElementById('tipoCalculo').value;
       const rendimiento = parseFloat(document.getElementById('rendimientoCant').value) || 1;
       const piezas = parseFloat(document.getElementById('piezasCant').value) || 1;
@@ -1597,14 +1737,15 @@
       recetaActual.filas.forEach(f => {
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
         if (ins && f.cantidad > 0) {
-          const total = ins.precio * f.cantidad;
+          const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+          const total = costoVentaUsado * f.cantidad;
           costoTotalBatch += total;
           ingredientesFinales.push({
             insumoId: ins.id,
-            nombre: ins.nombre,
+            nombre: limpiarNombreBase(ins.nombre),
             cantidad: f.cantidad,
             unidad: ins.unidad,
-            costoUnit: ins.precio,
+            costoUnit: costoVentaUsado,
             costoTotal: total
           });
         }
@@ -1615,7 +1756,7 @@
 
       const nuevaReceta = {
         id: idRecetaEditando || "rec_" + Date.now(),
-        nombre: nombre.toUpperCase(),
+        nombre: nombreLimpio,
         categoria: categoria,
         tipo: tipo,
         rendimiento: rendimiento,
@@ -1639,13 +1780,13 @@
       await guardarRecetaSupabase(nuevaReceta);
 
       if (esSub || categoria === 'MASAS' || categoria === 'GUISOS') {
-        const existeBase = insumosBase.find(i => i.nombre === `[BASE] ${nombre.toUpperCase()}`);
+        const existeBase = insumosBase.find(i => limpiarNombreBase(i.nombre).toUpperCase() === nombreLimpio);
         if (!existeBase) {
           const insumoSub = {
             id: "sub_" + Date.now(),
             codigo: "BAS-" + String(insumosBase.length + 1).padStart(3, '0'),
             tipo: "base",
-            nombre: `[BASE] ${nombre.toUpperCase()}`,
+            nombre: nombreLimpio,
             precio: costoUnitario,
             costoVenta: costoUnitario,
             unidad: (unidadBase || (tipo === 'und' ? 'und' : 'kg')).toUpperCase(),
@@ -1653,6 +1794,11 @@
           };
           insumosBase.push(insumoSub);
           await guardarInsumoSupabase(insumoSub);
+        } else {
+          existeBase.tipo = 'base';
+          existeBase.precio = costoUnitario;
+          existeBase.costoVenta = costoUnitario;
+          await guardarInsumoSupabase(existeBase);
         }
       }
 
@@ -1730,7 +1876,7 @@
           <td class="p-3 text-center">
             <input type="checkbox" class="check-receta-item w-4 h-4 text-[#2e7d32] rounded cursor-pointer" value="${receta.id}">
           </td>
-          <td class="p-3 font-bold text-gray-800">${receta.nombre}</td>
+          <td class="p-3 font-bold text-gray-800">${limpiarNombreBase(receta.nombre)}</td>
           <td class="p-3">${badgeCategoria}</td>
           <td class="p-3 text-center text-xs font-semibold text-gray-600">${rendimientoStr}</td>
           <td class="p-3 text-right font-bold text-gray-800">$${parseFloat(receta.costoUnitario || 0).toFixed(4)}</td>
@@ -1783,7 +1929,7 @@
       document.querySelectorAll('.check-receta-item').forEach(cb => cb.checked = checked);
     }
 
-    // IMPRESIÓN EN UNA SOLA PLANILLA CONTINUA AGRUPADA POR CATEGORÍA
+    // IMPRESIÓN EN UNA SOLA PLANILLA CONTINUA AGRUPADA POR CATEGORÍA CON ⭐ EN BASES
     function imprimirRecetasSeleccionadas() {
       const seleccionados = Array.from(document.querySelectorAll('.check-receta-item:checked')).map(cb => cb.value);
       let listaImprimir = [];
@@ -1820,7 +1966,6 @@
       listaImprimir.forEach((receta) => {
         const catNorm = (receta.categoria || 'SIN CATEGORÍA').toUpperCase();
         
-        // Encabezado de sección cuando cambia la categoría
         if (catNorm !== categoriaActual) {
           categoriaActual = catNorm;
           filasHtml += `
@@ -1836,12 +1981,16 @@
           ? `${receta.piezas || 1} UND`
           : `${receta.rendimiento || 1} KG/LT`;
 
-        // Ingredientes formateados de manera super compacta para la cocina
-        let listaIngredientes = (receta.ingredientes || []).map(ing => 
-          `<span class="inline-block bg-gray-100 border border-gray-300 rounded px-2 py-0.5 mr-1 mb-1 text-[11px] font-medium text-gray-800">
-            <strong>${ing.nombre}:</strong> ${ing.cantidad} ${ing.unidad || ''}
-          </span>`
-        ).join('');
+        // Ingredientes formateados con ⭐ si el ingrediente es una subreceta/base
+        let listaIngredientes = (receta.ingredientes || []).map(ing => {
+          const esBase = esInsumoBase(ing.insumoId, ing.nombre);
+          const nombreLimpio = limpiarNombreBase(ing.nombre);
+          const prefijoStar = esBase ? '⭐ ' : '';
+
+          return `<span class="inline-block bg-gray-100 border border-gray-300 rounded px-2 py-0.5 mr-1 mb-1 text-[11px] font-medium text-gray-800">
+            <strong>${prefijoStar}${nombreLimpio}:</strong> ${ing.cantidad} ${ing.unidad || ''}
+          </span>`;
+        }).join('');
 
         if (!listaIngredientes) {
           listaIngredientes = '<span class="text-gray-400 italic text-[11px]">Sin ingredientes registrados</span>';
@@ -1850,7 +1999,7 @@
         filasHtml += `
           <tr class="border-t border-gray-300 bg-white hover:bg-gray-50 text-xs">
             <td class="p-2.5 font-bold text-gray-900 align-top text-sm">
-              ${receta.nombre}
+              ${limpiarNombreBase(receta.nombre)}
               ${receta.esSubreceta ? '<span class="ml-1 text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-extrabold">⭐ BASE</span>' : ''}
             </td>
             <td class="p-2.5 text-center align-top font-bold text-gray-700 text-xs">
@@ -1954,7 +2103,7 @@
       if (!receta) return;
 
       idRecetaEditando = receta.id;
-      document.getElementById('nombreReceta').value = receta.nombre;
+      document.getElementById('nombreReceta').value = limpiarNombreBase(receta.nombre);
       document.getElementById('categoriaReceta').value = receta.categoria;
       document.getElementById('tipoCalculo').value = receta.tipo || 'und';
       document.getElementById('rendimientoCant').value = receta.rendimiento || 1;
@@ -1962,12 +2111,12 @@
       document.getElementById('margenUtilidad').value = receta.factor || 1.5;
       document.getElementById('esSubreceta').checked = receta.esSubreceta || false;
 
-      document.getElementById('tituloSeccionCreador').textContent = `Editando Receta: ${receta.nombre}`;
+      document.getElementById('tituloSeccionCreador').textContent = `Editando Receta: ${limpiarNombreBase(receta.nombre)}`;
       document.getElementById('btnCancelarEdicion').classList.remove('hidden');
       document.getElementById('btnGuardarReceta').innerHTML = '💾 Actualizar Producto en Catálogo';
 
       recetaActual.filas = (receta.ingredientes || []).map(i => {
-        let match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || ins.nombre === i.nombre);
+        let match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || limpiarNombreBase(ins.nombre) === limpiarNombreBase(i.nombre));
         return {
           insumoId: match ? match.id : i.insumoId,
           cantidad: i.cantidad
@@ -1998,7 +2147,7 @@
       const receta = recetasCatalogo.find(r => String(r.id) === String(id));
       if (!receta) return;
 
-      document.getElementById('modalNombre').textContent = receta.nombre;
+      document.getElementById('modalNombre').textContent = limpiarNombreBase(receta.nombre);
       document.getElementById('modalCategoria').textContent = receta.categoria;
       
       const rendimientoStr = receta.tipo === 'und'
@@ -2015,11 +2164,14 @@
 
       (receta.ingredientes || []).forEach(ing => {
         const tr = document.createElement('tr');
+        const esBase = esInsumoBase(ing.insumoId, ing.nombre);
+        const prefijoStar = esBase ? '⭐ ' : '';
+
         tr.innerHTML = `
-          <td class="p-3 border-b border-gray-100 font-bold text-gray-800">${ing.nombre}</td>
+          <td class="p-3 border-b border-gray-100 font-bold text-gray-800">${prefijoStar}${limpiarNombreBase(ing.nombre)}</td>
           <td class="p-3 border-b border-gray-100 text-center font-bold text-gray-700">${ing.cantidad} ${ing.unidad || ''}</td>
-          <td class="p-3 border-b border-gray-100 text-right font-medium text-gray-600">$${parseFloat(ing.costoUnit || 0).toFixed(4)}</td>
-          <td class="p-3 border-b border-gray-100 text-right font-bold text-gray-800">$${parseFloat(ing.costoTotal || 0).toFixed(4)}</td>
+          <td class="p-3 border-b border-gray-100 text-right font-medium text-gray-600 font-mono">$${parseFloat(ing.costoUnit || 0).toFixed(4)}</td>
+          <td class="p-3 border-b border-gray-100 text-right font-bold text-gray-800 font-mono">$${parseFloat(ing.costoTotal || 0).toFixed(4)}</td>
         `;
         tbody.appendChild(tr);
       });
