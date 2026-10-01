@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sistema de Escandallos y Costos - Hipergalerias</title>
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -19,7 +21,10 @@
     }
   </script>
 
-  <!-- SDK de Supabase y conexión -->
+  <!-- SheetJS para importación de Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- SDK de Supabase y conexión local -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="conexion.js"></script>
 
@@ -39,8 +44,11 @@
 
     html { color-scheme: light; }
 
+    * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+
     body {
-        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
         transition: background-color .2s ease, color .2s ease;
     }
 
@@ -50,10 +58,9 @@
       font-weight: bold;
     }
 
-    /* ===== ENCABEZADO CONSISTENTE ===== */
+    /* ENCABEZADO CONSISTENTE */
     header {
         background: rgba(255,255,255,.96);
-        border-bottom: 1px solid #e5ebe7;
         border-bottom: 4px solid var(--yellow-brand);
         box-shadow: 0 4px 16px rgba(15,23,42,.05);
         padding: 10px 28px;
@@ -77,35 +84,38 @@
     .btn {
         min-height: 38px;
         padding: 8px 13px;
-        border-radius: 999px;
+        border-radius: 8px;
         font-size: .78rem;
         font-weight: 700;
-        border: 1px solid transparent;
+        border: 1px solid #cbd5e1;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 6px;
         transition: all .2s ease;
-        font-family: inherit;
     }
     .btn:hover { transform: translateY(-1px); }
 
-    .btn-backup-export { background: #0b76b9; color: #fff; }
-    .btn-backup-export:hover { background: #0369a1; }
+    .btn-backup-export { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
+    .btn-backup-export:hover { background: #f1f5f9; }
+    .btn-restore-import { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
+    .btn-restore-import:hover { background: #f1f5f9; }
+
     .btn-return {
         background: #fff; color: #dc2626; border: 1px solid #f0b7b7;
         min-height: 38px; padding: 8px 15px; border-radius: 999px;
-        font-size: .78rem; font-weight: 800; cursor: pointer; font-family: inherit;
+        font-size: .78rem; font-weight: 800; cursor: pointer;
         transition: all .2s ease;
     }
     .btn-return:hover { background: #fff5f5; border-color: #dc2626; color: #b91c1c; }
 
+    /* MODO OSCURO TOGGLE */
     .theme-toggle {
         display: inline-flex; align-items: center; gap: 8px;
         min-height: 38px; padding: 6px 8px 6px 10px;
         border: 1px solid #d7e0da; background: #f8fbf9; color: #334155;
         border-radius: 999px; cursor: pointer; font-size: .73rem; font-weight: 700;
-        white-space: nowrap; transition: all .2s ease; font-family: inherit;
+        white-space: nowrap; transition: all .2s ease;
     }
     .theme-toggle:hover { border-color: #b9cbc0; background: #f2f7f4; }
     .theme-toggle-icon { font-size: .9rem; width: 15px; text-align: center; }
@@ -118,7 +128,7 @@
         box-shadow: 0 1px 3px rgba(0,0,0,.2); transform: translateX(0); transition: transform .2s ease;
     }
 
-    /* ESTILOS DE AUTENTICACIÓN Y INSIGNIA */
+    /* BADGE DE USUARIO Y SESIÓN */
     .user-profile-badge {
         display: flex;
         align-items: center;
@@ -149,12 +159,9 @@
         font-size: 0.82rem;
         cursor: pointer;
         transition: background-color 0.2s;
-        font-family: inherit;
     }
 
-    .btn-login-trigger:hover {
-        background-color: #2e7d32;
-    }
+    .btn-login-trigger:hover { background-color: #2e7d32; }
 
     .btn-logout {
         background-color: #ef4444;
@@ -165,43 +172,30 @@
         font-size: 0.75rem;
         font-weight: 700;
         cursor: pointer;
-        font-family: inherit;
     }
 
-    .btn-logout:hover {
-        background-color: #dc2626;
-    }
+    .btn-logout:hover { background-color: #dc2626; }
 
-    /* MODAL DE LOGIN BLOQUEANTE */
+    /* MODAL LOGIN */
     .modal-overlay-login {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        top: 0; left: 0; width: 100vw; height: 100vh;
         background-color: rgba(15, 23, 42, 0.75);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        opacity: 0;
-        pointer-events: none;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 9999; opacity: 0; pointer-events: none;
         transition: opacity 0.3s ease;
     }
 
     .modal-overlay-login.active {
-        opacity: 1;
-        pointer-events: auto;
+        opacity: 1; pointer-events: auto;
     }
 
     .login-card {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
-        width: 100%;
-        max-width: 400px;
-        padding: 32px;
+        width: 100%; max-width: 400px; padding: 32px;
         border-radius: 20px;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
     }
@@ -213,210 +207,49 @@
     }
 
     .login-card h3 {
-        margin: 0 0 8px 0;
-        color: #123e1b;
-        font-size: 1.3rem;
-        font-weight: 700;
+        margin: 0 0 8px 0; color: #123e1b; font-size: 1.3rem; font-weight: 700;
     }
 
-    body.theme-dark .login-card h3 {
-        color: #86efac;
-    }
+    body.theme-dark .login-card h3 { color: #86efac; }
 
     .login-card p {
-        margin: 0 0 20px 0;
-        color: #64748b;
-        font-size: 0.88rem;
+        margin: 0 0 20px 0; color: #64748b; font-size: 0.88rem;
     }
 
-    .form-group-login {
-        margin-bottom: 16px;
-        text-align: left;
-    }
-
+    .form-group-login { margin-bottom: 16px; text-align: left; }
     .form-group-login label {
-        display: block;
-        font-size: 0.75rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        display: block; font-size: 0.75rem; font-weight: 700;
+        margin-bottom: 6px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;
     }
 
     .form-control-login {
-        width: 100%;
-        padding: 11px 14px;
-        border-radius: 10px;
-        border: 1px solid #cbd5e1;
-        background-color: #f8fafc;
-        color: #0f172a;
-        font-family: inherit;
-        font-size: 0.9rem;
-        box-sizing: border-box;
+        width: 100%; padding: 11px 14px; border-radius: 10px;
+        border: 1px solid #cbd5e1; background-color: #f8fafc; color: #0f172a; font-size: 0.9rem; box-sizing: border-box;
     }
 
     body.theme-dark .form-control-login {
-        background-color: #14231f;
-        border-color: #2b453b;
-        color: #e8f3ed;
+        background-color: #14231f; border-color: #2b453b; color: #e8f3ed;
     }
 
     .login-error-msg {
-        color: #ef4444;
-        font-size: 0.82rem;
-        margin-bottom: 14px;
-        display: none;
-        font-weight: 600;
+        color: #ef4444; font-size: 0.82rem; margin-bottom: 14px; display: none; font-weight: 600;
     }
 
     .btn-submit-login {
-        width: 100%;
-        background-color: #2e7d32;
-        color: #ffffff;
-        border: none;
-        padding: 12px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        cursor: pointer;
-        font-family: inherit;
-        transition: background-color 0.2s;
+        width: 100%; background-color: #2e7d32; color: #ffffff; border: none;
+        padding: 12px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background-color 0.2s;
     }
 
-    .btn-submit-login:hover {
-        background-color: #123e1b;
-    }
+    .btn-submit-login:hover { background-color: #123e1b; }
 
-    /* ESTILOS MODAL CREAR INSUMO */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(6px);
-        -webkit-backdrop-filter: blur(6px);
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        padding: 16px;
-        box-sizing: border-box;
-    }
+    /* ESTILOS DE TABLAS Y FILAS BASE */
+    .row-subreceta { background-color: #f2f9f4 !important; }
+    .row-subreceta:hover { background-color: #e4f3e7 !important; }
 
-    .modal-card {
-        background-color: #ffffff;
-        border-radius: 16px;
-        width: 100%;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
-        border: 1px solid #e2e8f0;
-    }
-
-    body.theme-dark .modal-card {
-        background-color: #101c18;
-        border-color: #263b34;
-        color: #e7f1ec;
-    }
-
-    .modal-header {
-        padding: 16px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid #e2e8f0;
-        background-color: #f8fafc;
-    }
-
-    body.theme-dark .modal-header {
-        background-color: #14241f;
-        border-bottom-color: #263b34;
-    }
-
-    .modal-header h3 {
-        margin: 0;
-        font-size: 1.05rem;
-        font-weight: 700;
-        color: #123e1b;
-    }
-
-    body.theme-dark .modal-header h3 {
-        color: #86efac;
-    }
-
-    .modal-close-btn {
-        background: transparent;
-        border: none;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: #64748b;
-        padding: 4px;
-        line-height: 1;
-    }
-
-    .modal-body {
-        padding: 20px 18px;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .form-group label {
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        margin-bottom: 6px;
-    }
-
-    body.theme-dark .form-group label {
-        color: #9db1a8;
-    }
-
-    .form-group input, .form-group select {
-        width: 100%;
-        padding: 9px 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        background-color: #ffffff;
-        color: #0f172a;
-        box-sizing: border-box;
-        font-family: inherit;
-    }
-
-    body.theme-dark .form-group input,
-    body.theme-dark .form-group select {
-        background-color: #14231f;
-        border-color: #2b453b;
-        color: #e8f3ed;
-    }
-
-    .btn-save {
-        background-color: #2e7d32;
-        color: #ffffff;
-    }
-
-    .btn-save:hover {
-        background-color: #123e1b;
-    }
-
-    @media (max-width: 760px) {
-        header { flex-direction: column; align-items: flex-start; }
-        .header-actions { width: 100%; justify-content: flex-start; }
-    }
-
-    /* ===== MODO OSCURO ===== */
+    /* MODO OSCURO GLOBAL */
     html:has(body.theme-dark) { color-scheme: dark; }
 
-    body.theme-dark {
-        background: #0b1411 !important;
-        color: #e7f1ec !important;
-    }
+    body.theme-dark { background: #0b1411 !important; color: #e7f1ec !important; }
     body.theme-dark header { background: #0d1915; border-bottom-color: #20362e; box-shadow: 0 4px 18px rgba(0,0,0,.20); }
     body.theme-dark .logo-container img { mix-blend-mode: normal; }
     body.theme-dark .header-titles p { color: #d9e8e0; }
@@ -429,7 +262,6 @@
     body.theme-dark .btn-return { background: #231719; color: #ff8d8d; border-color: #6a3437; }
     body.theme-dark .btn-return:hover { background: #321d20; border-color: #ff6b6b; color: #ff9e9e; }
     body.theme-dark .tab-active { border-bottom-color: #4ade80 !important; color: #4ade80 !important; }
-
     body.theme-dark .bg-white { background-color: #101c18 !important; }
     body.theme-dark .border-gray-200,
     body.theme-dark .border-gray-300,
@@ -449,20 +281,8 @@
     body.theme-dark input,
     body.theme-dark select,
     body.theme-dark textarea { background-color: #14231f !important; color: #e8f3ed !important; border-color: #2b453b !important; }
-
-    /* ESTILO PARA FILAS DE SUB-RECETAS Y BASES EN VERDE INSTITUCIONAL */
-    .row-subreceta {
-      background-color: #f2f9f4 !important;
-    }
-    .row-subreceta:hover {
-      background-color: #e4f3e7 !important;
-    }
-    body.theme-dark .row-subreceta {
-      background-color: #122c22 !important;
-    }
-    body.theme-dark .row-subreceta:hover {
-      background-color: #18382c !important;
-    }
+    body.theme-dark .row-subreceta { background-color: #122c22 !important; }
+    body.theme-dark .row-subreceta:hover { background-color: #18382c !important; }
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
@@ -480,6 +300,8 @@
     <div class="header-actions">
         <div class="btn-header-container">
             <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar</button>
+            <button class="btn btn-restore-import" onclick="document.getElementById('inputRestaurarJson').click()">📂 Restaurar</button>
+            <input type="file" id="inputRestaurarJson" accept=".json" class="hidden" onchange="restaurarSistema(event)">
         </div>
 
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
@@ -487,8 +309,6 @@
             <span class="theme-toggle-label" id="themeToggleLabel">Modo oscuro</span>
             <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
         </button>
-
-        <span class="header-separator" aria-hidden="true"></span>
 
         <button type="button" class="btn-return" onclick="window.location.href='index.html'" title="Regresar al panel principal">
             ← Regresar
@@ -521,32 +341,39 @@
     <section id="tab-insumos" class="space-y-4">
       <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="w-full sm:w-96 relative">
-          <input type="text" id="buscarInsumo" oninput="buscarInsumoInput()" placeholder="🔍 Buscar ingrediente, base o código..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
+          <input type="text" id="buscarInsumo" oninput="buscarInsumoInput()" placeholder="🔍 Buscar entre los artículos..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
         </div>
-        <button onclick="abrirModalCrearInsumo()" class="w-full sm:w-auto bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs px-4 py-2.5 rounded-md font-bold transition-all shadow">
-          + Agregar Nuevo Insumo Primario
-        </button>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <button onclick="document.getElementById('inputImportarExcel').click()" class="bg-[#047857] hover:bg-[#065f46] text-white text-xs px-4 py-2.5 rounded-md font-bold transition-all shadow flex items-center gap-1.5">
+            📂 Importar Excel BASE_DATOS_INSUMOS
+          </button>
+          <input type="file" id="inputImportarExcel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarExcelInsumos(event)">
+
+          <button onclick="solicitarAccesoNuevoInsumo()" class="bg-[#15803d] hover:bg-[#166534] text-white text-xs px-4 py-2.5 rounded-md font-bold transition-all shadow">
+            + Nuevo Insumo
+          </button>
+        </div>
       </div>
 
       <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
         <div class="max-h-[600px] overflow-y-auto">
           <table class="w-full table-fixed text-left text-sm text-gray-700">
             <colgroup>
+              <col style="width:12%">
+              <col style="width:34%">
               <col style="width:10%">
-              <col style="width:30%">
-              <col style="width:8%">
-              <col style="width:13%">
-              <col style="width:13%">
-              <col style="width:26%">
+              <col style="width:14%">
+              <col style="width:16%">
+              <col style="width:14%">
             </colgroup>
-            <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold sticky top-0 border-b border-[#2e7d32]/20">
+            <thead class="bg-[#e8f5e9] text-[#123e1b] font-bold sticky top-0 border-b border-[#2e7d32]/20">
               <tr>
-                <th class="p-3">Código</th>
-                <th class="p-3 pr-1">Nombre del Insumo</th>
+                <th class="p-3">Código Interno</th>
+                <th class="p-3">Descripción del Producto</th>
                 <th class="p-3 text-center">Unidad</th>
-                <th class="p-3 text-right">Costo Unitario ($)</th>
-                <th class="p-3 text-right">Costo Venta ($)</th>
-                <th class="p-3 text-center">Acción</th>
+                <th class="p-3 text-right">Precio de Costo ($)</th>
+                <th class="p-3 text-right">Precio de Venta ($)</th>
+                <th class="p-3 text-center">Acciones Protegidas</th>
               </tr>
             </thead>
             <tbody id="tablaInsumosBody" class="divide-y divide-gray-200">
@@ -678,7 +505,7 @@
             <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Factor de Utilidad (Ej. 1.3 = 30%, 1.4 = 40%)</label>
             <div class="flex items-center space-x-2">
               <input type="number" id="margenUtilidad" value="1.5" min="1.0" step="0.05" oninput="recalcularEscandallo()" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none font-bold text-gray-800">
-              <span class="text-gray-600 font-bold text-sm">Factor</span>
+              <span class="text-gray-600 font-bold text-sm">Utilidad</span>
             </div>
           </div>
 
@@ -717,7 +544,7 @@
                 <th class="p-3">Categoría</th>
                 <th class="p-3 text-center">Tipo / Rendimiento</th>
                 <th class="p-3 text-right">Costo Unitario ($)</th>
-                <th class="p-3 text-center">Factor</th>
+                <th class="p-3 text-center">Utilidad</th>
                 <th class="p-3 text-right">PVP Sugerido ($)</th>
                 <th class="p-3 text-center">Acciones</th>
               </tr>
@@ -732,95 +559,86 @@
 
   </main>
 
-  <!-- MODAL EDITAR INSUMO -->
-  <div id="editarInsumoModal" class="fixed inset-0 bg-black bg-opacity-50 hidden opacity-0 transition-opacity duration-300 ease-in-out flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative">
-      <button onclick="cerrarEditarInsumoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl">&times;</button>
+  <!-- MODAL PROTEGIDO: ACCIONES COMBINADAS (EDITAR PRECIOS / HISTÓRICO / ELIMINAR) -->
+  <div id="modalAccionesProtegidas" class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 relative overflow-hidden border border-gray-200">
       
-      <div class="flex items-center gap-3 border-b border-gray-100 pb-3 mb-4">
-        <div class="p-2.5 bg-[#e8f5e9] rounded-lg text-[#123e1b] font-bold text-lg">✏️</div>
+      <!-- ENCABEZADO MODAL -->
+      <div class="flex justify-between items-start border-b border-gray-100 pb-3 mb-4">
         <div>
-          <h3 class="text-lg font-bold text-[#123e1b]">Editar Insumo</h3>
-          <p class="text-xs text-gray-500">Modifica los detalles del ingrediente o base</p>
+          <div class="flex items-center gap-2">
+            <span id="badgeCodigoProtegido" class="bg-[#dcfce7] text-[#166534] px-2.5 py-1 rounded-md text-xs font-mono font-extrabold border border-[#bbf7d0]">000000</span>
+            <h3 id="tituloNombreProtegido" class="text-base font-extrabold text-gray-900 uppercase">NOMBRE DEL INSUMO</h3>
+          </div>
+          <p class="text-xs text-gray-500 font-medium mt-1">Gestión de Precios, Histórico de Cambios y Eliminación</p>
         </div>
+        <button onclick="cerrarModalAccionesProtegidas()" class="text-gray-400 hover:text-gray-600 font-bold text-2xl leading-none">&times;</button>
       </div>
 
-      <form id="formEditarInsumo" onsubmit="guardarEdicionInsumo(event)" class="space-y-4">
-        <input type="hidden" id="editInsumoId">
+      <input type="hidden" id="idInsumoProtegido">
 
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nombre del Insumo</label>
-          <input type="text" id="editInsumoNombre" required placeholder="Ej. HARINA DE TRIGO 1KG" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none uppercase font-semibold text-gray-800">
-        </div>
-
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Unidad de Medida</label>
-          <select id="editInsumoUnidad" required class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white font-medium">
-            <option value="kg">Kilogramos (kg)</option>
-            <option value="und">Unidades (und)</option>
-            <option value="lt">Litros (lt)</option>
-            <option value="g">Gramos (g)</option>
-            <option value="ml">Mililitros (ml)</option>
-            <option value="paq">Paquete (paq)</option>
-          </select>
+      <!-- SECCIÓN 1: ACTUALIZAR PRECIOS -->
+      <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 mb-4 space-y-3">
+        <div class="flex items-center gap-1.5 text-xs font-bold text-[#15803d] uppercase tracking-wide">
+          <span>✏️ ACTUALIZAR PRECIOS</span>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Costo Unitario ($)</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500 font-bold">$</span>
-              <input type="number" id="editInsumoCostoUnitario" step="0.0001" min="0" required class="w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none font-bold text-gray-800">
-            </div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio de Costo Visual ($)</label>
+            <input type="number" id="costoVisualInput" step="0.0001" min="0" placeholder="0.0000" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold bg-white focus:ring-2 focus:ring-[#2e7d32] outline-none">
           </div>
-
           <div>
-            <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Costo Venta ($)</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2.5 text-gray-500 font-bold">$</span>
-              <input type="number" id="editInsumoCostoVenta" step="0.0001" min="0" required class="w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none font-bold text-[#123e1b]">
-            </div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio Venta (Usado para Cálculos) ($)</label>
+            <input type="number" id="costoVentaCalculoInput" step="0.0001" min="0" placeholder="0.0000" class="w-full p-2.5 border border-[#bbf7d0] bg-[#f0fdf4] rounded-lg text-sm font-extrabold text-[#166534] focus:ring-2 focus:ring-[#2e7d32] outline-none">
           </div>
         </div>
 
-        <!-- ACCIONES DEL MODAL CON BOTÓN ELIMINAR -->
-        <div class="flex justify-between items-center pt-3 border-t border-gray-100">
-          <button type="button" onclick="eliminarInsumoDesdeModal()" class="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-lg transition-all flex items-center gap-1">
-            🗑 Eliminar Insumo
-          </button>
-          <div class="flex gap-2">
-            <button type="button" onclick="cerrarEditarInsumoModal()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition-all">Cancelar</button>
-            <button type="submit" class="px-4 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs font-bold rounded-lg transition-all shadow">Guardar Cambios</button>
-          </div>
+        <button onclick="guardarPrecioHistórico()" class="w-full bg-[#16a34a] hover:bg-[#15803d] text-white py-2.5 rounded-lg font-bold text-xs shadow transition-all flex items-center justify-center gap-2">
+          💾 Guardar Nuevo Precio y Registrar Histórico
+        </button>
+      </div>
+
+      <!-- SECCIÓN 2: HISTÓRICO DE CAMBIOS -->
+      <div class="space-y-2 mb-6">
+        <h4 class="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
+          📜 HISTÓRICO DE FECHAS Y PRECIOS ANTERIORMENTE REGISTRADOS
+        </h4>
+
+        <div class="border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 sticky top-0">
+              <tr>
+                <th class="p-2.5">Fecha y Hora de Modificación</th>
+                <th class="p-2.5 text-right">Precio Costo ($)</th>
+                <th class="p-2.5 text-right">Precio Venta ($)</th>
+              </tr>
+            </thead>
+            <tbody id="tablaHistoricoProtegidoBody" class="divide-y divide-gray-100 font-mono">
+              <!-- Carga dinámicamente -->
+            </tbody>
+          </table>
         </div>
-      </form>
+      </div>
+
+      <!-- PIE DEL MODAL -->
+      <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+        <button onclick="eliminarInsumoProtegido()" class="px-4 py-2 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5">
+          🗑 Eliminar Insumo del Sistema
+        </button>
+        <button onclick="cerrarModalAccionesProtegidas()" class="px-5 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs rounded-lg transition-all">
+          Cerrar
+        </button>
+      </div>
+
     </div>
   </div>
 
-  <!-- MODAL HISTORIAL DE PRECIOS DE INSUMOS -->
-  <div id="modalHistorialInsumo" class="fixed inset-0 bg-black/50 hidden backdrop-blur-sm flex justify-center items-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-200">
-      <div class="bg-[#123e1b] text-white p-4 flex justify-between items-center">
-        <h3 id="tituloHistorialInsumo" class="text-base font-bold">Historial de Cambios de Precio</h3>
-        <button onclick="cerrarHistorialInsumo()" class="text-white hover:text-gray-300 text-xl font-bold">&times;</button>
-      </div>
-      <div class="p-4 max-h-80 overflow-y-auto">
-        <div id="listaHistorialInsumoBody" class="space-y-2">
-          <!-- Dinámico -->
-        </div>
-      </div>
-      <div class="bg-gray-50 p-3 text-right border-t">
-        <button onclick="cerrarHistorialInsumo()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-1.5 rounded-md text-xs font-bold transition-all">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE FICHA TÉCNICA (EXACTO A SEGUNDA IMAGEN) -->
+  <!-- MODAL DE FICHA TÉCNICA -->
   <div id="fichaModal" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-50 backdrop-blur-xs">
     <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-6 relative max-h-[92vh] overflow-y-auto border border-gray-100">
         <button onclick="cerrarFichaModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-xl leading-none">&times;</button>
         
-        <!-- ENCABEZADO FICHA -->
         <div class="flex justify-between items-start border-b border-gray-100 pb-4 mb-5">
             <div class="flex items-center gap-3">
               <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-10 w-auto object-contain">
@@ -835,7 +653,6 @@
             </div>
         </div>
 
-        <!-- TÍTULO Y DATOS GENERALES -->
         <div class="mb-5">
             <h3 id="modalNombre" class="text-2xl font-black text-gray-900 tracking-tight mb-4 uppercase">-</h3>
             <div class="grid grid-cols-4 gap-3 bg-gray-50/80 p-4 rounded-xl border border-gray-100 text-xs">
@@ -858,7 +675,6 @@
             </div>
         </div>
 
-        <!-- TABLA COMPOSICIÓN -->
         <div class="mb-6">
             <h4 class="font-bold text-gray-500 text-xs uppercase tracking-wider mb-3">COMPOSICIÓN DE INGREDIENTES / SUB-RECETAS</h4>
             <div class="border border-gray-200 rounded-lg overflow-hidden">
@@ -878,7 +694,6 @@
             </div>
         </div>
 
-        <!-- ACCIONES FICHA -->
         <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
             <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
               🖨 Imprimir Ficha
@@ -917,23 +732,23 @@
   </div>
 
   <!-- MODAL CREAR NUEVO INSUMO PRIMARIO -->
-  <div class="modal-overlay" id="modalCrearInsumo" onclick="cerrarModalCrearInsumoFuera(event)">
-      <div class="modal-card" style="max-width: 520px;">
-          <div class="modal-header">
-              <h3>➕ Agregar Nuevo Insumo Primario</h3>
-              <button type="button" class="modal-close-btn" onclick="cerrarModalCrearInsumo()">✕</button>
+  <div class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50" id="modalCrearInsumo">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-200">
+          <div class="bg-[#f8fafc] p-4 border-b border-gray-200 flex justify-between items-center">
+              <h3 class="text-base font-bold text-[#123e1b]">➕ Agregar Nuevo Insumo Primario</h3>
+              <button type="button" class="text-gray-400 hover:text-gray-600 text-xl font-bold" onclick="cerrarModalCrearInsumo()">✕</button>
           </div>
           <form id="formCrearInsumo" onsubmit="guardarNuevoInsumo(event)">
-              <div class="modal-body">
-                  <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                      <div class="form-group">
-                          <label for="crearCodigoInsumo">Código del Insumo</label>
-                          <input type="text" id="crearCodigoInsumo" placeholder="Ej. 000142" onblur="if(this.value) this.value = normalizarCodigoJava(this.value)">
+              <div class="p-5 space-y-3">
+                  <div class="grid grid-cols-2 gap-3">
+                      <div>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Código del Insumo</label>
+                          <input type="text" id="crearCodigoInsumo" placeholder="Ej. 000142" onblur="if(this.value) this.value = normalizarCodigoJava(this.value)" class="w-full p-2 border border-gray-300 rounded-md text-xs">
                       </div>
 
-                      <div class="form-group">
-                          <label for="crearUnidadInsumo">Unidad de Medida</label>
-                          <select id="crearUnidadInsumo" style="min-height: 34px; padding: 7px 10px; border: 1px solid #d7e0dc; border-radius: 8px; font-size: 0.8rem; background: var(--ui-surface); color: var(--ui-text);" required>
+                      <div>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Unidad de Medida</label>
+                          <select id="crearUnidadInsumo" class="w-full p-2 border border-gray-300 rounded-md text-xs bg-white" required>
                               <option value="KG">Kilogramo (KG)</option>
                               <option value="GR">Gramo (GR)</option>
                               <option value="LT">Litro (LT)</option>
@@ -942,27 +757,29 @@
                               <option value="OZ">Onza (OZ)</option>
                           </select>
                       </div>
+                  </div>
 
-                      <div class="form-group" style="grid-column: span 2;">
-                          <label for="crearNombreInsumo">Nombre / Descripción del Insumo</label>
-                          <input type="text" id="crearNombreInsumo" placeholder="Ej. QUESO CHEDDAR LA DORADA 1KG" required>
+                  <div>
+                      <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Nombre / Descripción</label>
+                      <input type="text" id="crearNombreInsumo" placeholder="Ej. QUESO CHEDDAR LA DORADA 1KG" required class="w-full p-2 border border-gray-300 rounded-md text-xs">
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                      <div>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Unitario ($)</label>
+                          <input type="number" id="crearCostoUnitario" step="0.0001" min="0" placeholder="0.0000" required class="w-full p-2 border border-gray-300 rounded-md text-xs font-bold">
                       </div>
 
-                      <div class="form-group">
-                          <label for="crearCostoUnitario">Costo Unitario ($)</label>
-                          <input type="number" id="crearCostoUnitario" step="0.0001" min="0" placeholder="0.0000" required>
-                      </div>
-
-                      <div class="form-group">
-                          <label for="crearPrecioVenta">Costo Venta / Precio ($)</label>
-                          <input type="number" id="crearPrecioVenta" step="0.0001" min="0" placeholder="0.0000" required>
+                      <div>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Venta ($)</label>
+                          <input type="number" id="crearPrecioVenta" step="0.0001" min="0" placeholder="0.0000" required class="w-full p-2 border border-gray-300 rounded-md text-xs font-bold text-[#123e1b]">
                       </div>
                   </div>
               </div>
 
-              <div class="modal-actions" style="padding: 0 18px 18px; display: flex; gap: 10px; justify-content: flex-end;">
-                  <button type="button" class="btn" style="background: #cbd5e1; color: #334155;" onclick="cerrarModalCrearInsumo()">Cancelar</button>
-                  <button type="submit" class="btn btn-save">+ Guardar Insumo</button>
+              <div class="p-4 bg-gray-50 border-t border-gray-100 flex gap-2 justify-end">
+                  <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md text-xs font-bold" onclick="cerrarModalCrearInsumo()">Cancelar</button>
+                  <button type="submit" class="px-4 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white rounded-md text-xs font-bold">+ Guardar Insumo</button>
               </div>
           </form>
       </div>
@@ -974,18 +791,29 @@
     let recetaActual = { filas: [] };
     let idRecetaEditando = null;
 
-    // PAGINACIÓN CLIENTE
+    // PAGINACIÓN INSUMOS
     let paginaActualInsumos = 1;
     const itemsPorPaginaInsumos = 50;
 
-    // FECHA FORMATEADA
-    function obtenerFechaActualFormateada() {
-      const d = new Date();
-      const pad = n => String(n).padStart(2, '0');
-      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+    const CLAVE_SEGURIDAD = "1234";
+    
+
+    function solicitarClaveAcceso() {
+      const clave = prompt("🔐 Ingrese la clave de seguridad para acciones protegidas:");
+      if (clave === CLAVE_SEGURIDAD) {
+        return true;
+      } else if (clave !== null) {
+        alert("❌ Clave incorrecta. Acceso denegado.");
+      }
+      return false;
     }
 
-    // VERIFICAR, MARCAR O DESMARCAR CHECKBOX DE SUB-RECETA
+    function obtenerFechaHoraActual() {
+      const d = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
     function comprobarCategoriaSubreceta() {
       const cat = document.getElementById('categoriaReceta').value;
       const chk = document.getElementById('esSubreceta');
@@ -996,7 +824,6 @@
       }
     }
 
-    // INICIALIZACIÓN ASÍNCRONA
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
       await cargarDeSupabase();
@@ -1013,9 +840,7 @@
       }
     });
 
-    // ==========================================
-    // AUTENTICACIÓN Y SESIÓN
-    // ==========================================
+    // AUTENTICACIÓN
     function abrirModalLogin() {
       const modal = document.getElementById('loginModal');
       if (modal) {
@@ -1102,7 +927,7 @@
       }
     }
 
-    // MODO OSCURO PERSISTENTE
+    // MODO OSCURO
     function initTheme() {
       const isDark = localStorage.getItem('theme_recetario') === 'dark';
       if (isDark) {
@@ -1120,10 +945,7 @@
       document.getElementById('themeToggleIcon').textContent = isDark ? '☀' : '☾';
     }
 
-    // ==========================================
-    // LÓGICA DE MODAL PARA CREAR INSUMO PRIMARIO
-    // ==========================================
-
+    // NORMALIZACIÓN DE CÓDIGOS Y CREACIÓN DE INSUMOS
     function normalizarCodigoJava(codigo) {
         if (!codigo) return '';
         let str = String(codigo).trim();
@@ -1133,22 +955,22 @@
         return str;
     }
 
+    function solicitarAccesoNuevoInsumo() {
+      if (solicitarClaveAcceso()) {
+        abrirModalCrearInsumo();
+      }
+    }
+
     function abrirModalCrearInsumo() {
         document.getElementById('formCrearInsumo').reset();
-        document.getElementById('modalCrearInsumo').style.display = 'flex';
+        document.getElementById('modalCrearInsumo').classList.remove('hidden');
         setTimeout(() => {
             document.getElementById('crearCodigoInsumo').focus();
         }, 100);
     }
 
     function cerrarModalCrearInsumo() {
-        document.getElementById('modalCrearInsumo').style.display = 'none';
-    }
-
-    function cerrarModalCrearInsumoFuera(event) {
-        if (event.target === document.getElementById('modalCrearInsumo')) {
-            cerrarModalCrearInsumo();
-        }
+        document.getElementById('modalCrearInsumo').classList.add('hidden');
     }
 
     async function guardarNuevoInsumo(event) {
@@ -1167,12 +989,12 @@
             id: `ing_${Date.now()}`,
             codigo: codigoFormateado,
             nombre: document.getElementById('crearNombreInsumo').value.trim().toUpperCase(),
-            unidad: document.getElementById('crearUnidadInsumo').value.toLowerCase(),
+            unidad: document.getElementById('crearUnidadInsumo').value.toUpperCase(),
             precio: costoUnit,
             costoVenta: costoVentaVal,
             tipo: 'primario',
             historial: [{
-              fecha: obtenerFechaActualFormateada(),
+              fecha: obtenerFechaHoraActual(),
               costoNuevo: costoUnit,
               costoVentaNuevo: costoVentaVal
             }]
@@ -1204,16 +1026,13 @@
         localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
 
         cerrarModalCrearInsumo();
-        
         renderizarTablaInsumos();
         renderizarFilasCreador();
 
         alert("✅ Insumo guardado correctamente.");
     }
 
-    // ==========================================
-    // CONEXIÓN CON SUPABASE & CARGA (SUPABASE-FIRST)
-    // ==========================================
+    // CARGA Y SINCRONIZACIÓN CON SUPABASE
     async function cargarDeSupabase() {
       try {
         const { data: insumosData, error: errInsumos } = await supabaseClient
@@ -1239,7 +1058,7 @@
               nombre: i.nombre,
               precio: parseFloat(i.precio || 0),
               costoVenta: parseFloat(i.costo_venta || i.precio || 0),
-              unidad: i.unidad,
+              unidad: i.unidad ? i.unidad.toUpperCase() : 'KG',
               historial: hist
             };
           });
@@ -1276,7 +1095,7 @@
         localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
 
       } catch (error) {
-        console.warn("⚠️ Error conectando con Supabase. Cargando respaldo local:", error);
+        console.warn("⚠️️ Error conectando con Supabase. Cargando respaldo local:", error);
         const storedInsumos = localStorage.getItem('insumos_recetario') || localStorage.getItem('hipergalerias_insumos_db');
         insumosBase = storedInsumos ? JSON.parse(storedInsumos) : [];
 
@@ -1352,6 +1171,7 @@
       }
     }
 
+    // RESPALDAR Y RESTAURAR SISTEMA
     function respaldarSistema() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
         insumos: insumosBase,
@@ -1365,6 +1185,90 @@
       downloadAnchor.remove();
     }
 
+    function restaurarSistema(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function(event) {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (data.insumos && Array.isArray(data.insumos)) {
+            insumosBase = data.insumos;
+            localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+            localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+          }
+          if (data.catalogo && Array.isArray(data.catalogo)) {
+            recetasCatalogo = data.catalogo;
+            localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
+            localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
+          }
+
+          alert("✅ Respaldo restaurado con éxito.");
+          renderizarTablaInsumos();
+          renderizarCatalogo();
+        } catch (err) {
+          alert("❌ El archivo seleccionado no es un respaldo válido.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // IMPORTACIÓN DESDE EXCEL
+    function importarExcelInsumos(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = new UintArray(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          let agregados = 0;
+          json.forEach(row => {
+            const codigo = normalizarCodigoJava(row['Código Interno'] || row['Codigo'] || row['CODIGO'] || '');
+            const nombre = String(row['Descripción del Producto'] || row['Descripcion'] || row['NOMBRE'] || '').trim().toUpperCase();
+            const unidad = String(row['Unidad'] || row['UNIDAD'] || 'KG').trim().toUpperCase();
+            const precioCosto = parseFloat(row['Precio de Costo ($)'] || row['Costo'] || row['PRECIO_COSTO'] || 0);
+            const precioVenta = parseFloat(row['Precio de Venta ($)'] || row['Precio Venta'] || row['PRECIO_VENTA'] || precioCosto);
+
+            if (nombre) {
+              const existe = insumosBase.find(i => (codigo && i.codigo === codigo) || i.nombre === nombre);
+              if (!existe) {
+                const nuevo = {
+                  id: `ing_xl_${Date.now()}_${Math.random().toString(36).substr(2,4)}`,
+                  codigo: codigo || String(Date.now()).slice(-6),
+                  nombre: nombre,
+                  unidad: unidad,
+                  precio: precioCosto,
+                  costoVenta: precioVenta,
+                  tipo: 'primario',
+                  historial: [{ fecha: obtenerFechaHoraActual(), costoNuevo: precioCosto, costoVentaNuevo: precioVenta }]
+                };
+                insumosBase.push(nuevo);
+                guardarInsumoSupabase(nuevo);
+                agregados++;
+              }
+            }
+          });
+
+          localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+          localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
+
+          alert(`✅ Importación completada. Se agregaron ${agregados} nuevos insumos.`);
+          renderizarTablaInsumos();
+        } catch (err) {
+          console.error(err);
+          alert("❌ Error procesando el archivo de Excel: " + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
     function cambiarPestana(pestana) {
       ['insumos', 'creador', 'catalogo'].forEach(p => {
         document.getElementById(`tab-${p}`).classList.add('hidden');
@@ -1375,9 +1279,7 @@
       document.getElementById(`btn-tab-${pestana}`).classList.add('tab-active');
     }
 
-    // ==========================================
     // TABLA INSUMOS Y PAGINACIÓN
-    // ==========================================
     function buscarInsumoInput() {
       paginaActualInsumos = 1;
       renderizarTablaInsumos();
@@ -1393,7 +1295,7 @@
         (i.codigo || '').toLowerCase().includes(busqueda)
       );
 
-      document.getElementById('count-insumos').textContent = insumosBase.length;
+      document.getElementById('count-insumos').textContent = insumosBase.length.toLocaleString('es-ES');
 
       const totalFiltrados = filtrados.length;
       const totalPaginas = Math.ceil(totalFiltrados / itemsPorPaginaInsumos) || 1;
@@ -1413,21 +1315,18 @@
         tr.className = `transition-colors ${esBaseSubreceta ? 'row-subreceta font-medium' : 'hover:bg-gray-50'}`;
         
         const badgeSubreceta = esBaseSubreceta 
-          ? `<span class="ml-2 px-2 py-0.5 text-[10px] bg-[#e8f5e9] text-[#123e1b] border border-[#2e7d32]/40 rounded-full font-extrabold shadow-xs">⭐ BASE / SUB-RECETA</span>`
+          ? `<span class="ml-2 px-2 py-0.5 text-[10px] bg-[#e8f5e9] text-[#123e1b] border border-[#2e7d32]/40 rounded-full font-extrabold shadow-xs">⭐ BASE</span>`
           : '';
 
         tr.innerHTML = `
-          <td class="p-3 font-mono text-xs text-gray-500">${insumo.codigo}</td>
-          <td class="p-3 font-semibold text-gray-800">${insumo.nombre} ${badgeSubreceta}</td>
+          <td class="p-3 font-mono text-xs text-gray-500 font-bold">${insumo.codigo || '------'}</td>
+          <td class="p-3 font-bold text-gray-800 text-xs">${insumo.nombre} ${badgeSubreceta}</td>
           <td class="p-3 text-center uppercase text-xs font-bold text-gray-600">${insumo.unidad}</td>
-          <td class="p-3 text-right font-bold">$${parseFloat(insumo.precio).toFixed(4)}</td>
-          <td class="p-3 text-right font-bold text-[#123e1b]">$${parseFloat(costoVentaVal).toFixed(4)}</td>
-          <td class="p-3 text-center space-x-1">
-            <button onclick="verHistorialInsumo('${insumo.id}')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-bold transition-colors">
-              📜 Historial
-            </button>
-            <button onclick="editarInsumoModal('${insumo.id}')" class="px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md text-xs font-bold transition-colors">
-              ✏️ Editar
+          <td class="p-3 text-right font-medium text-gray-500 font-mono text-xs">$${parseFloat(insumo.precio).toFixed(4)}</td>
+          <td class="p-3 text-right font-black text-gray-900 font-mono text-sm">$${parseFloat(costoVentaVal).toFixed(4)}</td>
+          <td class="p-3 text-center">
+            <button onclick="solicitarAccesoAcciones('${insumo.id}')" class="px-3 py-1.5 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#166534] border border-[#bbf7d0] rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 mx-auto">
+              🔐 Editar
             </button>
           </td>
         `;
@@ -1460,194 +1359,107 @@
       renderizarTablaInsumos();
     }
 
-    // ==========================================
-    // HISTORIAL, EDICIÓN Y ELIMINACIÓN DE INSUMOS
-    // ==========================================
-    function verHistorialInsumo(id) {
+    // LÓGICA DEL MODAL COMBINADO (ACCIONES PROTEGIDAS)
+    function solicitarAccesoAcciones(id) {
+      if (solicitarClaveAcceso()) {
+        abrirModalAccionesProtegidas(id);
+      }
+    }
+
+    function abrirModalAccionesProtegidas(id) {
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       if (!insumo) return;
 
-      document.getElementById('tituloHistorialInsumo').innerText = `Historial: ${insumo.nombre}`;
-      const container = document.getElementById('listaHistorialInsumoBody');
-      container.innerHTML = '';
+      document.getElementById('idInsumoProtegido').value = insumo.id;
+      document.getElementById('badgeCodigoProtegido').textContent = insumo.codigo || '000000';
+      document.getElementById('tituloNombreProtegido').textContent = insumo.nombre || '';
+
+      document.getElementById('costoVisualInput').value = parseFloat(insumo.precio || 0).toFixed(2);
+      const costoVentaActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+      document.getElementById('costoVentaCalculoInput').value = parseFloat(costoVentaActual).toFixed(2);
+
+      // Cargar tabla de histórico
+      const tbody = document.getElementById('tablaHistoricoProtegidoBody');
+      tbody.innerHTML = '';
 
       const historialList = insumo.historial || [];
 
       if (historialList.length > 0) {
         historialList.slice().reverse().forEach(h => {
-          const div = document.createElement('div');
-          div.className = "p-3 border border-gray-200 bg-gray-50 rounded-lg flex flex-col gap-1.5 shadow-sm";
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-gray-50/80";
+          const costoC = h.costoNuevo !== undefined ? h.costoNuevo : (h.costoAnt || insumo.precio);
+          const costoV = h.costoVentaNuevo !== undefined ? h.costoVentaNuevo : (h.costoVentaAnt || costoC);
 
-          let desglose = '';
-
-          if (h.costoAnt !== undefined && h.costoNuevo !== undefined && h.costoAnt !== h.costoNuevo) {
-            desglose += `
-              <div class="flex justify-between items-center text-xs">
-                <span class="text-gray-500 font-medium">Costo Unitario:</span>
-                <span class="font-mono">
-                  <s class="text-rose-500 font-semibold mr-1.5">$${Number(h.costoAnt).toFixed(4)}</s>
-                  <span class="text-gray-400 mr-1.5">➔</span>
-                  <strong class="text-[#123e1b] font-bold">$${Number(h.costoNuevo).toFixed(4)}</strong>
-                </span>
-              </div>`;
-          }
-
-          if (h.costoVentaAnt !== undefined && h.costoVentaNuevo !== undefined && h.costoVentaAnt !== h.costoVentaNuevo) {
-            desglose += `
-              <div class="flex justify-between items-center text-xs">
-                <span class="text-gray-500 font-medium">Costo Venta:</span>
-                <span class="font-mono">
-                  <s class="text-rose-500 font-semibold mr-1.5">$${Number(h.costoVentaAnt).toFixed(4)}</s>
-                  <span class="text-gray-400 mr-1.5">➔</span>
-                  <strong class="text-[#123e1b] font-bold">$${Number(h.costoVentaNuevo).toFixed(4)}</strong>
-                </span>
-              </div>`;
-          }
-
-          if (!desglose) {
-            const val = h.costoNuevo || h.costoVentaNuevo || h.precioNuevo || h.precio || 0;
-            desglose = `
-              <div class="flex justify-between items-center text-xs">
-                <span class="text-gray-500 font-medium">Precio Base:</span>
-                <strong class="text-[#123e1b] font-mono">$${Number(val).toFixed(4)}</strong>
-              </div>`;
-          }
-
-          div.innerHTML = `
-            <div class="flex justify-between items-center text-xs font-semibold text-gray-600 border-b border-gray-200 pb-1">
-              <span>📅 ${h.fecha || 'Sin fecha'}</span>
-              <span class="text-[10px] bg-emerald-100 text-[#123e1b] border border-emerald-300 px-2 py-0.5 rounded font-bold uppercase">Movimiento</span>
-            </div>
-            ${desglose}
+          tr.innerHTML = `
+            <td class="p-2.5 text-gray-600 font-medium">${h.fecha || 'Sin fecha'}</td>
+            <td class="p-2.5 text-right font-bold text-gray-500">$${parseFloat(costoC).toFixed(4)}</td>
+            <td class="p-2.5 text-right font-black text-[#15803d]">$${parseFloat(costoV).toFixed(4)}</td>
           `;
-          container.appendChild(div);
+          tbody.appendChild(tr);
         });
       } else {
-        container.innerHTML = `<p class="text-gray-400 text-center py-4 text-xs">No hay historial de cambios registrado para este insumo.</p>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3" class="p-4 text-center text-gray-400 font-sans text-xs">No hay registros de cambios históricos anteriores.</td>
+          </tr>
+        `;
       }
 
-      document.getElementById('modalHistorialInsumo').classList.remove('hidden');
+      document.getElementById('modalAccionesProtegidas').classList.remove('hidden');
     }
 
-    function cerrarHistorialInsumo() {
-      document.getElementById('modalHistorialInsumo').classList.add('hidden');
+    function cerrarModalAccionesProtegidas() {
+      document.getElementById('modalAccionesProtegidas').classList.add('hidden');
     }
 
-    function editarInsumoModal(id) {
+    async function guardarPrecioHistórico() {
+      const id = document.getElementById('idInsumoProtegido').value;
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       if (!insumo) return;
 
-      document.getElementById('editInsumoId').value = insumo.id;
-      document.getElementById('editInsumoNombre').value = insumo.nombre || '';
-      document.getElementById('editInsumoUnidad').value = (insumo.unidad || 'kg').toLowerCase();
-      document.getElementById('editInsumoCostoUnitario').value = parseFloat(insumo.precio || 0).toFixed(4);
-      
-      const costoActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
-      document.getElementById('editInsumoCostoVenta').value = parseFloat(costoActual).toFixed(4);
+      const nuevoCostoVisual = parseFloat(document.getElementById('costoVisualInput').value);
+      const nuevoCostoVenta = parseFloat(document.getElementById('costoVentaCalculoInput').value);
 
-      const modal = document.getElementById('editarInsumoModal');
-      modal.classList.remove('hidden');
-      setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        modal.classList.add('opacity-100');
-      }, 10);
-    }
-
-    function cerrarEditarInsumoModal() {
-      const modal = document.getElementById('editarInsumoModal');
-      modal.classList.remove('opacity-100');
-      modal.classList.add('opacity-0');
-      setTimeout(() => {
-        modal.classList.add('hidden');
-      }, 300);
-    }
-
-    async function guardarEdicionInsumo(e) {
-      e.preventDefault();
-      const id = document.getElementById('editInsumoId').value;
-
-      const nuevoNombre = document.getElementById('editInsumoNombre').value.trim().toUpperCase();
-      const nuevaUnidad = document.getElementById('editInsumoUnidad').value.trim().toLowerCase();
-      const nuevoCostoUnitario = parseFloat(document.getElementById('editInsumoCostoUnitario').value);
-      const nuevoCostoVenta = parseFloat(document.getElementById('editInsumoCostoVenta').value);
-
-      if (!nuevoNombre) {
-        alert("El nombre del insumo no puede estar vacío.");
+      if (isNaN(nuevoCostoVisual) || nuevoCostoVisual < 0 || isNaN(nuevoCostoVenta) || nuevoCostoVenta < 0) {
+        alert("Por favor introduzca precios válidos.");
         return;
       }
 
-      if (isNaN(nuevoCostoUnitario) || nuevoCostoUnitario < 0 || isNaN(nuevoCostoVenta) || nuevoCostoVenta < 0) {
-        alert("Por favor ingrese precios válidos.");
-        return;
-      }
+      const costoAnt = insumo.precio;
+      const costoVentaAnt = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
 
-      if (typeof supabaseClient !== 'undefined') {
-        const { data: insumoActual, error: errFetch } = await supabaseClient
-          .from('insumos')
-          .select('*')
-          .eq('id', id)
-          .single();
+      insumo.precio = nuevoCostoVisual;
+      insumo.costoVenta = nuevoCostoVenta;
 
-        if (!errFetch && insumoActual) {
-          const costoAnt = parseFloat(insumoActual.precio) || 0;
-          const costoVentaAnt = parseFloat(insumoActual.costo_venta) || 0;
+      if (!insumo.historial) insumo.historial = [];
+      insumo.historial.push({
+        fecha: obtenerFechaHoraActual(),
+        costoAnt: costoAnt,
+        costoNuevo: nuevoCostoVisual,
+        costoVentaAnt: costoVentaAnt,
+        costoVentaNuevo: nuevoCostoVenta
+      });
 
-          let histArray = [];
-          if (Array.isArray(insumoActual.historial)) {
-            histArray = insumoActual.historial;
-          } else if (typeof insumoActual.historial === 'string') {
-            try { histArray = JSON.parse(insumoActual.historial); } catch(err) { histArray = []; }
-          }
+      await guardarInsumoSupabase(insumo);
 
-          if (costoAnt !== nuevoCostoUnitario || costoVentaAnt !== nuevoCostoVenta) {
-            histArray.push({
-              fecha: obtenerFechaActualFormateada(),
-              costoAnt: costoAnt,
-              costoNuevo: nuevoCostoUnitario,
-              costoVentaAnt: costoVentaAnt,
-              costoVentaNuevo: nuevoCostoVenta
-            });
-          }
+      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
+      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
 
-          const { error: errUpdate } = await supabaseClient
-            .from('insumos')
-            .update({
-              nombre: nuevoNombre,
-              unidad: nuevaUnidad,
-              precio: nuevoCostoUnitario,
-              costo_venta: nuevoCostoVenta,
-              historial: histArray
-            })
-            .eq('id', id);
-
-          if (errUpdate) {
-            alert("Error actualizando en Supabase: " + errUpdate.message);
-            return;
-          }
-        } else {
-          const insumo = insumosBase.find(i => String(i.id) === String(id));
-          if (insumo) {
-            insumo.nombre = nuevoNombre;
-            insumo.unidad = nuevaUnidad;
-            insumo.precio = nuevoCostoUnitario;
-            insumo.costoVenta = nuevoCostoVenta;
-            await guardarInsumoSupabase(insumo);
-          }
-        }
-      }
-
-      await cargarDeSupabase();
+      renderizarTablaInsumos();
       renderizarFilasCreador();
       if (typeof recalcularEscandallo === 'function') recalcularEscandallo();
-      cerrarEditarInsumoModal();
+
+      alert("✅ Nuevos precios e histórico actualizados exitosamente.");
+      cerrarModalAccionesProtegidas();
     }
 
-    async function eliminarInsumoDesdeModal() {
-      const id = document.getElementById('editInsumoId').value;
+    async function eliminarInsumoProtegido() {
+      const id = document.getElementById('idInsumoProtegido').value;
       const insumo = insumosBase.find(i => String(i.id) === String(id));
-      const nombreInsumo = insumo ? insumo.nombre : 'este insumo';
+      const nombre = insumo ? insumo.nombre : 'este insumo';
 
-      if (!confirm(`¿Estás seguro de que deseas eliminar el insumo "${nombreInsumo}"?\nEsta acción eliminará el registro de la base de datos.`)) {
+      if (!confirm(`⚠️ ¿Deseas eliminar definitivamente el insumo "${nombre}" del sistema?`)) {
         return;
       }
 
@@ -1658,7 +1470,7 @@
           .eq('id', String(id));
 
         if (error) {
-          alert("⚠️ Error al eliminar en Supabase: " + error.message);
+          alert("⚠️ Error al eliminar de Supabase: " + error.message);
           return;
         }
       }
@@ -1668,17 +1480,14 @@
       localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
       localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
 
-      cerrarEditarInsumoModal();
-
+      cerrarModalAccionesProtegidas();
       renderizarTablaInsumos();
       renderizarFilasCreador();
 
-      alert(`✅ El insumo "${nombreInsumo}" fue eliminado exitosamente.`);
+      alert(`✅ Insumo "${nombre}" eliminado del sistema.`);
     }
 
-    // ==========================================
     // CREADOR DE RECETAS
-    // ==========================================
     function agregarFilaReceta() {
       recetaActual.filas.push({ insumoId: '', cantidad: 0 });
       renderizarFilasCreador();
@@ -1735,11 +1544,9 @@
     }
 
     function actualizarCantidadFila(index, cant) {
-    recetaActual.filas[index].cantidad = parseFloat(cant) || 0;
-  
-  // Actualizar la vista de la tabla y recalcular
-    renderizarFilasCreador();
-    recalcularEscandallo();
+      recetaActual.filas[index].cantidad = parseFloat(cant) || 0;
+      renderizarFilasCreador();
+      recalcularEscandallo();
     }
 
     function actualizarEtiquetaRendimiento() {
@@ -1841,7 +1648,7 @@
         pvp: pvp,
         esSubreceta: esSub,
         ingredientes: ingredientesFinales,
-        fecha: obtenerFechaActualFormateada()
+        fecha: obtenerFechaHoraActual()
       };
 
       if (idRecetaEditando) {
@@ -1863,8 +1670,8 @@
             nombre: `[BASE] ${nombre.toUpperCase()}`,
             precio: costoUnitario,
             costoVenta: costoUnitario,
-            unidad: unidadBase || (tipo === 'und' ? 'und' : 'kg'),
-            historial: [{ fecha: obtenerFechaActualFormateada(), costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
+            unidad: (unidadBase || (tipo === 'und' ? 'und' : 'kg')).toUpperCase(),
+            historial: [{ fecha: obtenerFechaHoraActual(), costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
           };
           insumosBase.push(insumoSub);
           await guardarInsumoSupabase(insumoSub);
@@ -1899,9 +1706,7 @@
       recalcularEscandallo();
     }
 
-    // ==========================================
     // CATÁLOGO Y FICHA TÉCNICA
-    // ==========================================
     function renderizarCatalogo() {
       const busqueda = (document.getElementById('buscarCatalogo').value || '').toLowerCase();
       const tbody = document.getElementById('tablaCatalogoBody');
@@ -1920,12 +1725,10 @@
         const tr = document.createElement('tr');
         tr.className = `transition-colors hover:bg-gray-50/80 ${esSubreceta ? 'row-subreceta font-medium' : ''}`;
 
-        // Insignia de Categoría en formato píldora suave
         const badgeCategoria = esSubreceta
           ? `<span class="px-3 py-1 rounded-full bg-emerald-100 text-[#123e1b] font-extrabold text-xs">MASAS</span>`
           : `<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs">${receta.categoria}</span>`;
 
-        // Rendimiento dinámico UND (1p) o KG (3.9kg)
         const rendimientoStr = receta.tipo === 'und'
           ? `UND (${receta.piezas || 1}p)`
           : `KG (${receta.rendimiento || 1}kg)`;
@@ -1972,9 +1775,7 @@
       document.getElementById('btnCancelarEdicion').classList.remove('hidden');
       document.getElementById('btnGuardarReceta').innerHTML = '💾 Actualizar Producto en Catálogo';
 
-      // Cargar ingredientes asociados
       recetaActual.filas = (receta.ingredientes || []).map(i => {
-        // Buscar coincidencia en la lista actual de insumos
         let match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || ins.nombre === i.nombre);
         return {
           insumoId: match ? match.id : i.insumoId,
@@ -2016,7 +1817,7 @@
       document.getElementById('modalRendimiento').textContent = rendimientoStr;
       document.getElementById('modalCosto').textContent = `$${parseFloat(receta.costoUnitario || 0).toFixed(4)}`;
       document.getElementById('modalPvp').textContent = `$${parseFloat(receta.pvp || 0).toFixed(2)}`;
-      document.getElementById('fichaFecha').textContent = `Fecha: ${receta.fecha || obtenerFechaActualFormateada()}`;
+      document.getElementById('fichaFecha').textContent = `Fecha: ${receta.fecha || obtenerFechaHoraActual()}`;
 
       const tbody = document.getElementById('modalIngredientesBody');
       tbody.innerHTML = '';
