@@ -21,9 +21,6 @@
     }
   </script>
 
-  <!-- SheetJS para importación de Excel -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
   <!-- SDK de Supabase y conexión local -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="conexion.js"></script>
@@ -98,8 +95,6 @@
 
     .btn-backup-export { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
     .btn-backup-export:hover { background: #f1f5f9; }
-    .btn-restore-import { background: #f8fafc; color: #334155; border-color: #cbd5e1; }
-    .btn-restore-import:hover { background: #f1f5f9; }
 
     .btn-return {
         background: #fff; color: #dc2626; border: 1px solid #f0b7b7;
@@ -300,8 +295,6 @@
     <div class="header-actions">
         <div class="btn-header-container">
             <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar</button>
-            <button class="btn btn-restore-import" onclick="document.getElementById('inputRestaurarJson').click()">📂 Restaurar</button>
-            <input type="file" id="inputRestaurarJson" accept=".json" class="hidden" onchange="restaurarSistema(event)">
         </div>
 
         <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
@@ -343,12 +336,7 @@
         <div class="w-full sm:w-96 relative">
           <input type="text" id="buscarInsumo" oninput="buscarInsumoInput()" placeholder="🔍 Buscar entre los artículos..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
         </div>
-        <div class="flex items-center gap-2 w-full sm:w-auto">
-          <button onclick="document.getElementById('inputImportarExcel').click()" class="bg-[#047857] hover:bg-[#065f46] text-white text-xs px-4 py-2.5 rounded-md font-bold transition-all shadow flex items-center gap-1.5">
-            📂 Importar Excel BASE_DATOS_INSUMOS
-          </button>
-          <input type="file" id="inputImportarExcel" accept=".xlsx, .xls, .csv" class="hidden" onchange="importarExcelInsumos(event)">
-
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button onclick="solicitarAccesoNuevoInsumo()" class="bg-[#15803d] hover:bg-[#166534] text-white text-xs px-4 py-2.5 rounded-md font-bold transition-all shadow">
             + Nuevo Insumo
           </button>
@@ -359,12 +347,12 @@
         <div class="max-h-[600px] overflow-y-auto">
           <table class="w-full table-fixed text-left text-sm text-gray-700">
             <colgroup>
-              <col style="width:12%">
-              <col style="width:34%">
-              <col style="width:10%">
+              <col style="width:11%">
+              <col style="width:33%">
+              <col style="width:8%">
               <col style="width:14%">
-              <col style="width:16%">
-              <col style="width:14%">
+              <col style="width:17%">
+              <col style="width:17%">
             </colgroup>
             <thead class="bg-[#e8f5e9] text-[#123e1b] font-bold sticky top-0 border-b border-[#2e7d32]/20">
               <tr>
@@ -372,7 +360,7 @@
                 <th class="p-3">Descripción del Producto</th>
                 <th class="p-3 text-center">Unidad</th>
                 <th class="p-3 text-right">Precio de Costo ($)</th>
-                <th class="p-3 text-right">Precio de Venta ($)</th>
+                <th class="p-3 text-center bg-[#e8f5e9] text-[#123e1b] font-bold whitespace-nowrap border-l border-r border-[#2e7d32]/20">Precio de Venta ($)</th>
                 <th class="p-3 text-center">Acciones Protegidas</th>
               </tr>
             </thead>
@@ -383,7 +371,7 @@
         </div>
       </div>
 
-      <!-- BARRA DE PAGINACIÓN -->
+      <!-- BARRA DE PAGINACIÓN DE INSUMOS -->
       <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-600 gap-3">
         <div id="infoPaginacionInsumos" class="font-medium">Mostrando 0 - 0 de 0 insumos</div>
         <div class="flex items-center gap-2">
@@ -505,7 +493,7 @@
             <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Factor de Utilidad (Ej. 1.3 = 30%, 1.4 = 40%)</label>
             <div class="flex items-center space-x-2">
               <input type="number" id="margenUtilidad" value="1.5" min="1.0" step="0.05" oninput="recalcularEscandallo()" class="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none font-bold text-gray-800">
-              <span class="text-gray-600 font-bold text-sm">Utilidad</span>
+              <span class="text-gray-600 font-bold text-sm">Factor</span>
             </div>
           </div>
 
@@ -531,8 +519,14 @@
       <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
         <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
           <h2 class="text-lg font-bold text-gray-800">Lista de Recetas y Productos Guardados</h2>
-          <div class="w-full sm:w-80 relative">
-            <input type="text" id="buscarCatalogo" oninput="renderizarCatalogo()" placeholder="🔍 Buscar receta o categoría..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
+          
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <button onclick="imprimirRecetasSeleccionadas()" class="bg-[#1b4d3e] hover:bg-[#123e1b] text-white text-xs px-4 py-2 rounded-md font-bold transition-all shadow flex items-center gap-1.5 whitespace-nowrap">
+              🖨 Imprimir Seleccionadas
+            </button>
+            <div class="w-full sm:w-64 relative">
+              <input type="text" id="buscarCatalogo" oninput="buscarCatalogoInput()" placeholder="🔍 Buscar receta o categoría..." class="w-full pl-3 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] outline-none text-sm">
+            </div>
           </div>
         </div>
         
@@ -540,11 +534,14 @@
           <table class="w-full text-left text-sm text-gray-700">
             <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold border-b border-[#2e7d32]/20">
               <tr>
+                <th class="p-3 text-center w-10">
+                  <input type="checkbox" id="checkSeleccionarTodasCat" onchange="toggleSeleccionarTodasCat(this.checked)" title="Seleccionar todas" class="w-4 h-4 text-[#2e7d32] rounded cursor-pointer">
+                </th>
                 <th class="p-3">Producto / Receta</th>
                 <th class="p-3">Categoría</th>
                 <th class="p-3 text-center">Tipo / Rendimiento</th>
                 <th class="p-3 text-right">Costo Unitario ($)</th>
-                <th class="p-3 text-center">Utilidad</th>
+                <th class="p-3 text-center">Factor</th>
                 <th class="p-3 text-right">PVP Sugerido ($)</th>
                 <th class="p-3 text-center">Acciones</th>
               </tr>
@@ -555,9 +552,41 @@
           </table>
         </div>
       </div>
+
+      <!-- BARRA DE PAGINACIÓN DE CATÁLOGO -->
+      <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200 flex flex-col sm:flex-row justify-between items-center text-xs text-gray-600 gap-3">
+        <div id="infoPaginacionCatalogo" class="font-medium">Mostrando 0 - 0 de 0 recetas</div>
+        <div class="flex items-center gap-2">
+          <button id="btnPagPrevCat" onclick="cambiarPaginaCatalogo(-1)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            ← Anterior
+          </button>
+          <span id="labelPaginaActualCat" class="font-bold px-2 text-[#123e1b]">Página 1 de 1</span>
+          <button id="btnPagNextCat" onclick="cambiarPaginaCatalogo(1)" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            Siguiente →
+          </button>
+        </div>
+      </div>
     </section>
 
   </main>
+
+  <!-- MODAL DE CONTRASEÑA MASCARADA (ASTERISCOS) -->
+  <div id="modalPassword" class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl max-w-xs w-full p-5 text-center border border-gray-200">
+      <div class="text-2xl mb-2">🔐</div>
+      <h3 class="text-sm font-bold text-gray-800 mb-1">Acceso Protegido</h3>
+      <p class="text-xs text-gray-500 mb-3">Ingrese la clave de seguridad para continuar:</p>
+      
+      <input type="password" id="inputClaveSeguridad" placeholder="••••" class="w-full text-center p-2.5 border border-gray-300 rounded-lg text-lg tracking-widest font-bold mb-2 focus:ring-2 focus:ring-[#2e7d32] outline-none">
+      
+      <div id="errorClaveSeguridad" class="text-xs text-red-600 font-bold mb-3 hidden">❌ Clave incorrecta</div>
+      
+      <div class="flex gap-2">
+        <button onclick="cerrarModalPassword()" class="w-1/2 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg transition-all">Cancelar</button>
+        <button onclick="verificarClaveModal()" class="w-1/2 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs font-bold rounded-lg transition-all">Confirmar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL PROTEGIDO: ACCIONES COMBINADAS (EDITAR PRECIOS / HISTÓRICO / ELIMINAR) -->
   <div id="modalAccionesProtegidas" class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50">
@@ -795,18 +824,51 @@
     let paginaActualInsumos = 1;
     const itemsPorPaginaInsumos = 50;
 
-    const CLAVE_SEGURIDAD = "1234";
-    
+    // PAGINACIÓN CATÁLOGO
+    let paginaActualCatalogo = 1;
+    const itemsPorPaginaCatalogo = 25;
 
-    function solicitarClaveAcceso() {
-      const clave = prompt("🔐 Ingrese la clave de seguridad para acciones protegidas:");
-      if (clave === CLAVE_SEGURIDAD) {
-        return true;
-      } else if (clave !== null) {
-        alert("❌ Clave incorrecta. Acceso denegado.");
-      }
-      return false;
+    const CLAVE_SEGURIDAD = "1234";
+    let funcionCallbackClave = null;
+
+    // SISTEMA DE CONTRASEÑA EN MODAL MASCARADO (ASTERISCOS)
+    function solicitarClaveAcceso(callback) {
+      funcionCallbackClave = callback;
+      document.getElementById('inputClaveSeguridad').value = '';
+      document.getElementById('errorClaveSeguridad').classList.add('hidden');
+      document.getElementById('modalPassword').classList.remove('hidden');
+      setTimeout(() => {
+        const inp = document.getElementById('inputClaveSeguridad');
+        inp.focus();
+      }, 100);
     }
+
+    function cerrarModalPassword() {
+      document.getElementById('modalPassword').classList.add('hidden');
+      funcionCallbackClave = null;
+    }
+
+    function verificarClaveModal() {
+      const input = document.getElementById('inputClaveSeguridad').value;
+      if (input === CLAVE_SEGURIDAD) {
+        document.getElementById('modalPassword').classList.add('hidden');
+        if (typeof funcionCallbackClave === 'function') {
+          const cb = funcionCallbackClave;
+          funcionCallbackClave = null;
+          cb();
+        }
+      } else {
+        document.getElementById('errorClaveSeguridad').classList.remove('hidden');
+        document.getElementById('inputClaveSeguridad').value = '';
+        document.getElementById('inputClaveSeguridad').focus();
+      }
+    }
+
+    document.getElementById('inputClaveSeguridad').addEventListener('keyup', function(e) {
+      if (e.key === 'Enter') {
+        verificarClaveModal();
+      }
+    });
 
     function obtenerFechaHoraActual() {
       const d = new Date();
@@ -956,9 +1018,9 @@
     }
 
     function solicitarAccesoNuevoInsumo() {
-      if (solicitarClaveAcceso()) {
+      solicitarClaveAcceso(() => {
         abrirModalCrearInsumo();
-      }
+      });
     }
 
     function abrirModalCrearInsumo() {
@@ -1171,7 +1233,7 @@
       }
     }
 
-    // RESPALDAR Y RESTAURAR SISTEMA
+    // RESPALDAR SISTEMA
     function respaldarSistema() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
         insumos: insumosBase,
@@ -1183,90 +1245,6 @@
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-    }
-
-    function restaurarSistema(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async function(event) {
-        try {
-          const data = JSON.parse(event.target.result);
-          if (data.insumos && Array.isArray(data.insumos)) {
-            insumosBase = data.insumos;
-            localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-            localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-          }
-          if (data.catalogo && Array.isArray(data.catalogo)) {
-            recetasCatalogo = data.catalogo;
-            localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
-            localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
-          }
-
-          alert("✅ Respaldo restaurado con éxito.");
-          renderizarTablaInsumos();
-          renderizarCatalogo();
-        } catch (err) {
-          alert("❌ El archivo seleccionado no es un respaldo válido.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    // IMPORTACIÓN DESDE EXCEL
-    function importarExcelInsumos(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const data = new UintArray(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-          let agregados = 0;
-          json.forEach(row => {
-            const codigo = normalizarCodigoJava(row['Código Interno'] || row['Codigo'] || row['CODIGO'] || '');
-            const nombre = String(row['Descripción del Producto'] || row['Descripcion'] || row['NOMBRE'] || '').trim().toUpperCase();
-            const unidad = String(row['Unidad'] || row['UNIDAD'] || 'KG').trim().toUpperCase();
-            const precioCosto = parseFloat(row['Precio de Costo ($)'] || row['Costo'] || row['PRECIO_COSTO'] || 0);
-            const precioVenta = parseFloat(row['Precio de Venta ($)'] || row['Precio Venta'] || row['PRECIO_VENTA'] || precioCosto);
-
-            if (nombre) {
-              const existe = insumosBase.find(i => (codigo && i.codigo === codigo) || i.nombre === nombre);
-              if (!existe) {
-                const nuevo = {
-                  id: `ing_xl_${Date.now()}_${Math.random().toString(36).substr(2,4)}`,
-                  codigo: codigo || String(Date.now()).slice(-6),
-                  nombre: nombre,
-                  unidad: unidad,
-                  precio: precioCosto,
-                  costoVenta: precioVenta,
-                  tipo: 'primario',
-                  historial: [{ fecha: obtenerFechaHoraActual(), costoNuevo: precioCosto, costoVentaNuevo: precioVenta }]
-                };
-                insumosBase.push(nuevo);
-                guardarInsumoSupabase(nuevo);
-                agregados++;
-              }
-            }
-          });
-
-          localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-          localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-
-          alert(`✅ Importación completada. Se agregaron ${agregados} nuevos insumos.`);
-          renderizarTablaInsumos();
-        } catch (err) {
-          console.error(err);
-          alert("❌ Error procesando el archivo de Excel: " + err.message);
-        }
-      };
-      reader.readAsArrayBuffer(file);
     }
 
     function cambiarPestana(pestana) {
@@ -1323,10 +1301,10 @@
           <td class="p-3 font-bold text-gray-800 text-xs">${insumo.nombre} ${badgeSubreceta}</td>
           <td class="p-3 text-center uppercase text-xs font-bold text-gray-600">${insumo.unidad}</td>
           <td class="p-3 text-right font-medium text-gray-500 font-mono text-xs">$${parseFloat(insumo.precio).toFixed(4)}</td>
-          <td class="p-3 text-right font-black text-gray-900 font-mono text-sm">$${parseFloat(costoVentaVal).toFixed(4)}</td>
+          <td class="p-3 text-center font-black text-[#15803d] dark:text-[#4ade80] font-mono text-sm bg-[#e8f5e9]/70 dark:bg-[#173329]/80 whitespace-nowrap border-l border-r border-[#2e7d32]/20 dark:border-[#263b34]">$${parseFloat(costoVentaVal).toFixed(4)}</td>
           <td class="p-3 text-center">
             <button onclick="solicitarAccesoAcciones('${insumo.id}')" class="px-3 py-1.5 bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#166534] border border-[#bbf7d0] rounded-lg text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 mx-auto">
-              🔐 Editar
+              🔐 Editar / Histórico / Eliminar
             </button>
           </td>
         `;
@@ -1361,9 +1339,9 @@
 
     // LÓGICA DEL MODAL COMBINADO (ACCIONES PROTEGIDAS)
     function solicitarAccesoAcciones(id) {
-      if (solicitarClaveAcceso()) {
+      solicitarClaveAcceso(() => {
         abrirModalAccionesProtegidas(id);
-      }
+      });
     }
 
     function abrirModalAccionesProtegidas(id) {
@@ -1459,7 +1437,7 @@
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       const nombre = insumo ? insumo.nombre : 'este insumo';
 
-      if (!confirm(`⚠️ ¿Deseas eliminar definitivamente el insumo "${nombre}" del sistema?`)) {
+      if (!confirm(`⚠ ¿Deseas eliminar definitivamente el insumo "${nombre}" del sistema?`)) {
         return;
       }
 
@@ -1706,7 +1684,12 @@
       recalcularEscandallo();
     }
 
-    // CATÁLOGO Y FICHA TÉCNICA
+    // CATÁLOGO Y PAGINACIÓN
+    function buscarCatalogoInput() {
+      paginaActualCatalogo = 1;
+      renderizarCatalogo();
+    }
+
     function renderizarCatalogo() {
       const busqueda = (document.getElementById('buscarCatalogo').value || '').toLowerCase();
       const tbody = document.getElementById('tablaCatalogoBody');
@@ -1717,9 +1700,19 @@
         (r.categoria || '').toLowerCase().includes(busqueda)
       );
 
-      document.getElementById('count-catalogo').textContent = recetasCatalogo.length;
+      document.getElementById('count-catalogo').textContent = recetasCatalogo.length.toLocaleString('es-ES');
 
-      filtrados.forEach(receta => {
+      const totalFiltrados = filtrados.length;
+      const totalPaginas = Math.ceil(totalFiltrados / itemsPorPaginaCatalogo) || 1;
+
+      if (paginaActualCatalogo > totalPaginas) paginaActualCatalogo = totalPaginas;
+      if (paginaActualCatalogo < 1) paginaActualCatalogo = 1;
+
+      const inicio = (paginaActualCatalogo - 1) * itemsPorPaginaCatalogo;
+      const fin = inicio + itemsPorPaginaCatalogo;
+      const paginaItems = filtrados.slice(inicio, fin);
+
+      paginaItems.forEach(receta => {
         const esSubreceta = receta.esSubreceta || receta.categoria === 'MASAS' || receta.categoria === 'GUISOS';
         
         const tr = document.createElement('tr');
@@ -1734,6 +1727,9 @@
           : `KG (${receta.rendimiento || 1}kg)`;
 
         tr.innerHTML = `
+          <td class="p-3 text-center">
+            <input type="checkbox" class="check-receta-item w-4 h-4 text-[#2e7d32] rounded cursor-pointer" value="${receta.id}">
+          </td>
           <td class="p-3 font-bold text-gray-800">${receta.nombre}</td>
           <td class="p-3">${badgeCategoria}</td>
           <td class="p-3 text-center text-xs font-semibold text-gray-600">${rendimientoStr}</td>
@@ -1756,6 +1752,201 @@
         `;
         tbody.appendChild(tr);
       });
+
+      const inicioMostrar = totalFiltrados === 0 ? 0 : inicio + 1;
+      const finMostrar = Math.min(fin, totalFiltrados);
+      
+      const infoPaginacion = document.getElementById('infoPaginacionCatalogo');
+      if (infoPaginacion) {
+        infoPaginacion.textContent = `Mostrando ${inicioMostrar} - ${finMostrar} de ${totalFiltrados} recetas`;
+      }
+      
+      const labelPagina = document.getElementById('labelPaginaActualCat');
+      if (labelPagina) {
+        labelPagina.textContent = `Página ${paginaActualCatalogo} de ${totalPaginas}`;
+      }
+
+      const btnPrev = document.getElementById('btnPagPrevCat');
+      const btnNext = document.getElementById('btnPagNextCat');
+      if (btnPrev && btnNext) {
+        btnPrev.disabled = paginaActualCatalogo === 1;
+        btnNext.disabled = paginaActualCatalogo === totalPaginas || totalPaginas === 0;
+      }
+    }
+
+    function cambiarPaginaCatalogo(direccion) {
+      paginaActualCatalogo += direccion;
+      renderizarCatalogo();
+    }
+
+    function toggleSeleccionarTodasCat(checked) {
+      document.querySelectorAll('.check-receta-item').forEach(cb => cb.checked = checked);
+    }
+
+    // IMPRESIÓN EN UNA SOLA PLANILLA CONTINUA AGRUPADA POR CATEGORÍA
+    function imprimirRecetasSeleccionadas() {
+      const seleccionados = Array.from(document.querySelectorAll('.check-receta-item:checked')).map(cb => cb.value);
+      let listaImprimir = [];
+
+      if (seleccionados.length > 0) {
+        listaImprimir = recetasCatalogo.filter(r => seleccionados.includes(String(r.id)));
+      } else {
+        if (confirm("No has seleccionado ninguna receta mediante la casilla de verificación. ¿Deseas imprimir TODAS las recetas guardadas en el catálogo en una sola planilla?")) {
+          listaImprimir = [...recetasCatalogo];
+        } else {
+          return;
+        }
+      }
+
+      if (listaImprimir.length === 0) {
+        alert("No hay recetas disponibles para imprimir.");
+        return;
+      }
+
+      // ORDENAR STRICTAMENTE POR CATEGORÍA Y LUEGO POR NOMBRE
+      listaImprimir.sort((a, b) => {
+        const catA = (a.categoria || '').toUpperCase();
+        const catB = (b.categoria || '').toUpperCase();
+        if (catA < catB) return -1;
+        if (catA > catB) return 1;
+        return (a.nombre || '').localeCompare(b.nombre || '');
+      });
+
+      const ventanaImpresion = window.open('', '_blank', 'width=1000,height=800');
+
+      let filasHtml = '';
+      let categoriaActual = '';
+
+      listaImprimir.forEach((receta) => {
+        const catNorm = (receta.categoria || 'SIN CATEGORÍA').toUpperCase();
+        
+        // Encabezado de sección cuando cambia la categoría
+        if (catNorm !== categoriaActual) {
+          categoriaActual = catNorm;
+          filasHtml += `
+            <tr class="bg-[#123e1b] text-white font-black text-xs border-t-2 border-b-2 border-[#123e1b]">
+              <td colspan="5" class="py-2 px-3 tracking-wider uppercase">
+                📂 CATEGORÍA: ${categoriaActual}
+              </td>
+            </tr>
+          `;
+        }
+
+        const rendimientoStr = receta.tipo === 'und'
+          ? `${receta.piezas || 1} UND`
+          : `${receta.rendimiento || 1} KG/LT`;
+
+        // Ingredientes formateados de manera super compacta para la cocina
+        let listaIngredientes = (receta.ingredientes || []).map(ing => 
+          `<span class="inline-block bg-gray-100 border border-gray-300 rounded px-2 py-0.5 mr-1 mb-1 text-[11px] font-medium text-gray-800">
+            <strong>${ing.nombre}:</strong> ${ing.cantidad} ${ing.unidad || ''}
+          </span>`
+        ).join('');
+
+        if (!listaIngredientes) {
+          listaIngredientes = '<span class="text-gray-400 italic text-[11px]">Sin ingredientes registrados</span>';
+        }
+
+        filasHtml += `
+          <tr class="border-t border-gray-300 bg-white hover:bg-gray-50 text-xs">
+            <td class="p-2.5 font-bold text-gray-900 align-top text-sm">
+              ${receta.nombre}
+              ${receta.esSubreceta ? '<span class="ml-1 text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-extrabold">⭐ BASE</span>' : ''}
+            </td>
+            <td class="p-2.5 text-center align-top font-bold text-gray-700 text-xs">
+              ${receta.categoria}
+            </td>
+            <td class="p-2.5 text-center align-top font-extrabold text-gray-800">
+              ${rendimientoStr}
+            </td>
+            <td class="p-2.5 text-right align-top font-mono font-medium text-gray-700">
+              $${parseFloat(receta.costoUnitario || 0).toFixed(4)}
+            </td>
+            <td class="p-2.5 text-right align-top font-mono font-black text-[#123e1b]">
+              $${parseFloat(receta.pvp || 0).toFixed(2)}
+            </td>
+          </tr>
+          <tr class="border-b-2 border-gray-200 bg-slate-50/70">
+            <td colspan="5" class="px-3 pb-2.5 pt-1">
+              <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Composición / Ingredientes de Producción:</div>
+              <div class="flex flex-wrap gap-1">${listaIngredientes}</div>
+            </td>
+          </tr>
+        `;
+      });
+
+      const htmlContenido = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>Planilla General de Producción - Hipergalerias</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+            * { font-family: 'Inter', sans-serif !important; }
+            @media print {
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
+              table { page-break-inside: auto; }
+              tr { page-break-inside: avoid; page-break-after: auto; }
+              thead { display: table-header-group; }
+            }
+            body { background: #ffffff; padding: 20px; color: #111827; }
+          </style>
+        </head>
+        <body class="bg-white">
+          
+          <!-- ENCABEZADO DE LA PLANILLA UNIFICADA -->
+          <div class="flex justify-between items-center border-b-2 border-[#123e1b] pb-3 mb-4">
+            <div class="flex items-center gap-3">
+              <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-12 w-auto object-contain">
+              <div>
+                <h1 class="text-base font-black text-[#123e1b] tracking-tight uppercase">GALERÍA HIPERMARKET</h1>
+                <p class="text-xs font-bold text-gray-600 uppercase">Planilla General de Producción y Costos de Recetas</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <span class="inline-block bg-[#e8f5e9] text-[#123e1b] border border-[#a7f3d0] text-xs px-3 py-1 rounded-full font-extrabold uppercase">Planilla de Cocina</span>
+              <p class="text-[11px] text-gray-500 mt-1 font-medium">Fecha: ${obtenerFechaHoraActual()}</p>
+            </div>
+          </div>
+
+          <!-- TABLA UNIFICADA DE CONTINUIDAD -->
+          <div class="border border-gray-300 rounded-xl overflow-hidden shadow-xs">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-[#e8f5e9] text-[#123e1b] text-xs font-extrabold uppercase border-b-2 border-[#123e1b]">
+                <tr>
+                  <th class="p-2.5 w-2/5">Producto / Receta</th>
+                  <th class="p-2.5 text-center w-1/6">Categoría</th>
+                  <th class="p-2.5 text-center w-1/6">Rendimiento / Lote</th>
+                  <th class="p-2.5 text-right w-1/8">Costo Unit. ($)</th>
+                  <th class="p-2.5 text-right w-1/8">PVP Sug. ($)</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filasHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- PIE DE PLANILLA -->
+          <div class="mt-4 pt-2 border-t border-gray-200 flex justify-between text-[11px] text-gray-500 font-medium">
+            <span>Total Recetas en Planilla: <strong>${listaImprimir.length}</strong></span>
+            <span>Hipergalerias C.A. - Sistema de Gestión de Recetarios y Costos</span>
+          </div>
+
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 400);
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      ventanaImpresion.document.open();
+      ventanaImpresion.document.write(htmlContenido);
+      ventanaImpresion.document.close();
     }
 
     function cargarRecetaParaEditar(id) {
