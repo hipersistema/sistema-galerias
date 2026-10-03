@@ -658,7 +658,7 @@
                 </label>
             </div>
 
-            <!-- Contenedor dinámico de Login / Sesión (Ubicado a la extrema derecha) -->
+            <!-- Contenedor dinámico de Login / Sesión -->
             <div id="userAuthContainer"></div>
         </div>
     </header>
@@ -854,7 +854,7 @@
     </div>
 
     <script>
-        // --- MANEJO DE MODO OSCURO (UNIFICADO) ---
+        // --- MANEJO DE MODO OSCURO ---
         function toggleDarkTheme(isDark) {
             if (isDark) {
                 document.body.classList.add('dark-mode');
@@ -958,12 +958,17 @@
         }
 
         async function protegerEnlaceModulo(event, url) {
-            if (typeof supabaseClient === 'undefined') return;
+            event.preventDefault();
+            if (typeof supabaseClient === 'undefined') {
+                window.location.href = url;
+                return;
+            }
 
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
-                event.preventDefault();
                 abrirModalLogin();
+            } else {
+                window.location.href = url;
             }
         }
 
@@ -974,7 +979,7 @@
 
             box.classList.remove('state-alert-orange', 'state-alert-red', 'state-alert-green', 'state-alert-blue');
 
-            let numValor = typeof valor === 'string' ? parseFloat(valor.replace('$', '')) : valor;
+            let numValor = typeof valor === 'string' ? parseFloat(valor.replace(/[^0-9.-]+/g, '')) : valor;
 
             if (!isNaN(numValor) && numValor > 0) {
                 if (tipoAlerta === 'red') box.classList.add('state-alert-red');
@@ -984,7 +989,8 @@
             }
         }
 
-        function sincronizarDashboard() {
+        async function sincronizarDashboard() {
+            // Módulo 1: Recepción y Fechas
             let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
             let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
             let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
@@ -997,6 +1003,7 @@
             actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
             actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
 
+            // Módulo 2: Descuentos Empleados
             try {
                 const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
                 let cantPendientes = 0;
@@ -1026,19 +1033,52 @@
                 console.error("Error al sincronizar descuentos en el index:", e);
             }
 
+            // Módulo 3: Recetas y Costos (Consulta directa a Supabase con fallback a localStorage)
             try {
-                const recetasDB = JSON.parse(localStorage.getItem('hipergalerias_recetas_db')) || [];
-                const insumosDB = JSON.parse(localStorage.getItem('hipergalerias_insumos_db')) || [];
+                let totalInsumos = null;
+                let totalRecetas = null;
 
-                document.getElementById('val-mod3-recetas').innerText = recetasDB.length;
-                document.getElementById('val-mod3-ingredientes').innerText = insumosDB.length;
+                // Consulta a Supabase si el cliente está inicializado
+                if (typeof supabaseClient !== 'undefined' && supabaseClient !== null) {
+                    const [resInsumos, resRecetas] = await Promise.allSettled([
+                        supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
+                        supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
+                    ]);
 
-                actualizarColorMetrica('box-mod3-recetas', recetasDB.length, 'green');
-                actualizarColorMetrica('box-mod3-ingredientes', insumosDB.length, 'blue');
+                    if (resInsumos.status === 'fulfilled' && !resInsumos.value.error && resInsumos.value.count !== null) {
+                        totalInsumos = resInsumos.value.count;
+                    }
+
+                    if (resRecetas.status === 'fulfilled' && !resRecetas.value.error && resRecetas.value.count !== null) {
+                        totalRecetas = resRecetas.value.count;
+                    }
+                }
+
+                // Fallback a localStorage en caso de no obtener datos de Supabase
+                if (totalInsumos === null) {
+                    const rawInsumos = localStorage.getItem('hipergalerias_insumos_db') || localStorage.getItem('insumos');
+                    const insumosDB = rawInsumos ? JSON.parse(rawInsumos) : [];
+                    totalInsumos = Array.isArray(insumosDB) ? insumosDB.length : Object.keys(insumosDB).length;
+                }
+
+                if (totalRecetas === null) {
+                    const rawRecetas = localStorage.getItem('hipergalerias_recetas_db') || localStorage.getItem('recetas');
+                    const recetasDB = rawRecetas ? JSON.parse(rawRecetas) : [];
+                    totalRecetas = Array.isArray(recetasDB) ? recetasDB.length : Object.keys(recetasDB).length;
+                }
+
+                document.getElementById('val-mod3-recetas').innerText = totalRecetas.toLocaleString('es-ES');
+                document.getElementById('val-mod3-ingredientes').innerText = totalInsumos.toLocaleString('es-ES');
+
+                actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
+                actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
             } catch (e) {
                 console.error("Error al sincronizar recetas en el index:", e);
+                document.getElementById('val-mod3-recetas').innerText = '0';
+                document.getElementById('val-mod3-ingredientes').innerText = '0';
             }
 
+            // Módulo 4: TI Equipos
             try {
                 const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
                 document.getElementById('val-mod4-equipos').innerText = tiDB.length;
@@ -1053,7 +1093,7 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             cargarTemaGuardado();
-            sincronizarDashboard();
+            await sincronizarDashboard();
 
             if (typeof supabaseClient !== 'undefined') {
                 const { data: { session } } = await supabaseClient.auth.getSession();

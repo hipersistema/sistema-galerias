@@ -598,11 +598,10 @@
     </div>
   </div>
 
-  <!-- MODAL PROTEGIDO: ACCIONES COMBINADAS (EDITAR PRECIOS / HISTÓRICO / ELIMINAR) -->
+  <!-- MODAL PROTEGIDO: ACCIONES COMBINADAS -->
   <div id="modalAccionesProtegidas" class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 relative overflow-hidden border border-gray-200">
       
-      <!-- ENCABEZADO MODAL -->
       <div class="flex justify-between items-start border-b border-gray-100 pb-3 mb-4">
         <div>
           <div class="flex items-center gap-2">
@@ -616,7 +615,6 @@
 
       <input type="hidden" id="idInsumoProtegido">
 
-      <!-- SECCIÓN 1: ACTUALIZAR PRECIOS -->
       <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 mb-4 space-y-3">
         <div class="flex items-center gap-1.5 text-xs font-bold text-[#15803d] uppercase tracking-wide">
           <span>✏️ ACTUALIZAR PRECIOS</span>
@@ -638,7 +636,6 @@
         </button>
       </div>
 
-      <!-- SECCIÓN 2: HISTÓRICO DE CAMBIOS -->
       <div class="space-y-2 mb-6">
         <h4 class="text-xs font-bold text-gray-700 uppercase flex items-center gap-1">
           📜 HISTÓRICO DE FECHAS Y PRECIOS ANTERIORMENTE REGISTRADOS
@@ -660,7 +657,6 @@
         </div>
       </div>
 
-      <!-- PIE DEL MODAL -->
       <div class="flex justify-between items-center pt-3 border-t border-gray-100">
         <button onclick="eliminarInsumoProtegido()" class="px-4 py-2 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 font-bold text-xs rounded-lg transition-all flex items-center gap-1.5">
           🗑 Eliminar Insumo del Sistema
@@ -856,7 +852,7 @@
       return match ? match.tipo === 'base' : false;
     }
 
-    // SISTEMA DE CONTRASEÑA EN MODAL MASCARADO (ASTERISCOS)
+    // SISTEMA DE CONTRASEÑA EN MODAL MASCARADO
     function solicitarClaveAcceso(callback) {
       funcionCallbackClave = callback;
       document.getElementById('inputClaveSeguridad').value = '';
@@ -1069,6 +1065,16 @@
     async function guardarNuevoInsumo(event) {
         event.preventDefault();
 
+        // Verificar autenticación previa
+        if (typeof supabaseClient !== 'undefined') {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                alert("⚠️ Debes iniciar sesión para realizar cambios en la base de datos.");
+                abrirModalLogin();
+                return;
+            }
+        }
+
         let codigoVal = document.getElementById('crearCodigoInsumo').value.trim();
         if (!codigoVal) {
             codigoVal = String(Date.now()).slice(-6);
@@ -1094,25 +1100,10 @@
             }]
         };
 
-        if (typeof supabaseClient !== 'undefined') {
-            const { error } = await supabaseClient
-                .from('insumos')
-                .upsert([{
-                    id: nuevoInsumo.id,
-                    codigo: nuevoInsumo.codigo,
-                    tipo: nuevoInsumo.tipo,
-                    nombre: nuevoInsumo.nombre,
-                    precio: nuevoInsumo.precio,
-                    costo_venta: nuevoInsumo.costoVenta,
-                    unidad: nuevoInsumo.unidad,
-                    historial: nuevoInsumo.historial
-                }]);
-
-            if (error) {
-                console.error("Error al guardar insumo en Supabase:", error);
-                alert("⚠️ Error guardando en Supabase: " + error.message);
-                return;
-            }
+        const result = await guardarInsumoSupabase(nuevoInsumo);
+        if (!result.success) {
+            alert("⚠️ Error guardando en Supabase: " + (result.error?.message || "Error de permisos RLS o conexión."));
+            return;
         }
 
         insumosBase.unshift(nuevoInsumo);
@@ -1196,7 +1187,6 @@
         const storedInsumos = localStorage.getItem('insumos_recetario') || localStorage.getItem('hipergalerias_insumos_db');
         insumosBase = storedInsumos ? JSON.parse(storedInsumos) : [];
 
-        // Limpiar insumos base locales
         insumosBase = insumosBase.map(i => ({
           ...i,
           nombre: limpiarNombreBase(i.nombre)
@@ -1228,8 +1218,10 @@
           .upsert(payload, { onConflict: 'id' });
 
         if (error) throw error;
+        return { success: true };
       } catch (err) {
         console.error("❌ Error al guardar insumo en Supabase:", err);
+        return { success: false, error: err };
       }
     }
 
@@ -1256,8 +1248,10 @@
           .upsert(payload, { onConflict: 'id' });
 
         if (error) throw error;
+        return { success: true };
       } catch (err) {
         console.error("❌ Error al guardar receta en Supabase:", err);
+        return { success: false, error: err };
       }
     }
 
@@ -1269,8 +1263,10 @@
           .eq('id', String(id));
 
         if (error) throw error;
+        return { success: true };
       } catch (err) {
         console.error("❌ Error al eliminar receta de Supabase:", err);
+        return { success: false, error: err };
       }
     }
 
@@ -1398,7 +1394,6 @@
       const costoVentaActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
       document.getElementById('costoVentaCalculoInput').value = parseFloat(costoVentaActual).toFixed(2);
 
-      // Cargar tabla de histórico
       const tbody = document.getElementById('tablaHistoricoProtegidoBody');
       tbody.innerHTML = '';
 
@@ -1434,6 +1429,15 @@
     }
 
     async function guardarPrecioHistórico() {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+          alert("⚠️ Tu sesión ha expirado. Por favor inicia sesión.");
+          abrirModalLogin();
+          return;
+        }
+      }
+
       const id = document.getElementById('idInsumoProtegido').value;
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       if (!insumo) return;
@@ -1461,7 +1465,11 @@
         costoVentaNuevo: nuevoCostoVenta
       });
 
-      await guardarInsumoSupabase(insumo);
+      const res = await guardarInsumoSupabase(insumo);
+      if (!res.success) {
+        alert("⚠️ Error al actualizar precios en Supabase: " + (res.error?.message || "Error RLS o de red."));
+        return;
+      }
 
       localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
       localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
@@ -1475,6 +1483,15 @@
     }
 
     async function eliminarInsumoProtegido() {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+          alert("⚠️ Tu sesión ha expirado. Por favor inicia sesión.");
+          abrirModalLogin();
+          return;
+        }
+      }
+
       const id = document.getElementById('idInsumoProtegido').value;
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       const nombre = insumo ? limpiarNombreBase(insumo.nombre) : 'este insumo';
@@ -1507,7 +1524,7 @@
       alert(`✅ Insumo "${nombre}" eliminado del sistema.`);
     }
 
-    // CREADOR DE RECETAS - BUSCADOR / DROPDOWN DE INSUMOS MEJORADO
+    // CREADOR DE RECETAS
     function agregarFilaReceta() {
       recetaActual.filas.push({ insumoId: '', cantidad: 0 });
       renderizarFilasCreador();
@@ -1545,7 +1562,7 @@
               
               <div id="dropdown-insumo-${idx}" 
                    class="hidden absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-2xl z-50 divide-y divide-gray-100">
-                <!-- Dinámico con JS -->
+                <!-- Dinámico -->
               </div>
             </div>
           </td>
@@ -1715,7 +1732,18 @@
       document.getElementById('gananciaDolares').textContent = `$${ganancia.toFixed(2)}`;
     }
 
+    // GUARDAR RECETA CON VERIFICACIÓN DE SESIÓN Y MANEJO DE ERRORES
     async function guardarRecetaCatalogo() {
+      // 1. Validar autenticación activa antes de intentar guardar
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+          alert("⚠️ Tu sesión ha expirado o no has iniciado sesión. Por favor ingresa tus credenciales.");
+          abrirModalLogin();
+          return;
+        }
+      }
+
       const nombreRaw = document.getElementById('nombreReceta').value.trim();
       if (!nombreRaw) {
         alert("Por favor introduce un nombre para la receta.");
@@ -1751,6 +1779,11 @@
         }
       });
 
+      if (ingredientesFinales.length === 0) {
+        alert("⚠️ Selecciona al menos un ingrediente válido con cantidad mayor a cero.");
+        return;
+      }
+
       const costoUnitario = tipo === 'und' ? (costoTotalBatch / piezas) : (costoTotalBatch / rendimiento);
       const pvp = costoUnitario * factor;
 
@@ -1770,15 +1803,21 @@
         fecha: obtenerFechaHoraActual()
       };
 
+      // Intentar guardar primero en Supabase
+      const resSupabase = await guardarRecetaSupabase(nuevaReceta);
+      if (!resSupabase.success) {
+        alert("⚠️ Error al guardar receta en Supabase: " + (resSupabase.error?.message || "Revisa tus permisos RLS o la conexión a internet."));
+        return;
+      }
+
       if (idRecetaEditando) {
         const idx = recetasCatalogo.findIndex(r => String(r.id) === String(idRecetaEditando));
         if (idx !== -1) recetasCatalogo[idx] = nuevaReceta;
       } else {
-        recetasCatalogo.push(nuevaReceta);
+        recetasCatalogo.unshift(nuevaReceta);
       }
 
-      await guardarRecetaSupabase(nuevaReceta);
-
+      // Procesar Sub-receta como Insumo Base si corresponde
       if (esSub || categoria === 'MASAS' || categoria === 'GUISOS') {
         const existeBase = insumosBase.find(i => limpiarNombreBase(i.nombre).toUpperCase() === nombreLimpio);
         if (!existeBase) {
@@ -1792,7 +1831,7 @@
             unidad: (unidadBase || (tipo === 'und' ? 'und' : 'kg')).toUpperCase(),
             historial: [{ fecha: obtenerFechaHoraActual(), costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
           };
-          insumosBase.push(insumoSub);
+          insumosBase.unshift(insumoSub);
           await guardarInsumoSupabase(insumoSub);
         } else {
           existeBase.tipo = 'base';
@@ -1811,6 +1850,7 @@
       renderizarTablaInsumos();
       cancelarEdicionReceta();
       cambiarPestana('catalogo');
+      alert("✅ Receta guardada exitosamente en el catálogo.");
     }
 
     function cancelarEdicionReceta() {
@@ -1929,7 +1969,6 @@
       document.querySelectorAll('.check-receta-item').forEach(cb => cb.checked = checked);
     }
 
-    // IMPRESIÓN EN UNA SOLA PLANILLA CONTINUA AGRUPADA POR CATEGORÍA CON ⭐ EN BASES
     function imprimirRecetasSeleccionadas() {
       const seleccionados = Array.from(document.querySelectorAll('.check-receta-item:checked')).map(cb => cb.value);
       let listaImprimir = [];
@@ -1949,7 +1988,6 @@
         return;
       }
 
-      // ORDENAR STRICTAMENTE POR CATEGORÍA Y LUEGO POR NOMBRE
       listaImprimir.sort((a, b) => {
         const catA = (a.categoria || '').toUpperCase();
         const catB = (b.categoria || '').toUpperCase();
@@ -1981,7 +2019,6 @@
           ? `${receta.piezas || 1} UND`
           : `${receta.rendimiento || 1} KG/LT`;
 
-        // Ingredientes formateados con ⭐ si el ingrediente es una subreceta/base
         let listaIngredientes = (receta.ingredientes || []).map(ing => {
           const esBase = esInsumoBase(ing.insumoId, ing.nombre);
           const nombreLimpio = limpiarNombreBase(ing.nombre);
@@ -2044,8 +2081,6 @@
           </style>
         </head>
         <body class="bg-white">
-          
-          <!-- ENCABEZADO DE LA PLANILLA UNIFICADA -->
           <div class="flex justify-between items-center border-b-2 border-[#123e1b] pb-3 mb-4">
             <div class="flex items-center gap-3">
               <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-12 w-auto object-contain">
@@ -2060,7 +2095,6 @@
             </div>
           </div>
 
-          <!-- TABLA UNIFICADA DE CONTINUIDAD -->
           <div class="border border-gray-300 rounded-xl overflow-hidden shadow-xs">
             <table class="w-full text-left border-collapse">
               <thead class="bg-[#e8f5e9] text-[#123e1b] text-xs font-extrabold uppercase border-b-2 border-[#123e1b]">
@@ -2078,7 +2112,6 @@
             </table>
           </div>
 
-          <!-- PIE DE PLANILLA -->
           <div class="mt-4 pt-2 border-t border-gray-200 flex justify-between text-[11px] text-gray-500 font-medium">
             <span>Total Recetas en Planilla: <strong>${listaImprimir.length}</strong></span>
             <span>Hipergalerias C.A. - Sistema de Gestión de Recetarios y Costos</span>
@@ -2133,14 +2166,29 @@
     }
 
     async function eliminarReceta(id) {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+          alert("⚠️ Tu sesión ha expirado. Por favor inicia sesión.");
+          abrirModalLogin();
+          return;
+        }
+      }
+
       if (!confirm("¿Deseas eliminar esta receta del catálogo?")) return;
-      recetasCatalogo = recetasCatalogo.filter(r => String(r.id) !== String(id));
       
-      await eliminarRecetaSupabase(id);
+      const res = await eliminarRecetaSupabase(id);
+      if (!res.success) {
+        alert("⚠️ Error al eliminar receta de Supabase: " + (res.error?.message || "Error de permisos RLS o de red."));
+        return;
+      }
+
+      recetasCatalogo = recetasCatalogo.filter(r => String(r.id) !== String(id));
       localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
       localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
       
       renderizarCatalogo();
+      alert("✅ Receta eliminada del catálogo.");
     }
 
     function verFichaTecnica(id) {
