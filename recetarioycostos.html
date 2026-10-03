@@ -664,7 +664,8 @@
           <table class="w-full text-xs text-left">
             <thead class="bg-gray-100 text-gray-600 font-bold border-b border-gray-200 sticky top-0">
               <tr>
-                <th class="p-2.5">Fecha y Hora de Modificación</th>
+                <th class="p-2.5">Fecha y Hora</th>
+                <th class="p-2.5">Usuario</th>
                 <th class="p-2.5 text-right">Precio Costo ($)</th>
                 <th class="p-2.5 text-right">Precio Venta ($)</th>
               </tr>
@@ -749,7 +750,7 @@
         </div>
 
         <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
-            <button onclick="window.print()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
+            <button onclick="imprimirFichaTecnicaIndividual(idRecetaFichaActual)" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
               🖨 Imprimir Ficha
             </button>
             <button onclick="cerrarFichaModal()" class="bg-[#2e7d32] hover:bg-[#123e1b] text-white px-5 py-2 rounded-lg text-xs font-bold transition-all">
@@ -845,6 +846,7 @@
     let recetasCatalogo = [];
     let recetaActual = { filas: [] };
     let idRecetaEditando = null;
+    let idRecetaFichaActual = null;
 
     // PAGINACIÓN INSUMOS
     let paginaActualInsumos = 1;
@@ -856,6 +858,19 @@
 
     const CLAVE_SEGURIDAD = "1234";
     let funcionCallbackClave = null;
+
+    // OBTENER NOMBRE DEL USUARIO ACTUAL AUTENTICADO
+    async function obtenerNombreUsuarioActual() {
+      if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          const metadata = session.user.user_metadata || {};
+          const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
+          return nombre.charAt(0).toUpperCase() + nombre.slice(1);
+        }
+      }
+      return 'Sistema';
+    }
 
     // LIMPIAR NOMBRE DE ETIQUETA REDUNDANTE [BASE]
     function limpiarNombreBase(nombre) {
@@ -1085,7 +1100,6 @@
     async function guardarNuevoInsumo(event) {
         event.preventDefault();
 
-        // Verificar autenticación previa
         if (typeof supabaseClient !== 'undefined') {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
@@ -1104,6 +1118,7 @@
         const costoUnit = parseFloat(document.getElementById('crearCostoUnitario').value) || 0;
         const costoVentaVal = parseFloat(document.getElementById('crearPrecioVenta').value) || 0;
         const nombreIngresado = limpiarNombreBase(document.getElementById('crearNombreInsumo').value.trim().toUpperCase());
+        const usuarioNombre = await obtenerNombreUsuarioActual();
 
         const nuevoInsumo = {
             id: `ing_${Date.now()}`,
@@ -1115,6 +1130,7 @@
             tipo: 'primario',
             historial: [{
               fecha: obtenerFechaHoraActual(),
+              usuario: usuarioNombre,
               costoNuevo: costoUnit,
               costoVentaNuevo: costoVentaVal
             }]
@@ -1412,7 +1428,6 @@
       document.getElementById('tituloNombreProtegido').textContent = nombreFormateado;
       document.getElementById('nombreInsumoProtegidoInput').value = nombreFormateado;
 
-      // Normalizar unidad existente para preseleccionarla correctamente en el combo
       let u = (insumo.unidad || 'UND').toUpperCase();
       if (u === 'G' || u === 'GRS') u = 'GR';
       if (u === 'PQ' || u === 'UNID') u = u === 'PQ' ? 'PAQ' : 'UND';
@@ -1438,9 +1453,11 @@
           tr.className = "hover:bg-gray-50/80";
           const costoC = h.costoNuevo !== undefined ? h.costoNuevo : (h.costoAnt || insumo.precio);
           const costoV = h.costoVentaNuevo !== undefined ? h.costoVentaNuevo : (h.costoVentaAnt || costoC);
+          const usuarioFmt = h.usuario || 'Sistema';
 
           tr.innerHTML = `
             <td class="p-2.5 text-gray-600 font-medium">${h.fecha || 'Sin fecha'}</td>
+            <td class="p-2.5 text-gray-800 font-bold font-sans">${usuarioFmt}</td>
             <td class="p-2.5 text-right font-bold text-gray-500">$${parseFloat(costoC).toFixed(4)}</td>
             <td class="p-2.5 text-right font-black text-[#15803d]">$${parseFloat(costoV).toFixed(4)}</td>
           `;
@@ -1449,7 +1466,7 @@
       } else {
         tbody.innerHTML = `
           <tr>
-            <td colspan="3" class="p-4 text-center text-gray-400 font-sans text-xs">No hay registros de cambios históricos anteriores.</td>
+            <td colspan="4" class="p-4 text-center text-gray-400 font-sans text-xs">No hay registros de cambios históricos anteriores.</td>
           </tr>
         `;
       }
@@ -1494,8 +1511,8 @@
       const costoAnt = insumo.precio;
       const costoVentaAnt = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
 
-      // Evaluar si hubo cambio de costo para registrar entrada en el historial
       const huboCambioPrecio = (costoAnt !== nuevoCostoVisual) || (costoVentaAnt !== nuevoCostoVenta);
+      const usuarioNombre = await obtenerNombreUsuarioActual();
 
       insumo.nombre = nuevoNombre;
       insumo.unidad = nuevaUnidad;
@@ -1506,6 +1523,7 @@
         if (!insumo.historial) insumo.historial = [];
         insumo.historial.push({
           fecha: obtenerFechaHoraActual(),
+          usuario: usuarioNombre,
           costoAnt: costoAnt,
           costoNuevo: nuevoCostoVisual,
           costoVentaAnt: costoVentaAnt,
@@ -1782,7 +1800,6 @@
 
     // GUARDAR RECETA CON VERIFICACIÓN DE SESIÓN Y MANEJO DE ERRORES
     async function guardarRecetaCatalogo() {
-      // 1. Validar autenticación activa antes de intentar guardar
       if (typeof supabaseClient !== 'undefined') {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) {
@@ -1851,7 +1868,6 @@
         fecha: obtenerFechaHoraActual()
       };
 
-      // Intentar guardar primero en Supabase
       const resSupabase = await guardarRecetaSupabase(nuevaReceta);
       if (!resSupabase.success) {
         alert("⚠️ Error al guardar receta en Supabase: " + (resSupabase.error?.message || "Revisa tus permisos RLS o la conexión a internet."));
@@ -1865,9 +1881,9 @@
         recetasCatalogo.unshift(nuevaReceta);
       }
 
-      // Procesar Sub-receta como Insumo Base si corresponde
       if (esSub || categoria === 'MASAS' || categoria === 'GUISOS') {
         const existeBase = insumosBase.find(i => limpiarNombreBase(i.nombre).toUpperCase() === nombreLimpio);
+        const usuarioNombre = await obtenerNombreUsuarioActual();
         if (!existeBase) {
           const insumoSub = {
             id: "sub_" + Date.now(),
@@ -1877,7 +1893,7 @@
             precio: costoUnitario,
             costoVenta: costoUnitario,
             unidad: (unidadBase || (tipo === 'und' ? 'und' : 'kg')).toUpperCase(),
-            historial: [{ fecha: obtenerFechaHoraActual(), costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
+            historial: [{ fecha: obtenerFechaHoraActual(), usuario: usuarioNombre, costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
           };
           insumosBase.unshift(insumoSub);
           await guardarInsumoSupabase(insumoSub);
@@ -2056,7 +2072,7 @@
           categoriaActual = catNorm;
           filasHtml += `
             <tr class="bg-[#123e1b] text-white font-black text-xs border-t-2 border-b-2 border-[#123e1b]">
-              <td colspan="5" class="py-2 px-3 tracking-wider uppercase">
+              <td colspan="6" class="py-2 px-3 tracking-wider uppercase">
                 📂 CATEGORÍA: ${categoriaActual}
               </td>
             </tr>
@@ -2096,12 +2112,15 @@
             <td class="p-2.5 text-right align-top font-mono font-medium text-gray-700">
               $${parseFloat(receta.costoUnitario || 0).toFixed(4)}
             </td>
+            <td class="p-2.5 text-center align-top font-mono font-bold text-blue-600">
+              ${parseFloat(receta.factor || 1.5).toFixed(2)}x
+            </td>
             <td class="p-2.5 text-right align-top font-mono font-black text-[#123e1b]">
               $${parseFloat(receta.pvp || 0).toFixed(2)}
             </td>
           </tr>
           <tr class="border-b-2 border-gray-200 bg-slate-50/70">
-            <td colspan="5" class="px-3 pb-2.5 pt-1">
+            <td colspan="6" class="px-3 pb-2.5 pt-1">
               <div class="text-[10px] font-bold text-gray-500 uppercase mb-1">Composición / Ingredientes de Producción:</div>
               <div class="flex flex-wrap gap-1">${listaIngredientes}</div>
             </td>
@@ -2119,6 +2138,7 @@
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
             * { font-family: 'Inter', sans-serif !important; }
+            @page { size: A4 portrait; margin: 10mm; }
             @media print {
               body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0; }
               table { page-break-inside: auto; }
@@ -2147,11 +2167,12 @@
             <table class="w-full text-left border-collapse">
               <thead class="bg-[#e8f5e9] text-[#123e1b] text-xs font-extrabold uppercase border-b-2 border-[#123e1b]">
                 <tr>
-                  <th class="p-2.5 w-2/5">Producto / Receta</th>
-                  <th class="p-2.5 text-center w-1/6">Categoría</th>
-                  <th class="p-2.5 text-center w-1/6">Rendimiento / Lote</th>
-                  <th class="p-2.5 text-right w-1/8">Costo Unit. ($)</th>
-                  <th class="p-2.5 text-right w-1/8">PVP Sug. ($)</th>
+                  <th class="p-2.5 w-1/3">Producto / Receta</th>
+                  <th class="p-2.5 text-center">Categoría</th>
+                  <th class="p-2.5 text-center">Rendimiento / Lote</th>
+                  <th class="p-2.5 text-right">Costo Unit. ($)</th>
+                  <th class="p-2.5 text-center">Factor</th>
+                  <th class="p-2.5 text-right">PVP Sug. ($)</th>
                 </tr>
               </thead>
               <tbody>
@@ -2243,6 +2264,8 @@
       const receta = recetasCatalogo.find(r => String(r.id) === String(id));
       if (!receta) return;
 
+      idRecetaFichaActual = receta.id;
+
       document.getElementById('modalNombre').textContent = limpiarNombreBase(receta.nombre);
       document.getElementById('modalCategoria').textContent = receta.categoria;
       
@@ -2279,7 +2302,150 @@
       document.getElementById('fichaModal').classList.add('hidden');
     }
 
-    
+    // IMPRESIÓN INDIVIDUAL DE FICHA EN DOCUMENTO AISLADO CON CAMPO FACTOR/UTILIDAD
+    function imprimirFichaTecnicaIndividual(id) {
+      const targetId = id || idRecetaFichaActual;
+      const receta = recetasCatalogo.find(r => String(r.id) === String(targetId));
+      if (!receta) return;
+
+      const rendimientoStr = receta.tipo === 'und'
+        ? `${receta.piezas || 1} Unidades`
+        : `${receta.rendimiento || 1} KG/LT`;
+
+      let filasIngredientesHtml = '';
+      (receta.ingredientes || []).forEach(ing => {
+        const esIngBase = esInsumoBase(ing.insumoId, ing.nombre);
+        const prefijoStar = esIngBase ? '⭐ ' : '';
+        filasIngredientesHtml += `
+          <tr class="border-b border-gray-200 text-sm">
+            <td class="p-3 font-bold text-gray-900">${prefijoStar}${limpiarNombreBase(ing.nombre)}</td>
+            <td class="p-3 text-center font-bold text-gray-700">${ing.cantidad} ${ing.unidad || ''}</td>
+            <td class="p-3 text-right font-medium text-gray-600 font-mono">$${parseFloat(ing.costoUnit || 0).toFixed(4)}</td>
+            <td class="p-3 text-right font-bold text-gray-900 font-mono">$${parseFloat(ing.costoTotal || 0).toFixed(4)}</td>
+          </tr>
+        `;
+      });
+
+      const htmlContenido = `
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <title>Ficha Técnica - ${limpiarNombreBase(receta.nombre)}</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+            * { font-family: 'Inter', sans-serif !important; }
+            
+            @page {
+              size: A4 portrait;
+              margin: 0mm;
+            }
+            
+            body {
+              background: #ffffff;
+              padding: 40px 20px;
+              margin: 0;
+              color: #111827;
+              display: flex;
+              justify-content: center;
+              align-items: flex-start;
+            }
+
+            .ficha-container {
+              width: 85%;
+              margin: 0 auto;
+              border: 2px solid #123e1b;
+              border-radius: 16px;
+              padding: 32px;
+              box-shadow: none;
+            }
+
+            @media print {
+              body { padding: 20px; }
+              .ficha-container { width: 85%; }
+            }
+          </style>
+        </head>
+        <body class="bg-white">
+          <div class="ficha-container">
+            <!-- ENCABEZADO DE LA FICHA -->
+            <div class="flex justify-between items-start border-b-2 border-[#123e1b] pb-4 mb-6">
+              <div class="flex items-center gap-4">
+                <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-14 w-auto object-contain">
+                <div>
+                  <h1 class="text-xl font-black text-[#123e1b] tracking-tight">GALERÍA HIPERMARKET</h1>
+                  <p class="text-xs font-bold text-gray-500 uppercase">Departamento de Costos y Producción</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="inline-block bg-[#e8f5e9] text-[#123e1b] border border-[#a7f3d0] text-xs px-3 py-1.5 rounded-full font-extrabold uppercase">Ficha Técnica de Producción</span>
+                <p class="text-xs text-gray-500 mt-2 font-semibold">Fecha: ${receta.fecha || obtenerFechaHoraActual()}</p>
+              </div>
+            </div>
+
+            <!-- DATOS DE LA RECETA CON FACTOR / UTILIDAD -->
+            <div class="mb-6">
+              <h2 class="text-3xl font-black text-gray-900 tracking-tight mb-5 uppercase">${limpiarNombreBase(receta.nombre)}</h2>
+              <div class="grid grid-cols-5 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-200 text-sm">
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">CATEGORÍA</span>
+                  <span class="font-extrabold text-gray-900 text-sm">${receta.categoria}</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">RENDIMIENTO</span>
+                  <span class="font-extrabold text-gray-900 text-sm">${rendimientoStr}</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">COSTO UNITARIO</span>
+                  <span class="font-extrabold text-[#123e1b] text-sm">$${parseFloat(receta.costoUnitario || 0).toFixed(4)}</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">FACTOR / UTILIDAD</span>
+                  <span class="font-extrabold text-blue-600 text-sm">${parseFloat(receta.factor || 1.5).toFixed(2)}x</span>
+                </div>
+                <div>
+                  <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">PVP SUGERIDO</span>
+                  <span class="font-extrabold text-orange-600 text-sm">$${parseFloat(receta.pvp || 0).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- COMPOSICIÓN DE INGREDIENTES -->
+            <div class="mb-6">
+              <h3 class="font-extrabold text-gray-600 text-xs uppercase tracking-wider mb-3">COMPOSICIÓN DE INGREDIENTES / SUB-RECETAS</h3>
+              <div class="border border-gray-300 rounded-xl overflow-hidden">
+                <table class="w-full text-sm text-left">
+                  <thead class="bg-[#e8f5e9] text-[#123e1b] font-extrabold uppercase border-b border-gray-300">
+                    <tr>
+                      <th class="p-3 w-1/2">Ingrediente / Base</th>
+                      <th class="p-3 text-center">Cantidad Utilizada</th>
+                      <th class="p-3 text-right">P. Venta Usado ($)</th>
+                      <th class="p-3 text-right">Costo Total ($)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${filasIngredientesHtml}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 300);
+            }
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      const ventana = window.open('', '_blank', 'width=950,height=800');
+      ventana.document.open();
+      ventana.document.write(htmlContenido);
+      ventana.document.close();
+    }
   </script>
 </body>
 </html>
