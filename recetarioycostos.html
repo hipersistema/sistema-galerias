@@ -608,7 +608,7 @@
             <span id="badgeCodigoProtegido" class="bg-[#dcfce7] text-[#166534] px-2.5 py-1 rounded-md text-xs font-mono font-extrabold border border-[#bbf7d0]">000000</span>
             <h3 id="tituloNombreProtegido" class="text-base font-extrabold text-gray-900 uppercase">NOMBRE DEL INSUMO</h3>
           </div>
-          <p class="text-xs text-gray-500 font-medium mt-1">Gestión de Precios, Histórico de Cambios y Eliminación</p>
+          <p class="text-xs text-gray-500 font-medium mt-1">Gestión de Insumo, Precios, Histórico y Eliminación</p>
         </div>
         <button onclick="cerrarModalAccionesProtegidas()" class="text-gray-400 hover:text-gray-600 font-bold text-2xl leading-none">&times;</button>
       </div>
@@ -617,7 +617,26 @@
 
       <div class="bg-slate-50 p-4 rounded-xl border border-gray-200 mb-4 space-y-3">
         <div class="flex items-center gap-1.5 text-xs font-bold text-[#15803d] uppercase tracking-wide">
-          <span>✏️ ACTUALIZAR PRECIOS</span>
+          <span>✏️ EDITAR INFORMACIÓN Y PRECIOS</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Nombre / Descripción del Insumo</label>
+            <input type="text" id="nombreInsumoProtegidoInput" placeholder="Ej. POLLO A LA BROASTER" class="w-full p-2.5 border border-gray-300 rounded-lg text-xs font-bold bg-white focus:ring-2 focus:ring-[#2e7d32] outline-none uppercase">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Unidad de Medida</label>
+            <select id="unidadInsumoProtegidoSelect" class="w-full p-2.5 border border-gray-300 rounded-lg text-xs font-bold bg-white focus:ring-2 focus:ring-[#2e7d32] outline-none">
+              <option value="UND">Unidades (und)</option>
+              <option value="KG">Kilogramos (kg)</option>
+              <option value="LT">Litros (lt)</option>
+              <option value="GR">Gramos (g / gr / grs)</option>
+              <option value="ML">Mililitros (ml)</option>
+              <option value="PAQ">Paquete (pq)</option>
+              <option value="CC">Centímetro Cúbico (cc)</option>
+            </select>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -632,7 +651,7 @@
         </div>
 
         <button onclick="guardarPrecioHistórico()" class="w-full bg-[#16a34a] hover:bg-[#15803d] text-white py-2.5 rounded-lg font-bold text-xs shadow transition-all flex items-center justify-center gap-2">
-          💾 Guardar Nuevo Precio y Registrar Histórico
+          💾 Guardar Cambios y Registrar Histórico
         </button>
       </div>
 
@@ -788,8 +807,9 @@
                               <option value="GR">Gramo (GR)</option>
                               <option value="LT">Litro (LT)</option>
                               <option value="ML">Mililitro (ML)</option>
-                              <option value="UNID">Unidad (UNID)</option>
-                              <option value="OZ">Onza (OZ)</option>
+                              <option value="UND">Unidad (UND)</option>
+                              <option value="PAQ">Paquete (PAQ)</option>
+                              <option value="CC">Centímetro Cúbico (CC)</option>
                           </select>
                       </div>
                   </div>
@@ -1001,7 +1021,7 @@
         if (authContainer) {
           authContainer.innerHTML = `
             <div class="user-profile-badge">
-              <span>Bienvenid@<strong>${nombreFormateado}</strong></span>
+              <span>Bienvenid@, <strong>${nombreFormateado}</strong></span>
               <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
             </div>
           `;
@@ -1388,11 +1408,24 @@
 
       document.getElementById('idInsumoProtegido').value = insumo.id;
       document.getElementById('badgeCodigoProtegido').textContent = insumo.codigo || '000000';
-      document.getElementById('tituloNombreProtegido').textContent = limpiarNombreBase(insumo.nombre) || '';
+      const nombreFormateado = limpiarNombreBase(insumo.nombre) || '';
+      document.getElementById('tituloNombreProtegido').textContent = nombreFormateado;
+      document.getElementById('nombreInsumoProtegidoInput').value = nombreFormateado;
 
-      document.getElementById('costoVisualInput').value = parseFloat(insumo.precio || 0).toFixed(2);
+      // Normalizar unidad existente para preseleccionarla correctamente en el combo
+      let u = (insumo.unidad || 'UND').toUpperCase();
+      if (u === 'G' || u === 'GRS') u = 'GR';
+      if (u === 'PQ' || u === 'UNID') u = u === 'PQ' ? 'PAQ' : 'UND';
+      
+      const selectUnidad = document.getElementById('unidadInsumoProtegidoSelect');
+      if (selectUnidad) {
+        selectUnidad.value = u;
+        if (!selectUnidad.value) selectUnidad.value = 'UND';
+      }
+
+      document.getElementById('costoVisualInput').value = parseFloat(insumo.precio || 0).toFixed(4);
       const costoVentaActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
-      document.getElementById('costoVentaCalculoInput').value = parseFloat(costoVentaActual).toFixed(2);
+      document.getElementById('costoVentaCalculoInput').value = parseFloat(costoVentaActual).toFixed(4);
 
       const tbody = document.getElementById('tablaHistoricoProtegidoBody');
       tbody.innerHTML = '';
@@ -1442,6 +1475,14 @@
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       if (!insumo) return;
 
+      const nuevoNombreRaw = document.getElementById('nombreInsumoProtegidoInput').value.trim();
+      if (!nuevoNombreRaw) {
+        alert("Por favor introduce un nombre válido para el insumo.");
+        return;
+      }
+      const nuevoNombre = limpiarNombreBase(nuevoNombreRaw).toUpperCase();
+      const nuevaUnidad = document.getElementById('unidadInsumoProtegidoSelect').value.toUpperCase();
+
       const nuevoCostoVisual = parseFloat(document.getElementById('costoVisualInput').value);
       const nuevoCostoVenta = parseFloat(document.getElementById('costoVentaCalculoInput').value);
 
@@ -1453,21 +1494,28 @@
       const costoAnt = insumo.precio;
       const costoVentaAnt = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
 
+      // Evaluar si hubo cambio de costo para registrar entrada en el historial
+      const huboCambioPrecio = (costoAnt !== nuevoCostoVisual) || (costoVentaAnt !== nuevoCostoVenta);
+
+      insumo.nombre = nuevoNombre;
+      insumo.unidad = nuevaUnidad;
       insumo.precio = nuevoCostoVisual;
       insumo.costoVenta = nuevoCostoVenta;
 
-      if (!insumo.historial) insumo.historial = [];
-      insumo.historial.push({
-        fecha: obtenerFechaHoraActual(),
-        costoAnt: costoAnt,
-        costoNuevo: nuevoCostoVisual,
-        costoVentaAnt: costoVentaAnt,
-        costoVentaNuevo: nuevoCostoVenta
-      });
+      if (huboCambioPrecio) {
+        if (!insumo.historial) insumo.historial = [];
+        insumo.historial.push({
+          fecha: obtenerFechaHoraActual(),
+          costoAnt: costoAnt,
+          costoNuevo: nuevoCostoVisual,
+          costoVentaAnt: costoVentaAnt,
+          costoVentaNuevo: nuevoCostoVenta
+        });
+      }
 
       const res = await guardarInsumoSupabase(insumo);
       if (!res.success) {
-        alert("⚠️ Error al actualizar precios en Supabase: " + (res.error?.message || "Error RLS o de red."));
+        alert("⚠️ Error al actualizar insumo en Supabase: " + (res.error?.message || "Error RLS o de red."));
         return;
       }
 
@@ -1478,7 +1526,7 @@
       renderizarFilasCreador();
       if (typeof recalcularEscandallo === 'function') recalcularEscandallo();
 
-      alert("✅ Nuevos precios e histórico actualizados exitosamente.");
+      alert("✅ Insumo e información actualizados exitosamente.");
       cerrarModalAccionesProtegidas();
     }
 
@@ -2230,6 +2278,8 @@
     function cerrarFichaModal() {
       document.getElementById('fichaModal').classList.add('hidden');
     }
+
+    
   </script>
 </body>
 </html>
