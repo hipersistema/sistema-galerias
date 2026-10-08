@@ -1,1115 +1,555 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Principal - Hipergalerias</title>
-    
-    <!-- Fuente Inter desde Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- SDK de Supabase y archivo de conexión -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="conexion.js"></script>
-
-    <style>
-        :root {
-            --green-dark: #0e3316;
-            --green-primary: #1b5e20;
-            --green-light: #2e7d32;
-            --green-bg: #f0fdf4;
-            --yellow-brand: #f5b000;
-            --orange-brand: #d35400;
-            --red-brand: #c0392b;
-            --gray-bg: #f8fafc;
-            --header-bg: #ffffff;
-            --card-bg: #ffffff;
-            --border-color: #e2e8f0;
-            --text-color: #0f172a;
-            --text-muted: #64748b;
-        }
-
-        /* TEMA OSCURO */
-        body.dark-mode {
-            --green-dark: #22c55e;
-            --green-primary: #166534;
-            --green-light: #15803d;
-            --green-bg: #064e3b;
-            --gray-bg: #0f172a;
-            --header-bg: #1e293b;
-            --card-bg: #1e293b;
-            --border-color: #334155;
-            --text-color: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--gray-bg);
-            color: var(--text-color);
-            -webkit-font-smoothing: antialiased;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-
-        header {
-            background-color: var(--header-bg);
-            padding: 14px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 3px solid var(--yellow-brand);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
-        }
-
-        .header-brand-container {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logo-container {
-            height: 50px;
-            display: flex;
-            align-items: center;
-        }
-
-        .logo-container img {
-            height: 100%;
-            width: auto;
-            object-fit: contain;
-            display: block;
-            mix-blend-mode: multiply;
-        }
-
-        body.dark-mode .logo-container img {
-            mix-blend-mode: normal;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-        }
-
-        .header-titles h1 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: var(--green-dark);
-            font-weight: 800;
-            text-transform: uppercase;
-            display: none;
-        }
-
-        .header-titles p {
-            margin: 0;
-            font-size: 1.05rem;
-            color: var(--green-dark);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        /* BARRA SUPERIOR DERECHA */
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .user-profile-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background-color: var(--green-bg);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-color);
-            white-space: nowrap;
-        }
-
-        .btn-login-trigger {
-            background-color: #0e3316;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.82rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-family: inherit;
-        }
-
-        .btn-login-trigger:hover {
-            background-color: #1b5e20;
-        }
-
-        body.dark-mode .btn-login-trigger {
-            background-color: #166534;
-        }
-
-        body.dark-mode .btn-login-trigger:hover {
-            background-color: #22c55e;
-        }
-
-        .btn-logout {
-            background-color: #ef4444;
-            color: white;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .btn-logout:hover {
-            background-color: #dc2626;
-        }
-
-        /* INTERRUPTOR MODO OSCURO */
-        .theme-switch-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background-color: #f1f5f9;
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .theme-switch-wrapper {
-            background-color: #334155;
-            border-color: #475569;
-        }
-
-        .theme-label {
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--text-color);
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .theme-switch {
-            display: inline-block;
-            height: 22px;
-            position: relative;
-            width: 42px;
-        }
-
-        .theme-switch input {
-            display: none;
-        }
-
-        .slider {
-            background-color: #cbd5e1;
-            bottom: 0;
-            cursor: pointer;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            transition: .3s;
-        }
-
-        .slider:before {
-            background-color: #fff;
-            bottom: 3px;
-            content: "";
-            height: 16px;
-            left: 3px;
-            position: absolute;
-            transition: .3s;
-            width: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-        }
-
-        input:checked + .slider {
-            background-color: #22c55e;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
-
-        .slider.round {
-            border-radius: 22px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
-        }
-
-        .container {
-            max-width: 1300px;
-            margin: 32px auto;
-            padding: 0 24px;
-        }
-
-        .welcome-card {
-            background: linear-gradient(135deg, #0e3316 0%, #1b5e20 100%);
-            color: white;
-            padding: 28px 32px;
-            border-radius: 18px;
-            margin-bottom: 28px;
-            box-shadow: 0 10px 25px -5px rgba(14, 51, 22, 0.25);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        body.dark-mode .welcome-card {
-            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-        }
-
-        .welcome-text {
-            position: relative;
-            z-index: 2;
-        }
-
-        .welcome-text h2 {
-            margin: 0 0 6px 0;
-            font-size: 1.45rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-        }
-
-        .welcome-text p {
-            margin: 0;
-            opacity: 0.9;
-            font-size: 0.9rem;
-            font-weight: 400;
-        }
-
-        .welcome-card-watermark {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%) rotate(-10deg);
-            height: 160px;
-            width: auto;
-            opacity: 0.20;
-            filter: grayscale(30%);
-            pointer-events: none;
-            user-select: none;
-            z-index: 1;
-        }
-
-        body.dark-mode .welcome-card-watermark {
-            opacity: 0.25;
-            filter: brightness(1.1);
-        }
-
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 24px;
-        }
-
-        .module-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -2px rgba(0, 0, 0, 0.02);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .module-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 5px;
-            height: 100%;
-            background: linear-gradient(to bottom, #1b5e20, var(--yellow-brand));
-        }
-
-        .module-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
-            border-color: #cbd5e1;
-        }
-
-        body.dark-mode .module-card:hover {
-            border-color: #475569;
-        }
-
-        .module-card.disabled {
-            opacity: 0.65;
-            background-color: var(--gray-bg);
-        }
-
-        .module-card.disabled::before {
-            background: #94a3b8;
-        }
-
-        .module-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .module-icon {
-            font-size: 1.6rem;
-            background-color: var(--green-bg);
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            flex-shrink: 0;
-            transition: background-color 0.3s ease;
-        }
-
-        .module-card.disabled .module-icon {
-            background-color: #f1f5f9;
-        }
-
-        body.dark-mode .module-card.disabled .module-icon {
-            background-color: #334155;
-        }
-
-        .module-title-zone h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: var(--text-color);
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .module-card.disabled .module-title-zone h3 {
-            color: #64748b;
-        }
-
-        .module-badge {
-            display: inline-block;
-            font-size: 0.68rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 6px;
-            margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .badge-active { background-color: #dcfce7; color: #15803d; }
-        body.dark-mode .badge-active { background-color: #064e3b; color: #4ade80; }
-
-        .badge-pending { background-color: #f1f5f9; color: #64748b; }
-        body.dark-mode .badge-pending { background-color: #334155; color: #94a3b8; }
-
-        .dashboard-metrics {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .dashboard-metrics.cols-3 {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .metric-box {
-            background-color: var(--gray-bg);
-            border: 1px solid var(--border-color);
-            padding: 12px 10px;
-            border-radius: 12px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .metric-title {
-            font-size: 0.65rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
-        }
-
-        .metric-value {
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: var(--text-muted);
-            letter-spacing: -0.02em;
-        }
-
-        .metric-box.state-alert-green { background-color: #f0fdf4; border-color: #bbf7d0; }
-        .metric-box.state-alert-green .metric-value { color: #166534; }
-
-        .metric-box.state-alert-blue { background-color: #f0f9ff; border-color: #bae6fd; }
-        .metric-box.state-alert-blue .metric-value { color: #0369a1; }
-
-        .metric-box.state-alert-orange { background-color: #fff7ed; border-color: #fed7aa; }
-        .metric-box.state-alert-orange .metric-value { color: #c2410c; }
-
-        .metric-box.state-alert-red { background-color: #fef2f2; border-color: #fecaca; }
-        .metric-box.state-alert-red .metric-value { color: #b91c1c; }
-
-        body.dark-mode .metric-box.state-alert-green { background-color: #064e3b; border-color: #047857; }
-        body.dark-mode .metric-box.state-alert-green .metric-value { color: #4ade80; }
-
-        body.dark-mode .metric-box.state-alert-blue { background-color: #0c4a6e; border-color: #0369a1; }
-        body.dark-mode .metric-box.state-alert-blue .metric-value { color: #38bdf8; }
-
-        body.dark-mode .metric-box.state-alert-orange { background-color: #7c2d12; border-color: #c2410c; }
-        body.dark-mode .metric-box.state-alert-orange .metric-value { color: #fb923c; }
-
-        body.dark-mode .metric-box.state-alert-red { background-color: #7f1d1d; border-color: #b91c1c; }
-        body.dark-mode .metric-box.state-alert-red .metric-value { color: #f87171; }
-
-        .btn-module {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 11px 18px;
-            background-color: #0e3316;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.88rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-module:hover {
-            background-color: #1b5e20;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        body.dark-mode .btn-module {
-            background-color: #166534;
-            color: #ffffff;
-        }
-
-        body.dark-mode .btn-module:hover {
-            background-color: #22c55e;
-        }
-
-        .btn-module.disabled {
-            background-color: #e2e8f0;
-            color: #94a3b8;
-            cursor: not-allowed;
-            pointer-events: none;
-            box-shadow: none;
-        }
-
-        body.dark-mode .btn-module.disabled {
-            background-color: #334155;
-            color: #64748b;
-        }
-
-        /* MODAL DE LOGIN BLOQUEANTE */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .login-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 400px;
-            padding: 32px;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-        }
-
-        .login-card h3 {
-            margin: 0 0 8px 0;
-            color: var(--text-color);
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-
-        .login-card p {
-            margin: 0 0 20px 0;
-            color: var(--text-muted);
-            font-size: 0.88rem;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 11px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background-color: var(--gray-bg);
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 0.9rem;
-            box-sizing: border-box;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #22c55e;
-        }
-
-        .login-error-msg {
-            color: #ef4444;
-            font-size: 0.82rem;
-            margin-bottom: 14px;
-            display: none;
-            font-weight: 600;
-        }
-
-        .login-actions {
-            margin-top: 24px;
-        }
-
-        .btn-submit-login {
-            width: 100%;
-            background-color: #22c55e;
-            color: #0e3316;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            font-family: inherit;
-            transition: background-color 0.2s;
-        }
-
-        .btn-submit-login:hover {
-            background-color: #16a34a;
-            color: #ffffff;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Principal - Hipergalerias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
+<script src="conexion.js"></script>
+<style>
+:root{--g9:#0b2e14;--g7:#14532d;--g5:#1b7a3a;--g4:#22a04c;--gold:#f5b000;--bg:#f3f6f4;--surface:#fff;--soft:#f6f9f7;--line:#e1e8e3;--tx:#10201a;--mu:#5b6d64;--shadow:0 1px 2px rgba(16,32,26,.05),0 8px 24px -12px rgba(16,32,26,.12);--ease:cubic-bezier(.22,.8,.3,1)}
+body.dark-mode{--bg:#0a1310;--surface:#111e19;--soft:#0e1914;--line:#223a30;--tx:#eaf4ee;--mu:#93aa9f;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -12px rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;animation:pageIn .5s var(--ease) both;transition:background .3s,color .3s,opacity .22s ease}
+body.leaving{opacity:0}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes shimmer{to{background-position:-200% 0}}
+:focus-visible{outline:3px solid var(--g4);outline-offset:2px;border-radius:8px}
+.skip{position:absolute;left:12px;top:-60px;background:var(--g7);color:#fff;padding:10px 14px;border-radius:8px;z-index:10000;text-decoration:none;font-weight:600;transition:top .2s}
+.skip:focus{top:12px}
+
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 32px;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:3px solid var(--gold);transition:background .3s}
+.brand{display:flex;align-items:center;gap:16px}
+.logo-container{height:48px;display:flex;align-items:center}
+.logo-container img{height:100%;width:auto;object-fit:contain;mix-blend-mode:multiply}
+body.dark-mode .logo-container img{mix-blend-mode:normal;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.titles .eyebrow{display:block;font-size:.66rem;font-weight:700;letter-spacing:.14em;color:var(--g5)}
+.titles h1{margin:0;font-size:1.08rem;font-weight:700;letter-spacing:-.02em}
+body.dark-mode .titles .eyebrow{color:var(--g4)}
+.header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+.theme-switch-wrapper{display:flex;align-items:center;gap:10px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--soft);transition:background .3s,border-color .3s}
+.theme-label{font-size:.8rem;font-weight:600;user-select:none;white-space:nowrap}
+.theme-switch{position:relative;display:inline-block;width:42px;height:22px}
+.theme-switch input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:2}
+.slider{position:absolute;inset:0;background:#c3cfc8;border-radius:22px;transition:background .3s}
+.slider:before{content:"";position:absolute;left:3px;bottom:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .3s var(--ease)}
+.theme-switch input:checked+.slider{background:var(--g4)}
+.theme-switch input:checked+.slider:before{transform:translateX(20px)}
+.theme-switch input:focus-visible+.slider{outline:3px solid var(--g4);outline-offset:2px}
+
+.user-profile-badge{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:.82rem;font-weight:500;white-space:nowrap;animation:rise .4s var(--ease) both}
+.btn-login-trigger,.btn-logout{font-family:inherit;border:0;cursor:pointer;font-weight:700;transition:background .2s,transform .15s}
+.btn-login-trigger{background:var(--g7);color:#fff;padding:9px 18px;border-radius:999px;font-size:.82rem}
+.btn-login-trigger:hover{background:var(--g5);transform:translateY(-1px)}
+.btn-logout{background:#ef4444;color:#fff;padding:6px 12px;border-radius:999px;font-size:.75rem}
+.btn-logout:hover{background:#dc2626}
+
+.container{max-width:1280px;margin:28px auto 48px;padding:0 24px}
+.welcome-card{position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:#fff;padding:30px 34px;border-radius:20px;margin-bottom:26px;background:linear-gradient(120deg,#0b2e14,#1b7a3a 60%,#14532d);background-size:160% 160%;animation:rise .6s var(--ease) both,flow 14s ease-in-out infinite;box-shadow:var(--shadow)}
+@keyframes flow{50%{background-position:100% 50%}}
+body.dark-mode .welcome-card{background:linear-gradient(120deg,#052e22,#047857 60%,#064e3b);background-size:160% 160%}
+.welcome-text{position:relative;z-index:2}
+.welcome-text h2{margin:0 0 6px;font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.welcome-text p{margin:0;font-size:.92rem;opacity:.9;max-width:560px}
+.welcome-card-watermark{position:absolute;right:130px;top:50%;transform:translateY(-50%) rotate(-10deg);height:170px;opacity:.14;pointer-events:none;user-select:none}
+
+.section-title{margin:0 0 14px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px}
+.module-card{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:24px 24px 22px 28px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);animation:rise .55s var(--ease) both;animation-delay:calc(var(--i)*80ms + 150ms);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
+.module-card:before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:linear-gradient(var(--g5),var(--gold))}
+.module-card:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--g4) 45%,var(--line));box-shadow:0 24px 40px -18px rgba(16,32,26,.25)}
+.module-card.disabled{background:var(--soft);box-shadow:none}
+.module-card.disabled:before{background:#a8b5ad}
+.module-card.disabled:hover{transform:none;border-color:var(--line)}
+.module-header{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.module-icon{flex:none;width:50px;height:50px;display:grid;place-items:center;font-size:1.55rem;border-radius:14px;background:color-mix(in srgb,var(--g4) 14%,var(--surface));transition:transform .3s var(--ease)}
+.module-card:hover .module-icon{transform:scale(1.08)}
+.lottie-icon{display:block;width:100%;height:100%}
+.module-card.disabled .module-icon{background:var(--line);filter:grayscale(1);opacity:.7}
+.module-title-zone h3{margin:0;font-size:1.08rem;font-weight:700;letter-spacing:-.02em}
+.module-desc{margin:4px 0 0;font-size:.8rem;color:var(--mu);line-height:1.4;min-height:calc(2 * 1.4em)}
+
+.dashboard-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
+.dashboard-metrics.cols-3{grid-template-columns:repeat(3,1fr)}
+.metric-box{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:12px 8px;background:var(--soft);border:1px solid var(--line);border-radius:12px;transition:background .3s,border-color .3s,transform .2s;cursor:help}
+.metric-box:hover{transform:translateY(-2px)}
+.metric-title{margin-bottom:4px;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
+.metric-value{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;color:var(--mu);font-variant-numeric:tabular-nums}
+.state-alert-green{background:#f0fdf4;border-color:#bbf7d0}.state-alert-green .metric-value{color:#166534}
+.state-alert-blue{background:#f0f9ff;border-color:#bae6fd}.state-alert-blue .metric-value{color:#0369a1}
+.state-alert-orange{background:#fff7ed;border-color:#fed7aa}.state-alert-orange .metric-value{color:#c2410c}
+.state-alert-red{background:#fef2f2;border-color:#fecaca}.state-alert-red .metric-value{color:#b91c1c}
+body.dark-mode .state-alert-green{background:#064e3b;border-color:#047857}body.dark-mode .state-alert-green .metric-value{color:#4ade80}
+body.dark-mode .state-alert-blue{background:#0c4a6e;border-color:#0369a1}body.dark-mode .state-alert-blue .metric-value{color:#38bdf8}
+body.dark-mode .state-alert-orange{background:#7c2d12;border-color:#c2410c}body.dark-mode .state-alert-orange .metric-value{color:#fb923c}
+body.dark-mode .state-alert-red{background:#7f1d1d;border-color:#b91c1c}body.dark-mode .state-alert-red .metric-value{color:#f87171}
+.is-loading .metric-value{color:transparent;border-radius:8px;background:linear-gradient(90deg,var(--line) 25%,var(--soft) 50%,var(--line) 75%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+
+.btn-module{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;background:var(--g7);color:#fff;text-decoration:none;border-radius:12px;font-size:.88rem;font-weight:600;transition:background .2s,transform .2s,box-shadow .2s}
+.btn-module span{transition:transform .25s var(--ease)}
+.btn-module:hover{background:var(--g5);box-shadow:0 8px 18px -8px rgba(20,83,45,.6)}
+.btn-module:hover span{transform:translateX(5px)}
+.btn-module:active{transform:scale(.98)}
+.btn-module.disabled{background:var(--line);color:var(--mu);cursor:not-allowed;pointer-events:none;box-shadow:none}
+body.dark-mode .btn-module{background:#166534}body.dark-mode .btn-module:hover{background:#22a04c}
+
+.modal-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,14,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease,visibility 0s linear .3s}
+.modal-overlay.active{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s ease,visibility 0s}
+.login-card{width:100%;max-width:410px;padding:34px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 60px -15px rgba(0,0,0,.45);transform:translateY(18px) scale(.97);transition:transform .35s var(--ease)}
+.modal-overlay.active .login-card{transform:none}
+.login-card h3{margin:0 0 6px;font-size:1.35rem;font-weight:800;letter-spacing:-.02em}
+.login-card p{margin:0 0 22px;font-size:.88rem;color:var(--mu)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:6px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
+.form-control{width:100%;padding:12px 14px;font:inherit;font-size:.92rem;color:var(--tx);background:var(--soft);border:1px solid var(--line);border-radius:12px;transition:border-color .2s,box-shadow .2s}
+.form-control:focus{outline:none;border-color:var(--g4);box-shadow:0 0 0 4px color-mix(in srgb,var(--g4) 22%,transparent)}
+.pw-wrap{position:relative}.pw-wrap .form-control{padding-right:46px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;cursor:pointer;font-size:1rem;border-radius:8px}
+.pw-toggle:hover{background:var(--line)}
+.login-error-msg{display:none;margin-bottom:14px;padding:10px 12px;font-size:.82rem;font-weight:600;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;animation:rise .3s var(--ease)}
+body.dark-mode .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b91c1c}
+.btn-submit-login{width:100%;margin-top:6px;padding:13px;font:inherit;font-weight:700;font-size:.95rem;color:#fff;background:var(--g5);border:0;border-radius:12px;cursor:pointer;transition:background .2s,transform .15s}
+.btn-submit-login:hover{background:var(--g7)}
+.btn-submit-login:active{transform:scale(.98)}
+.btn-submit-login:disabled{opacity:.65;cursor:wait}
+
+@media(max-width:700px){header{padding:10px 16px}.container{padding:0 14px}.welcome-card{padding:22px}.welcome-card-watermark{display:none}.theme-label{display:none}}
+@media(prefers-reduced-motion:reduce){*,*:before{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body>
+<a class="skip" href="#main">Saltar al contenido</a>
 
-    <header>
-        <div class="header-brand-container">
-            <div class="logo-container">
-                <img src="logo.png" alt="Galeria Hipermarket Logo" onerror="this.onerror=null; this.src='logo.jpeg';">
-            </div>
-            <div class="header-titles">
-                <h1>HIPERGALERIAS</h1>
-                <p>Sistema Centralizado de Gestión</p>
-            </div>
-        </div>
-        
-        <div class="header-actions">
-            <!-- Conmutador Modo Oscuro -->
-            <div class="theme-switch-wrapper">
-                <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
-                <label class="theme-switch" for="checkboxTheme">
-                    <input type="checkbox" id="checkboxTheme" onchange="toggleDarkTheme(this.checked)">
-                    <div class="slider round"></div>
-                </label>
-            </div>
-
-            <!-- Contenedor dinámico de Login / Sesión -->
-            <div id="userAuthContainer"></div>
-        </div>
-    </header>
-
-    <div class="container">
-        <div class="welcome-card">
-            <div class="welcome-text">
-                <h2>Panel de Control Ejecutivo</h2>
-                <p>Supervisión general de operaciones, inventarios, costos y sistemas de Hipergalerías.</p>
-            </div>
-            <img src="logo solo g.png" alt="Galeria G Watermark" class="welcome-card-watermark" onerror="this.onerror=null; this.src='logo.png';">
-        </div>
-
-        <div class="modules-grid">
-            <!-- RECEPCIÓN Y FECHAS -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon">📦</div>
-                        <div class="module-title-zone">
-                            <h3>Recepción y Fechas</h3>
-                            <span class="module-badge badge-active">Activo</span>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics cols-3">
-                        <div class="metric-box" id="box-mod1-optimos">
-                            <span class="metric-title">Óptimos</span>
-                            <span class="metric-value" id="val-mod1-optimos">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod1-porvencer">
-                            <span class="metric-title">Por Vencer</span>
-                            <span class="metric-value" id="val-mod1-porvencer">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod1-vencidos">
-                            <span class="metric-title">Vencidos</span>
-                            <span class="metric-value" id="val-mod1-vencidos">0</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="recepcionyfechas.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recepcionyfechas.html')">Ingresar al Módulo ➔</a>
-            </div>
-
-            <!-- DESCUENTOS EMPLEADOS -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon">👥</div>
-                        <div class="module-title-zone">
-                            <h3>Descuentos Empleados</h3>
-                            <span class="module-badge badge-active">Activo</span>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics cols-3">
-                        <div class="metric-box" id="box-mod2-pendientes">
-                            <span class="metric-title">Pend. Pago</span>
-                            <span class="metric-value" id="val-mod2-pendientes">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod2-parciales">
-                            <span class="metric-title">Parciales</span>
-                            <span class="metric-value" id="val-mod2-parciales">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod2-porcobrar">
-                            <span class="metric-title">Por Cobrar</span>
-                            <span class="metric-value" id="val-mod2-porcobrar">$0</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="modulo2.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo2.html')">Ingresar al Módulo ➔</a>
-            </div>
-
-            <!-- RECETAS Y COSTOS -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon">🍳</div>
-                        <div class="module-title-zone">
-                            <h3>Recetas y Costos</h3>
-                            <span class="module-badge badge-active">Activo</span>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" id="box-mod3-recetas">
-                            <span class="metric-title">Recetas</span>
-                            <span class="metric-value" id="val-mod3-recetas">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod3-ingredientes">
-                            <span class="metric-title">Ingredientes</span>
-                            <span class="metric-value" id="val-mod3-ingredientes">0</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="recetarioycostos.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recetarioycostos.html')">Ingresar al Módulo ➔</a>
-            </div>
-
-            <!-- TI EQUIPOS -->
-            <div class="module-card">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon">🖥️</div>
-                        <div class="module-title-zone">
-                            <h3>TI Equipos</h3>
-                            <span class="module-badge badge-active">Activo</span>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" id="box-mod4-equipos">
-                            <span class="metric-title">Equipos TI</span>
-                            <span class="metric-value" id="val-mod4-equipos">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod4-mant">
-                            <span class="metric-title">Mant. Pendientes</span>
-                            <span class="metric-value" id="val-mod4-mant">0</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="modulo4.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo4.html')">Ingresar al Módulo ➔</a>
-            </div>
-
-            <!-- PENDIENTE 5 -->
-            <div class="module-card disabled">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon">📑</div>
-                        <div class="module-title-zone">
-                            <h3>Pendiente 5</h3>
-                            <span class="module-badge badge-pending">En Desarrollo</span>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" style="opacity: 0.5;">
-                            <span class="metric-title">Estado</span>
-                            <span class="metric-value" style="font-size: 1.05rem;">Próximamente</span>
-                        </div>
-                        <div class="metric-box" style="opacity: 0.5;">
-                            <span class="metric-title">Fase</span>
-                            <span class="metric-value" style="font-size: 1.05rem;">Diseño</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="#" class="btn-module disabled">Próximamente</a>
-            </div>
-
-            <!-- PENDIENTE 6 -->
-            <div class="module-card disabled">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon">📊</div>
-                        <div class="module-title-zone">
-                            <h3>Pendiente 6</h3>
-                            <span class="module-badge badge-pending">En Desarrollo</span>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" style="opacity: 0.5;">
-                            <span class="metric-title">Estado</span>
-                            <span class="metric-value" style="font-size: 1.05rem;">Próximamente</span>
-                        </div>
-                        <div class="metric-box" style="opacity: 0.5;">
-                            <span class="metric-title">Fase</span>
-                            <span class="metric-value" style="font-size: 1.05rem;">Próximamente</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="#" class="btn-module disabled">Próximamente</a>
-            </div>
-        </div>
+<header>
+  <div class="brand">
+    <div class="logo-container"><img src="logo.png" alt="Galeria Hipermarket Logo" onerror="this.onerror=null; this.src='logo.jpeg';"></div>
+    <div class="titles"><span class="eyebrow">HIPERGALERIAS</span><h1>Sistema Centralizado de Gestión</h1></div>
+  </div>
+  <div class="header-actions">
+    <div class="theme-switch-wrapper">
+      <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
+      <label class="theme-switch" for="checkboxTheme" title="Cambiar entre modo claro y oscuro">
+        <input type="checkbox" id="checkboxTheme" aria-label="Activar modo oscuro" onchange="toggleDarkTheme(this.checked)">
+        <div class="slider"></div>
+      </label>
     </div>
+    <div id="userAuthContainer"></div>
+  </div>
+</header>
 
-    <!-- MODAL DE AUTENTICACIÓN BLOQUEANTE -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="login-card">
-            <h3>Acceso al Sistema</h3>
-            <p>Ingresa tus credenciales corporativas para continuar.</p>
-            
-            <form id="loginForm" onsubmit="ejecutarLogin(event)">
-                <div class="form-group">
-                    <label for="loginEmail">Correo Electrónico</label>
-                    <input type="email" id="loginEmail" class="form-control" placeholder="usuario@hipergalerias.com" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="loginPassword">Contraseña</label>
-                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
-                </div>
-
-                <div id="loginError" class="login-error-msg"></div>
-
-                <div class="login-actions">
-                    <button type="submit" class="btn-submit-login" id="btnSubmitLogin">Ingresar</button>
-                </div>
-            </form>
-        </div>
+<main class="container" id="main">
+  <section class="welcome-card">
+    <div class="welcome-text">
+      <h2>Panel de Control Ejecutivo</h2>
+      <p>Supervisión general de operaciones, inventarios, costos y sistemas de Hipergalerías.</p>
     </div>
+    <img src="logo solo g.png" alt="" class="welcome-card-watermark" onerror="this.onerror=null; this.src='logo.png';">
+  </section>
 
-    <script>
-        // --- MANEJO DE MODO OSCURO ---
-        function toggleDarkTheme(isDark) {
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('hipergalerias_theme', 'dark');
-                document.getElementById('themeLabel').innerText = '☀️ Modo claro';
-            } else {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('hipergalerias_theme', 'light');
-                document.getElementById('themeLabel').innerText = '🌙 Modo oscuro';
-            }
-        }
+  <h2 class="section-title">Módulos del sistema</h2>
+  <div class="modules-grid is-loading" id="modulesGrid">
 
-        function cargarTemaGuardado() {
-            const tema = localStorage.getItem('hipergalerias_theme');
-            const checkbox = document.getElementById('checkboxTheme');
-            if (tema === 'dark') {
-                checkbox.checked = true;
-                toggleDarkTheme(true);
-            }
-        }
+    <article class="module-card" style="--i:0">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/e50acea4-cd98-44b2-933f-55fe3271c515/71KxhDvMQj.json" loop data-emoji="📦"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>Recepción y Fechas</h3><p class="module-desc">Registro de mercancía y control de vencimientos.</p></div></div>
+        <div class="dashboard-metrics cols-3">
+          <div class="metric-box" id="box-mod1-optimos" title="Productos con más de 30 días para vencer"><span class="metric-title">Óptimos</span><span class="metric-value" id="val-mod1-optimos">0</span></div>
+          <div class="metric-box" id="box-mod1-porvencer" title="Productos que vencen en 30 días o menos"><span class="metric-title">Por Vencer</span><span class="metric-value" id="val-mod1-porvencer">0</span></div>
+          <div class="metric-box" id="box-mod1-vencidos" title="Productos con fecha de vencimiento pasada"><span class="metric-title">Vencidos</span><span class="metric-value" id="val-mod1-vencidos">0</span></div>
+        </div>
+      </div>
+      <a href="recepcionyfechas.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recepcionyfechas.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
 
-        // --- AUTENTICACIÓN Y BLOQUEO DE PANTALLA ---
-        function abrirModalLogin() {
-            document.getElementById('loginModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('loginError').style.display = 'none';
-        }
+    <article class="module-card" style="--i:1">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/9c924f2d-0a9f-4258-b925-e1582d676f64/W5x2kJgrfs.lottie" loop data-emoji="👥"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>Descuentos para Empleados</h3><p class="module-desc">Cobro de productos al personal.</p></div></div>
+        <div class="dashboard-metrics cols-3">
+          <div class="metric-box" id="box-mod2-pendientes" title="Descuentos sin ningún abono"><span class="metric-title">Pend. Pago</span><span class="metric-value" id="val-mod2-pendientes">0</span></div>
+          <div class="metric-box" id="box-mod2-parciales" title="Descuentos con abono parcial"><span class="metric-title">Parciales</span><span class="metric-value" id="val-mod2-parciales">0</span></div>
+          <div class="metric-box" id="box-mod2-porcobrar" title="Monto total pendiente de cobro"><span class="metric-title">Por Cobrar</span><span class="metric-value" id="val-mod2-porcobrar">$0</span></div>
+        </div>
+      </div>
+      <a href="descuentos.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'descuentos.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
 
-        function cerrarModalLogin() {
-            document.getElementById('loginModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
+    <article class="module-card" style="--i:2">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/acf440ae-9654-4635-884e-d6b0d65d41b1/1MxfDUdyfu.lottie" loop data-emoji="🍳"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>Recetas y Costos</h3><p class="module-desc">Escandallos, insumos y precios sugeridos.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" id="box-mod3-recetas" title="Recetas guardadas en el catálogo"><span class="metric-title">Recetas</span><span class="metric-value" id="val-mod3-recetas">0</span></div>
+          <div class="metric-box" id="box-mod3-ingredientes" title="Insumos e ingredientes registrados"><span class="metric-title">Ingredientes</span><span class="metric-value" id="val-mod3-ingredientes">0</span></div>
+        </div>
+      </div>
+      <a href="recetarioycostos.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recetarioycostos.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
 
-        async function ejecutarLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            const btnSubmit = document.getElementById('btnSubmitLogin');
+    <article class="module-card" style="--i:3">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/67d95dba-3dc3-48a1-ae7a-ec7b94f866c6/GX8l7QoSYJ.lottie" loop data-emoji="🖥️"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>TI Equipos</h3><p class="module-desc">Inventario y mantenimiento de equipos.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" id="box-mod4-equipos" title="Equipos registrados"><span class="metric-title">Equipos TI</span><span class="metric-value" id="val-mod4-equipos">0</span></div>
+          <div class="metric-box" id="box-mod4-mant" title="Mantenimientos por realizar"><span class="metric-title">Mant. Pendientes</span><span class="metric-value" id="val-mod4-mant">0</span></div>
+        </div>
+      </div>
+      <a href="modulo4.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo4.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
 
-            errorDiv.style.display = 'none';
-            btnSubmit.innerText = 'Verificando...';
-            btnSubmit.disabled = true;
+    <article class="module-card disabled" style="--i:4" aria-disabled="true">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true">📑</div>
+          <div class="module-title-zone"><h3>Pendiente 5</h3><p class="module-desc">Módulo reservado para una próxima fase.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span class="metric-value" style="font-size:1.05rem">Diseño</span></div>
+        </div>
+      </div>
+      <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
+    </article>
 
-            if (typeof supabaseClient === 'undefined') {
-                alert("Atención: No se ha encontrado la configuración de Supabase en 'conexion.js'.");
-                btnSubmit.innerText = 'Ingresar';
-                btnSubmit.disabled = false;
-                return;
-            }
+    <article class="module-card disabled" style="--i:5" aria-disabled="true">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true">📊</div>
+          <div class="module-title-zone"><h3>Pendiente 6</h3><p class="module-desc">Módulo reservado para una próxima fase.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
+        </div>
+      </div>
+      <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
+    </article>
+  </div>
+</main>
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="login-card">
+    <h3 id="loginTitle">Acceso al Sistema</h3>
+    <p>Ingresa tus credenciales corporativas para continuar.</p>
+    <form id="loginForm" onsubmit="ejecutarLogin(event)">
+      <div class="form-group">
+        <label for="loginEmail">Correo Electrónico</label>
+        <input type="email" id="loginEmail" class="form-control" placeholder="usuario@hipergalerias.com" autocomplete="username" required>
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Contraseña</label>
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-label="Mostrar contraseña" title="Mostrar u ocultar contraseña" onclick="alternarPassword()">👁️</button>
+        </div>
+      </div>
+      <div id="loginError" class="login-error-msg" role="alert"></div>
+      <button type="submit" class="btn-submit-login" id="btnSubmitLogin">Ingresar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+// --- MANEJO DE MODO OSCURO ---
+function toggleDarkTheme(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('hipergalerias_theme', 'dark');
+        document.getElementById('themeLabel').innerText = '☀️ Modo claro';
+    } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('hipergalerias_theme', 'light');
+        document.getElementById('themeLabel').innerText = '🌙 Modo oscuro';
+    }
+}
+
+function cargarTemaGuardado() {
+    const tema = localStorage.getItem('hipergalerias_theme');
+    const checkbox = document.getElementById('checkboxTheme');
+    if (tema === 'dark') {
+        checkbox.checked = true;
+        toggleDarkTheme(true);
+    }
+}
+
+// --- AYUDAS DE INTERFAZ (solo visuales) ---
+function alternarPassword() {
+    const input = document.getElementById('loginPassword');
+    const btn = document.getElementById('pwToggle');
+    const oculto = input.type === 'password';
+    input.type = oculto ? 'text' : 'password';
+    btn.innerText = oculto ? '🙈' : '👁️';
+    btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
+}
+
+function irAModulo(url) {
+    document.body.classList.add('leaving');
+    setTimeout(() => { window.location.href = url; }, 220);
+}
+
+// --- ICONOS LOTTIE (solo se animan al pasar el cursor sobre el módulo) ---
+function iniciarIconosLottie() {
+    document.querySelectorAll('.module-card:not(.disabled)').forEach(card => {
+        const icono = card.querySelector('.lottie-icon');
+        if (!icono) return;
+        const reproducir = () => { if (icono.dotLottie) icono.dotLottie.play(); };
+        const detener = () => { if (icono.dotLottie) icono.dotLottie.stop(); };
+        card.addEventListener('mouseenter', reproducir);
+        card.addEventListener('mouseleave', detener);
+        card.addEventListener('focusin', reproducir);
+        card.addEventListener('focusout', detener);
+    });
+
+    // Respaldo: si el reproductor no carga, se muestran los emojis originales
+    setTimeout(() => {
+        if (!customElements.get('dotlottie-wc')) {
+            document.querySelectorAll('.lottie-icon').forEach(el => {
+                el.replaceWith(document.createTextNode(el.dataset.emoji));
             });
-
-            btnSubmit.innerText = 'Ingresar';
-            btnSubmit.disabled = false;
-
-            if (error) {
-                errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message);
-                errorDiv.style.display = 'block';
-            } else {
-                cerrarModalLogin();
-                document.getElementById('loginForm').reset();
-            }
         }
+    }, 4000);
+}
 
-        async function ejecutarLogout() {
-            if (typeof supabaseClient !== 'undefined') {
-                await supabaseClient.auth.signOut();
-            }
+// --- AUTENTICACIÓN Y BLOQUEO DE PANTALLA ---
+function abrirModalLogin() {
+    document.getElementById('loginModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('loginError').style.display = 'none';
+    setTimeout(() => document.getElementById('loginEmail').focus(), 250);
+}
+
+function cerrarModalLogin() {
+    document.getElementById('loginModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+async function ejecutarLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const btnSubmit = document.getElementById('btnSubmitLogin');
+
+    errorDiv.style.display = 'none';
+    btnSubmit.innerText = 'Verificando...';
+    btnSubmit.disabled = true;
+
+    if (typeof supabaseClient === 'undefined') {
+        alert("Atención: No se ha encontrado la configuración de Supabase en 'conexion.js'.");
+        btnSubmit.innerText = 'Ingresar';
+        btnSubmit.disabled = false;
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+
+    btnSubmit.innerText = 'Ingresar';
+    btnSubmit.disabled = false;
+
+    if (error) {
+        errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.' : error.message);
+        errorDiv.style.display = 'block';
+    } else {
+        cerrarModalLogin();
+        document.getElementById('loginForm').reset();
+    }
+}
+
+async function ejecutarLogout() {
+    if (typeof supabaseClient !== 'undefined') {
+        await supabaseClient.auth.signOut();
+    }
+}
+
+function gestionarEstadoSesion(session) {
+    const authContainer = document.getElementById('userAuthContainer');
+
+    if (session && session.user) {
+        cerrarModalLogin();
+
+        const metadata = session.user.user_metadata || {};
+        const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
+        const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+
+        if (authContainer) {
+            authContainer.innerHTML = `
+                <div class="user-profile-badge">
+                    <span>Bienvenid@, <strong>${nombreFormateado}</strong></span>
+                    <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
+                </div>
+            `;
         }
-
-        function gestionarEstadoSesion(session) {
-            const authContainer = document.getElementById('userAuthContainer');
-
-            if (session && session.user) {
-                cerrarModalLogin();
-
-                const metadata = session.user.user_metadata || {};
-                const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
-                const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-
-                if (authContainer) {
-                    authContainer.innerHTML = `
-                        <div class="user-profile-badge">
-                            <span>Bienvenid@, <strong>${nombreFormateado}</strong></span>
-                            <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
-                        </div>
-                    `;
-                }
-            } else {
-                abrirModalLogin();
-                if (authContainer) {
-                    authContainer.innerHTML = `
-                        <button class="btn-login-trigger" onclick="abrirModalLogin()">🔑 Iniciar Sesión</button>
-                    `;
-                }
-            }
+    } else {
+        abrirModalLogin();
+        if (authContainer) {
+            authContainer.innerHTML = `
+                <button class="btn-login-trigger" onclick="abrirModalLogin()">🔑 Iniciar Sesión</button>
+            `;
         }
+    }
+}
 
-        async function protegerEnlaceModulo(event, url) {
-            event.preventDefault();
-            if (typeof supabaseClient === 'undefined') {
-                window.location.href = url;
-                return;
-            }
+async function protegerEnlaceModulo(event, url) {
+    event.preventDefault();
+    if (typeof supabaseClient === 'undefined') {
+        irAModulo(url);
+        return;
+    }
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                abrirModalLogin();
-            } else {
-                window.location.href = url;
-            }
-        }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        abrirModalLogin();
+    } else {
+        irAModulo(url);
+    }
+}
 
-        // --- METRICAS Y DASHBOARD ---
-        function actualizarColorMetrica(boxId, valor, tipoAlerta) {
-            const box = document.getElementById(boxId);
-            if (!box) return;
+// --- METRICAS Y DASHBOARD ---
+function actualizarColorMetrica(boxId, valor, tipoAlerta) {
+    const box = document.getElementById(boxId);
+    if (!box) return;
 
-            box.classList.remove('state-alert-orange', 'state-alert-red', 'state-alert-green', 'state-alert-blue');
+    box.classList.remove('state-alert-orange', 'state-alert-red', 'state-alert-green', 'state-alert-blue');
 
-            let numValor = typeof valor === 'string' ? parseFloat(valor.replace(/[^0-9.-]+/g, '')) : valor;
+    let numValor = typeof valor === 'string' ? parseFloat(valor.replace(/[^0-9.-]+/g, '')) : valor;
 
-            if (!isNaN(numValor) && numValor > 0) {
-                if (tipoAlerta === 'red') box.classList.add('state-alert-red');
-                else if (tipoAlerta === 'orange') box.classList.add('state-alert-orange');
-                else if (tipoAlerta === 'blue') box.classList.add('state-alert-blue');
-                else box.classList.add('state-alert-green');
-            }
-        }
+    if (!isNaN(numValor) && numValor > 0) {
+        if (tipoAlerta === 'red') box.classList.add('state-alert-red');
+        else if (tipoAlerta === 'orange') box.classList.add('state-alert-orange');
+        else if (tipoAlerta === 'blue') box.classList.add('state-alert-blue');
+        else box.classList.add('state-alert-green');
+    }
+}
 
-        async function sincronizarDashboard() {
-            // Módulo 1: Recepción y Fechas
-            let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
-            let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
-            let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
+async function sincronizarDashboard() {
+    // Módulo 1: Recepción y Fechas
+    let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
+    let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
+    let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
 
-            document.getElementById('val-mod1-optimos').innerText = optimos;
-            document.getElementById('val-mod1-porvencer').innerText = porVencer;
-            document.getElementById('val-mod1-vencidos').innerText = vencidos;
+    document.getElementById('val-mod1-optimos').innerText = optimos;
+    document.getElementById('val-mod1-porvencer').innerText = porVencer;
+    document.getElementById('val-mod1-vencidos').innerText = vencidos;
 
-            actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
-            actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
-            actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
+    actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
+    actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
+    actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
 
-            // Módulo 2: Descuentos Empleados
-            try {
-                const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
-                let cantPendientes = 0;
-                let cantParciales = 0;
-                let montoPorCobrar = 0;
+    // Módulo 2: Descuentos Empleados
+    try {
+        const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
+        let cantPendientes = 0;
+        let cantParciales = 0;
+        let montoPorCobrar = 0;
 
-                descuentosDB.forEach(item => {
-                    const montoTotal = parseFloat(item.monto || item.total || 0);
-                    const abonado = parseFloat(item.abonado || 0);
-                    const saldoPendiente = parseFloat(item.saldoPendiente !== undefined ? item.saldoPendiente : (montoTotal - abonado));
+        descuentosDB.forEach(item => {
+            const montoTotal = parseFloat(item.monto || item.total || 0);
+            const abonado = parseFloat(item.abonado || 0);
+            const saldoPendiente = parseFloat(item.saldoPendiente !== undefined ? item.saldoPendiente : (montoTotal - abonado));
 
-                    if (saldoPendiente > 0) {
-                        montoPorCobrar += saldoPendiente;
-                        if (abonado > 0) cantParciales++;
-                        else cantPendientes++;
-                    }
-                });
-
-                document.getElementById('val-mod2-pendientes').innerText = cantPendientes;
-                document.getElementById('val-mod2-parciales').innerText = cantParciales;
-                document.getElementById('val-mod2-porcobrar').innerText = '$' + montoPorCobrar.toFixed(2);
-
-                actualizarColorMetrica('box-mod2-pendientes', cantPendientes, 'orange');
-                actualizarColorMetrica('box-mod2-parciales', cantParciales, 'orange');
-                actualizarColorMetrica('box-mod2-porcobrar', montoPorCobrar, 'red');
-            } catch (e) {
-                console.error("Error al sincronizar descuentos en el index:", e);
-            }
-
-            // Módulo 3: Recetas y Costos (Consulta directa a Supabase con fallback a localStorage)
-            try {
-                let totalInsumos = null;
-                let totalRecetas = null;
-
-                // Consulta a Supabase si el cliente está inicializado
-                if (typeof supabaseClient !== 'undefined' && supabaseClient !== null) {
-                    const [resInsumos, resRecetas] = await Promise.allSettled([
-                        supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
-                        supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
-                    ]);
-
-                    if (resInsumos.status === 'fulfilled' && !resInsumos.value.error && resInsumos.value.count !== null) {
-                        totalInsumos = resInsumos.value.count;
-                    }
-
-                    if (resRecetas.status === 'fulfilled' && !resRecetas.value.error && resRecetas.value.count !== null) {
-                        totalRecetas = resRecetas.value.count;
-                    }
-                }
-
-                // Fallback a localStorage en caso de no obtener datos de Supabase
-                if (totalInsumos === null) {
-                    const rawInsumos = localStorage.getItem('hipergalerias_insumos_db') || localStorage.getItem('insumos');
-                    const insumosDB = rawInsumos ? JSON.parse(rawInsumos) : [];
-                    totalInsumos = Array.isArray(insumosDB) ? insumosDB.length : Object.keys(insumosDB).length;
-                }
-
-                if (totalRecetas === null) {
-                    const rawRecetas = localStorage.getItem('hipergalerias_recetas_db') || localStorage.getItem('recetas');
-                    const recetasDB = rawRecetas ? JSON.parse(rawRecetas) : [];
-                    totalRecetas = Array.isArray(recetasDB) ? recetasDB.length : Object.keys(recetasDB).length;
-                }
-
-                document.getElementById('val-mod3-recetas').innerText = totalRecetas.toLocaleString('es-ES');
-                document.getElementById('val-mod3-ingredientes').innerText = totalInsumos.toLocaleString('es-ES');
-
-                actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
-                actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
-            } catch (e) {
-                console.error("Error al sincronizar recetas en el index:", e);
-                document.getElementById('val-mod3-recetas').innerText = '0';
-                document.getElementById('val-mod3-ingredientes').innerText = '0';
-            }
-
-            // Módulo 4: TI Equipos
-            try {
-                const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
-                document.getElementById('val-mod4-equipos').innerText = tiDB.length;
-                document.getElementById('val-mod4-mant').innerText = '0';
-                
-                actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
-                actualizarColorMetrica('box-mod4-mant', 0, 'orange');
-            } catch (e) {
-                console.error("Error al sincronizar TI Equipos en el index:", e);
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            cargarTemaGuardado();
-            await sincronizarDashboard();
-
-            if (typeof supabaseClient !== 'undefined') {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                gestionarEstadoSesion(session);
-
-                supabaseClient.auth.onAuthStateChange((_event, session) => {
-                    gestionarEstadoSesion(session);
-                });
-            } else {
-                abrirModalLogin();
+            if (saldoPendiente > 0) {
+                montoPorCobrar += saldoPendiente;
+                if (abonado > 0) cantParciales++;
+                else cantPendientes++;
             }
         });
 
-        window.addEventListener('storage', function() {
-            sincronizarDashboard();
+        document.getElementById('val-mod2-pendientes').innerText = cantPendientes;
+        document.getElementById('val-mod2-parciales').innerText = cantParciales;
+        document.getElementById('val-mod2-porcobrar').innerText = '$' + montoPorCobrar.toFixed(2);
+
+        actualizarColorMetrica('box-mod2-pendientes', cantPendientes, 'orange');
+        actualizarColorMetrica('box-mod2-parciales', cantParciales, 'orange');
+        actualizarColorMetrica('box-mod2-porcobrar', montoPorCobrar, 'red');
+    } catch (e) {
+        console.error("Error al sincronizar descuentos en el index:", e);
+    }
+
+    // Módulo 3: Recetas y Costos (Consulta directa a Supabase con fallback a localStorage)
+    try {
+        let totalInsumos = null;
+        let totalRecetas = null;
+
+        if (typeof supabaseClient !== 'undefined' && supabaseClient !== null) {
+            const [resInsumos, resRecetas] = await Promise.allSettled([
+                supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
+                supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
+            ]);
+
+            if (resInsumos.status === 'fulfilled' && !resInsumos.value.error && resInsumos.value.count !== null) {
+                totalInsumos = resInsumos.value.count;
+            }
+
+            if (resRecetas.status === 'fulfilled' && !resRecetas.value.error && resRecetas.value.count !== null) {
+                totalRecetas = resRecetas.value.count;
+            }
+        }
+
+        if (totalInsumos === null) {
+            const rawInsumos = localStorage.getItem('hipergalerias_insumos_db') || localStorage.getItem('insumos');
+            const insumosDB = rawInsumos ? JSON.parse(rawInsumos) : [];
+            totalInsumos = Array.isArray(insumosDB) ? insumosDB.length : Object.keys(insumosDB).length;
+        }
+
+        if (totalRecetas === null) {
+            const rawRecetas = localStorage.getItem('hipergalerias_recetas_db') || localStorage.getItem('recetas');
+            const recetasDB = rawRecetas ? JSON.parse(rawRecetas) : [];
+            totalRecetas = Array.isArray(recetasDB) ? recetasDB.length : Object.keys(recetasDB).length;
+        }
+
+        document.getElementById('val-mod3-recetas').innerText = totalRecetas.toLocaleString('es-ES');
+        document.getElementById('val-mod3-ingredientes').innerText = totalInsumos.toLocaleString('es-ES');
+
+        actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
+        actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
+    } catch (e) {
+        console.error("Error al sincronizar recetas en el index:", e);
+        document.getElementById('val-mod3-recetas').innerText = '0';
+        document.getElementById('val-mod3-ingredientes').innerText = '0';
+    }
+
+    // Módulo 4: TI Equipos
+    try {
+        const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
+        document.getElementById('val-mod4-equipos').innerText = tiDB.length;
+        document.getElementById('val-mod4-mant').innerText = '0';
+
+        actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
+        actualizarColorMetrica('box-mod4-mant', 0, 'orange');
+    } catch (e) {
+        console.error("Error al sincronizar TI Equipos en el index:", e);
+    }
+
+    document.getElementById('modulesGrid').classList.remove('is-loading');
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    cargarTemaGuardado();
+    iniciarIconosLottie();
+    await sincronizarDashboard();
+
+    if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        gestionarEstadoSesion(session);
+
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+            gestionarEstadoSesion(session);
         });
-    </script>
+    } else {
+        abrirModalLogin();
+    }
+});
+
+window.addEventListener('storage', function() {
+    sincronizarDashboard();
+});
+</script>
 </body>
 </html>

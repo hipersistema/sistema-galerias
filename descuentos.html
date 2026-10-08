@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pase de Salida - Empleados</title>
+<script>try{document.documentElement.dataset.theme=localStorage.getItem("hipergalerias_theme")==="dark"?"dark":"light"}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- SDK de Supabase y conexión (misma sesión que el resto de módulos) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="conexion.js"></script>
+<style>
+:root{--gd:#123e1b;--g:#2e7d32;--gbg:#e8f5e9;--y:#f5b000;--bg:#f4f6f8;--card:#fff;--text:#1f2937;--muted:#64748b;--line:#e2e8f0;--field:#fff;--title:#123e1b;--amber:#b45309;--amberbg:#fef3c7;--red:#e53935;--shadow:0 4px 18px rgba(18,62,27,.07);--ease:cubic-bezier(.22,.8,.3,1)}
+[data-theme=dark]{--bg:#0e1612;--card:#16211a;--text:#e6f0e9;--muted:#93a499;--line:#263329;--field:#101a14;--gbg:#1d3525;--title:#8fe3a0;--amber:#fbbf24;--amberbg:#3a2c0b;--shadow:0 4px 18px rgba(0,0,0,.35)}
+*{box-sizing:border-box}button,input,select,textarea{font-family:'Inter',system-ui,sans-serif}
+body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);transition:background .35s,color .35s;animation:pageIn .5s var(--ease)}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes popOut{to{opacity:0;transform:scale(.96) translateY(6px)}}
+@keyframes fadeOut{to{opacity:0}}
+header{background:var(--card);border-bottom:3px solid var(--y);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:50;transition:background .35s}
+.brand{display:flex;align-items:center;gap:18px}
+.brand img{height:46px;display:block}
+[data-theme=dark] .brand img{background:#fff;border-radius:8px;padding:3px 6px}
+.brand h1{margin:0;font-size:1.15rem;color:var(--text)}
+.hright{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:10px;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-weight:600;font-size:.9rem}
+.switch{width:42px;height:22px;border-radius:99px;background:#cbd5e1;position:relative;cursor:pointer;border:0;transition:background .3s}
+.switch::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .3s var(--ease)}
+[data-theme=dark] .switch{background:var(--g)}[data-theme=dark] .switch::after{transform:translateX(20px)}
+.btn{border:1px solid transparent;border-radius:10px;padding:9px 16px;font-weight:700;font-size:.86rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .2s var(--ease),box-shadow .2s,background .2s;font-family:inherit;text-decoration:none}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.15)}.btn:active{transform:scale(.97)}
+.btn-dark{background:var(--gd);color:#fff}.btn-dark:hover{background:var(--g)}
+[data-theme=dark] .btn-dark{background:var(--g)}
+.btn-out{background:transparent;color:var(--red);border-color:var(--red)}.btn-out:hover{background:var(--red);color:#fff}
+.btn-ghost{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3);backdrop-filter:blur(4px)}.btn-ghost:hover{background:rgba(255,255,255,.26)}
+.btn-gray{background:#64748b;color:#fff}.btn-amber{background:var(--amber);color:#fff}[data-theme=dark] .btn-amber{color:#1a1200}
+.btn-blue{background:#0284c7;color:#fff}.btn-excel{background:#10b981;color:#fff}
+.btn-sm{padding:6px 12px;font-size:.78rem}
+.salir{background:var(--red);color:#fff;border:0;border-radius:6px;padding:3px 10px;font-size:.8rem;text-decoration:none;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}.salir:hover{background:#c62828}
+main{max-width:1400px;margin:0 auto;padding:24px 32px 60px}
+.hero{background:linear-gradient(120deg,#0f3517,#1b5e20 70%,#2e7d32);color:#fff;border-radius:16px;padding:18px 32px;min-height:0;position:relative;overflow:hidden;animation:rise .6s var(--ease) both}
+.hero-logo{position:absolute;right:28px;top:50%;height:230%;width:auto;transform:translateY(-50%) rotate(8deg);opacity:.14;pointer-events:none;user-select:none}
+.hero h2{margin:0 0 3px;font-size:1.5rem;letter-spacing:-.01em}.hero p{margin:0;opacity:.9;max-width:560px;font-size:.92rem}
+.hero>div{position:relative;z-index:1}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin:18px 0}
+.stat{background:var(--card);border-radius:14px;border:1px solid var(--line);border-left:5px solid var(--g);padding:16px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);animation:rise .6s var(--ease) both;transition:transform .25s var(--ease)}
+.stat:hover{transform:translateY(-3px)}
+.stat:nth-child(1){animation-delay:.08s;border-left-color:var(--y)}.stat:nth-child(2){animation-delay:.14s;border-left-color:#f97316}.stat:nth-child(3){animation-delay:.2s}.stat:nth-child(4){animation-delay:.26s;border-left-color:#0284c7}
+.stat i{font-style:normal;font-size:1.5rem;width:46px;height:46px;border-radius:12px;background:var(--gbg);display:grid;place-items:center}
+.stat small{display:block;font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.stat b{font-size:1.7rem;color:var(--title)}
+.tabs{display:inline-flex;gap:6px;background:var(--card);border:1px solid var(--line);padding:5px;border-radius:12px;margin-bottom:20px;flex-wrap:wrap;animation:rise .6s .3s var(--ease) both}
+.tab{border:0;background:transparent;padding:9px 18px;border-radius:9px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;transition:all .25s var(--ease)}
+.tab:hover{color:var(--title)}.tab.active{background:var(--gd);color:#fff;box-shadow:0 4px 10px rgba(18,62,27,.3)}
+[data-theme=dark] .tab.active{background:var(--g)}
+.panel{display:none}.panel.active{display:block;animation:rise .45s var(--ease)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 26px;margin-bottom:20px;box-shadow:var(--shadow);transition:background .35s}
+.card h3{margin:0 0 16px;color:var(--title);font-size:1.15rem}
+.shead{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}.shead h3{margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;align-items:end}
+.grid .wide{grid-column:span 2}
+.f{position:relative;display:flex;flex-direction:column;gap:6px}
+label{font-size:.8rem;font-weight:700}
+input,select{padding:10px 13px;border:1px solid var(--line);border-radius:10px;font-size:.92rem;background:var(--field);color:var(--text);width:100%;font-family:inherit;transition:border-color .2s,box-shadow .2s}
+input:focus,select:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(46,125,50,.18)}
+.ro-g{background:var(--gbg)!important;color:var(--title);font-weight:700}.ro-y{background:var(--amberbg)!important;color:var(--amber);font-weight:800}
+.ac{position:absolute;top:100%;left:0;right:0;z-index:30;background:var(--card);border:1px solid var(--line);border-radius:0 0 10px 10px;max-height:220px;overflow-y:auto;box-shadow:0 10px 24px rgba(0,0,0,.15);animation:fade .15s}
+.ac div{padding:10px 13px;cursor:pointer;font-size:.88rem;border-bottom:1px solid var(--line);transition:background .15s,padding .15s}
+.ac div:hover{background:var(--gbg);padding-left:18px}
+.add{background:var(--bg);border:1px dashed var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.add h4{margin:0 0 10px;color:var(--title);font-size:.95rem}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:12px 14px;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{background:var(--gbg);color:var(--title);font-weight:800;position:sticky;top:0}
+tbody tr{animation:rise .4s var(--ease) both;transition:background .2s}tbody tr:hover{background:var(--gbg)}tbody tr:last-child td{border-bottom:0}
+.empty{text-align:center;color:var(--muted);padding:34px!important}
+.badge{padding:4px 11px;border-radius:99px;font-size:.74rem;font-weight:800}
+.b-ok{background:#dcfce7;color:#166534}.b-pend{background:var(--amberbg);color:var(--amber)}.b-par{background:#dbeafe;color:#1d4ed8}
+.saldo{background:var(--amberbg);color:var(--amber);border:1px solid #f59e0b;padding:4px 10px;border-radius:8px;font-weight:800}
+.count{background:var(--line);padding:2px 10px;border-radius:99px;font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(8,20,12,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;padding:16px;animation:fade .25s}
+.modal.open{display:flex}.modal.closing{animation:fadeOut .2s forwards}
+.mcard{background:var(--card);width:580px;max-width:100%;max-height:92vh;overflow-y:auto;border-radius:16px;padding:26px;border-top:5px solid var(--y);box-shadow:0 20px 50px rgba(0,0,0,.35);animation:pop .3s var(--ease)}
+.modal.closing .mcard{animation:popOut .2s forwards}
+.mcard h3{margin:0 0 6px;color:var(--title);font-size:1.25rem}.sub{color:var(--muted);font-size:.88rem;margin-bottom:14px}
+.items{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px;max-height:170px;overflow-y:auto;margin-bottom:14px}
+.it{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem}.it:last-child{border:0}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.acts{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.remember{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;user-select:none}
+.remember input{width:16px;height:16px;padding:0;margin:0;accent-color:var(--g);cursor:pointer}
+.login-error{color:var(--red);font-size:.82rem;font-weight:600;margin-bottom:12px}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px;font-size:.85rem;color:var(--muted)}
+.pager strong{color:var(--text)}.pager .pg{display:flex;align-items:center;gap:10px}
+.pbtn{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;padding:7px 14px;font-weight:700;font-size:.78rem;cursor:pointer;font-family:inherit;transition:all .2s var(--ease)}
+.pbtn:hover:not(:disabled){border-color:var(--g);background:var(--gbg);transform:translateY(-1px)}
+.pbtn:disabled{opacity:.4;cursor:not-allowed}
+#toasts{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:10px;z-index:400}
+.toast{background:var(--gd);color:#fff;padding:13px 20px;border-radius:12px;font-weight:600;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.3);border-left:5px solid var(--y);animation:rise .35s var(--ease)}
+.toast.err{background:#b91c1c}.toast.out{animation:fadeOut .3s forwards}
+:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+@media(max-width:760px){header,main{padding-left:14px;padding-right:14px}.three{grid-template-columns:1fr}.grid .wide{grid-column:auto}.hero h2{font-size:1.25rem}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* ===== IMPRESIÓN ===== */
+#print-section{display:none}
+@page{size:A4 landscape;margin:8mm 10mm}
+@media print{
+html,body{height:100%!important;margin:0!important;padding:0!important;background:#fff!important;overflow:hidden!important;animation:none!important}
+body *{visibility:hidden!important}
+#print-section,#print-section *{visibility:visible!important}
+#print-section{display:flex!important;flex-direction:column;justify-content:space-between;position:absolute;left:0;top:0;width:100%;height:96%;color:#000;font-family:Arial,sans-serif}
+.pm{flex:1}
+.ph{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:4px;margin-bottom:8px}
+.ph img{height:38px}.pt{font-size:12pt;font-weight:bold;text-transform:uppercase;text-align:center}.pd{font-size:9.5pt;font-weight:bold}
+.ptab{width:100%;border-collapse:collapse}
+.ptab th,.ptab td{border:1px solid #000!important;padding:4px 6px;font-size:8.5pt;line-height:1.1;color:#000!important;background:#fff!important;position:static}
+.ptab th{background:#f0f0f0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;text-transform:uppercase}
+.ptab tr{animation:none!important}
+.tl{text-align:left!important}.tc{text-align:center!important}
+.pf{display:flex;justify-content:space-around;text-align:center;font-size:8.5pt;font-weight:bold;padding-top:15px;page-break-inside:avoid}
+.sig{border-top:1px solid #000;width:280px;padding-top:4px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="logo.png" alt="Galería Hipermarket" onerror="this.onerror=null;this.src='logo.jpeg'">
+    <h1>Descuentos a Empleados</h1>
+  </div>
+  <div class="hright">
+    <div class="pill"><span id="themeLabel">🌙 Modo oscuro</span> <button class="switch" id="themeSwitch" aria-label="Cambiar modo oscuro" aria-pressed="false"></button></div>
+    <a class="btn btn-out" href="index.html">← Regresar</a>
+    <div id="userAuthContainer"></div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div>
+      <h2>Descuentos a Empleados</h2>
+      <p>Asigna mercancía con descuento, controla saldos por trabajador y genera el pase de salida para Control.</p>
+    </div>
+    <img class="hero-logo" src="logo con g.png" alt="" aria-hidden="true" onerror="this.onerror=null;this.src='logo con g.jpeg'">
+  </section>
+
+  <section class="stats">
+    <div class="stat"><i>⏳</i><div><small>Pend. pago</small><b id="stPend">0</b></div></div>
+    <div class="stat"><i>🔄</i><div><small>Parciales</small><b id="stPar">0</b></div></div>
+    <div class="stat"><i>✅</i><div><small>Liquidados</small><b id="stLiq">0</b></div></div>
+    <div class="stat"><i>💰</i><div><small>Por cobrar</small><b id="stCobrar">$0.00</b></div></div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="asignacion">✍️ Asignación</button>
+    <button class="tab" data-tab="empleados">👥 Empleados (<span id="countEmpleados">0</span>)</button>
+    <button class="tab" data-tab="articulos">🛒 Artículos (<span id="countArticulos">0</span>)</button>
+  </nav>
+
+  <!-- ASIGNACIÓN -->
+  <div id="tab-asignacion" class="panel active">
+    <div class="card">
+      <h3>🛍️ Asignar artículos con descuento</h3>
+      <form id="formDescuento" onsubmit="registrarDescuento(event)">
+        <div class="f" style="max-width:460px;margin-bottom:16px">
+          <label for="inputBuscadorEmpleado">1. Empleado (cédula o nombre)</label>
+          <input type="text" id="inputBuscadorEmpleado" placeholder="Busca al empleado..." autocomplete="off" oninput="filtrarEmpleadosAsignacion(this.value)" required>
+          <div id="listaSugerenciasEmpleados" class="ac" hidden></div>
+          <input type="hidden" id="selectedCedula"><input type="hidden" id="selectedNombreEmpleado">
+        </div>
+        <div class="grid">
+          <div class="f wide">
+            <label for="inputBuscadorArticulo">2. Producto / dañado / por vencer</label>
+            <input type="text" id="inputBuscadorArticulo" placeholder="Producto o código..." autocomplete="off" oninput="filtrarArticulos(this.value)" required>
+            <div id="listaSugerenciasArticulos" class="ac" hidden></div>
+            <input type="hidden" id="selectedCodigoArticulo"><input type="hidden" id="selectedNombreArticulo">
+          </div>
+          <div class="f"><label for="precioBase">Precio base ($)</label><input type="number" id="precioBase" step="0.01" value="0.00" oninput="calcularTotales()" required></div>
+          <div class="f"><label for="descGerencia">% Desc.</label><input type="number" id="descGerencia" step="1" min="0" max="100" value="0" oninput="calcularTotales()" required></div>
+          <div class="f"><label for="precioConDesc">Precio c/ desc. ($)</label><input type="text" id="precioConDesc" class="ro-g" value="0.00" readonly></div>
+          <div class="f"><label for="cantidad">Cant.</label><input type="number" id="cantidad" min="1" value="1" oninput="calcularTotales()" required></div>
+          <div class="f"><label for="totalADeber">Total a deber ($)</label><input type="text" id="totalADeber" class="ro-y" value="0.00" readonly></div>
+        </div>
+        <div style="margin-top:18px"><button type="submit" class="btn btn-dark">➕ Asignar deuda</button></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="shead">
+        <h3>💳 Estado de cuentas por trabajador</h3>
+        <div class="row">
+          <label for="fechaSalida">📅 Fecha de salida</label>
+          <input type="date" id="fechaSalida" style="width:auto">
+          <button type="button" class="btn btn-dark" onclick="imprimirPlanillaHorizontal()">🖨️ Imprimir pase de salida</button>
+        </div>
+      </div>
+      <input type="text" id="inputFiltroEstado" placeholder="🔍 Filtrar por cédula o nombre..." oninput="filtrarEstadoCuentas()" style="margin-bottom:14px">
+      <div class="tw"><table>
+        <thead><tr><th>Cédula</th><th>Empleado</th><th>Ítems</th><th>Última asignación</th><th>Deuda total</th><th>Abonado</th><th>Saldo pendiente</th><th>Estatus</th><th>Acciones</th></tr></thead>
+        <tbody id="tablaDescuentos"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- EMPLEADOS -->
+  <div id="tab-empleados" class="panel">
+    <div class="card">
+      <div class="shead">
+        <h3>👥 Lista de empleados</h3>
+      </div>
+      <div class="add">
+        <h4>➕ Agregar empleado</h4>
+        <form id="formAddEmpleado" onsubmit="agregarEmpleadoManual(event)" class="grid">
+          <div class="f"><label>Cédula</label><input id="manualCedula" required></div>
+          <div class="f wide"><label>Nombre completo</label><input id="manualNombre" required></div>
+          <div class="f"><label>Cargo / puesto</label><input id="manualCargo" value="GENERAL" style="text-transform:uppercase"></div>
+          <div class="f"><label>Fecha de ingreso</label><input type="date" id="manualFechaIngreso"></div>
+          <div><button type="submit" class="btn btn-dark">Registrar empleado</button></div>
+        </form>
+      </div>
+      <input type="text" id="filtroEmp" placeholder="🔍 Buscar empleado..." oninput="pagEmp=1;renderBases()" style="margin-bottom:14px">
+      <div class="tw"><table><thead><tr><th>Cédula</th><th>Nombre completo</th><th>Cargo / puesto</th><th>Fecha ingreso</th></tr></thead><tbody id="tablaEmpleados"></tbody></table></div>
+      <div class="pager" id="pagerEmp"></div>
+    </div>
+  </div>
+
+  <!-- ARTÍCULOS -->
+  <div id="tab-articulos" class="panel">
+    <div class="card">
+      <div class="shead">
+        <h3>🛒 Artículos del supermercado</h3>
+      </div>
+      <div class="add">
+        <h4>➕ Agregar producto / dañado / por vencer</h4>
+        <form id="formAddArticulo" onsubmit="agregarArticuloManual(event)" class="grid">
+          <div class="f"><label>Código de barras</label><input id="manualArtBarras"></div>
+          <div class="f"><label>Código interno</label><input id="manualArtInterno"></div>
+          <div class="f wide"><label>Descripción</label><input id="manualArtDesc" required></div>
+          <div class="f"><label>Departamento</label><select id="manualArtDpto"><option>Cocina Gourmet</option><option>Panadería</option><option>Frutería</option><option>Heladería</option><option>General</option></select></div>
+          <div><button type="submit" class="btn btn-dark">Registrar producto</button></div>
+        </form>
+      </div>
+      <input type="text" id="filtroArt" placeholder="🔍 Buscar artículo o código..." oninput="pagArt=1;renderBases()" style="margin-bottom:14px">
+      <div class="tw"><table><thead><tr><th>Código de barras</th><th>Código interno</th><th>Descripción</th><th>Departamento</th></tr></thead><tbody id="tablaArticulosSup"></tbody></table></div>
+      <div class="pager" id="pagerArt"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL CLAVE -->
+<div id="modalClave" class="modal">
+  <div class="mcard" style="width:390px">
+    <h3>🔒 Autorización gerencial</h3>
+    <div class="sub">Ingresa la clave para autorizar el descuento de quincena.</div>
+    <label for="inputClaveSeguridad">Clave de autorización</label>
+    <input type="password" id="inputClaveSeguridad" placeholder="••••••••" style="margin-top:6px">
+    <div class="acts">
+      <button class="btn btn-gray" onclick="closeM('modalClave')">Cancelar</button>
+      <button class="btn btn-dark" onclick="verificarClaveYContinuar()">🔓 Verificar y continuar</button>
+    </div>
+    <label class="remember"><input type="checkbox" id="chkRecordarClave"> Recordar clave de autorización (solo por esta sesión)</label>
+  </div>
+</div>
+
+<!-- MODAL DESCUENTO -->
+<div id="modalDescuento" class="modal">
+  <div class="mcard">
+    <h3>Planificar descuento de quincena</h3>
+    <div id="modalSubInfo" class="sub"></div>
+    <label>📦 Detalle de compras</label>
+    <div id="modalContenedorDetalleItems" class="items" style="margin-top:6px"></div>
+    <div class="three">
+      <div class="f"><label>Deuda ($)</label><input id="modalDeudaTotal" class="ro-g" readonly></div>
+      <div class="f"><label>Abonado ($)</label><input id="modalAbonadoTotal" class="ro-g" readonly></div>
+      <div class="f"><label>Saldo ($)</label><input id="modalSaldoActual" class="ro-y" readonly></div>
+    </div>
+    <div class="f" style="margin-bottom:14px"><label for="modalEsquema">Esquema de descuento</label>
+      <select id="modalEsquema" onchange="cambiarEsquemaModal()">
+        <option value="1">1 quincena (100% del saldo)</option>
+        <option value="2">2 quincenas (50% en esta quincena)</option>
+        <option value="custom">Monto personalizado</option>
+      </select>
+    </div>
+    <div id="divMontoPersonalizado" class="f" hidden><label for="modalMontoPersonalizado">Monto a descontar ($)</label><input type="number" id="modalMontoPersonalizado" step="0.01" value="0.00"></div>
+    <div class="acts">
+      <button class="btn btn-gray" onclick="closeM('modalDescuento')">Cancelar</button>
+      <button class="btn btn-dark" onclick="procesarAbonoModal()">💾 Procesar descuento</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DE SESIÓN (Supabase) -->
+<div id="loginModal" class="modal" style="z-index:9999;background:rgba(15,23,42,.75);backdrop-filter:blur(10px)">
+  <div class="mcard" style="width:400px">
+    <h3>Acceso al Sistema</h3>
+    <div class="sub">Ingresa tus credenciales corporativas para continuar.</div>
+    <form id="loginForm" onsubmit="ejecutarLogin(event)">
+      <div class="f" style="margin-bottom:14px"><label for="loginEmail">Correo electrónico</label><input type="email" id="loginEmail" placeholder="usuario@hipergalerias.com" autocomplete="username" required></div>
+      <div class="f" style="margin-bottom:14px"><label for="loginPassword">Contraseña</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required></div>
+      <div id="loginError" class="login-error" hidden></div>
+      <button type="submit" class="btn btn-dark" id="btnSubmitLogin" style="width:100%;justify-content:center">Ingresar</button>
+    </form>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<!-- PLANTILLA DE IMPRESIÓN -->
+<div id="print-section">
+  <div class="pm">
+    <div class="ph">
+      <img src="logo.png" alt="Logo" onerror="this.onerror=null;this.src='logo.jpeg'">
+      <div class="pt">PASE DE SALIDA DE MERCADERÍA PARA PERSONAL</div>
+      <div class="pd">FECHA: <span id="printDateVal">--/--/----</span></div>
+    </div>
+    <table class="ptab">
+      <thead><tr>
+        <th class="tc" style="width:5%">NRO</th><th class="tc" style="width:13%">CÉDULA</th><th class="tl" style="width:28%">NOMBRES Y APELLIDOS</th>
+        <th class="tc" style="width:17%">CÓDIGO ARTÍCULO</th><th class="tl" style="width:27%">DESCRIPCIÓN DEL ARTÍCULO</th><th class="tc" style="width:10%">CANTIDAD</th>
+      </tr></thead>
+      <tbody id="printTableBody"></tbody>
+    </table>
+  </div>
+  <div class="pf"><div class="sig">AUTORIZADO POR (GERENCIA)</div><div class="sig">REVISADO POR (CONTROL)</div></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const today = () => new Date().toISOString().substring(0,10);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const load = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
+const num = v => parseFloat(v) || 0;
+const CLAVE_GERENCIAL_SECRETA = "1234";
+
+let empleados = load('hipergalerias_empleados_db');
+let articulosSup = load('hipergalerias_articulos_db');
+let descuentos = load('hipergalerias_descuentos_db');
+let currentCedula = null;
+let claveRecordada = false; /* solo en memoria: se reinicia al salir del módulo o recargar */
+
+const uniqEmp = l => Array.from(new Map(l.map(e => [String(e.cedula||'').trim(), e])).values());
+const uniqArt = l => Array.from(new Map(l.map(a => [String((a.codigoBarras&&a.codigoBarras!=='S/C' ? a.codigoBarras : '') + (a.descripcion||'')).trim(), a])).values());
+/* Cargo siempre en MAYÚSCULAS y sin el signo "+" */
+const normCargo = c => String(c || '').replace(/\+/g, '').replace(/\s+/g, ' ').trim().toUpperCase() || 'GENERAL';
+empleados = uniqEmp(empleados).map(e => ({ ...e, cargo: normCargo(e.cargo) })); articulosSup = uniqArt(articulosSup);
+
+/* ---------- Tema y usuario ---------- */
+/* El tema se guarda en la misma clave que el panel y los demás módulos */
+function setTheme(t, guardar = true){
+  document.documentElement.dataset.theme = t;
+  $('themeLabel').textContent = t === 'dark' ? '☀️ Modo claro' : '🌙 Modo oscuro';
+  $('themeSwitch').setAttribute('aria-pressed', t === 'dark');
+  if (guardar) { try { localStorage.setItem('hipergalerias_theme', t); } catch {} }
+}
+setTheme(document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light', false);
+$('themeSwitch').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+window.addEventListener('storage', e => { if (e.key === 'hipergalerias_theme') setTheme(e.newValue === 'dark' ? 'dark' : 'light', false); });
+
+/* ---------- Toasts y modales ---------- */
+function toast(msg, err){
+  const t = document.createElement('div');
+  t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg;
+  $('toasts').appendChild(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3200);
+}
+function openM(id){ const m = $(id); m.classList.remove('closing'); m.classList.add('open'); }
+function closeM(id){
+  const m = $(id); if (!m.classList.contains('open')) return;
+  m.classList.add('closing');
+  setTimeout(() => m.classList.remove('open','closing'), 200);
+  if (id === 'modalClave' || id === 'modalDescuento') currentCedula = (id === 'modalClave') ? null : null;
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeM('modalClave'); closeM('modalDescuento'); }
+  if (e.key === 'Enter' && $('modalClave').classList.contains('open')) verificarClaveYContinuar();
+});
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + b.dataset.tab));
+});
+
+/* ---------- Cálculos ---------- */
+function calcularTotales(){
+  const pc = num($('precioBase').value) * (1 - num($('descGerencia').value) / 100);
+  $('precioConDesc').value = pc.toFixed(2);
+  $('totalADeber').value = (pc * (parseInt($('cantidad').value) || 1)).toFixed(2);
+}
+
+function animateNum(el, to, money){
+  const from = parseFloat(el.dataset.v || 0); el.dataset.v = to;
+  const t0 = performance.now();
+  (function step(t){
+    const k = Math.min((t - t0) / 600, 1), v = from + (to - from) * (1 - Math.pow(1 - k, 3));
+    el.textContent = money ? '$' + v.toFixed(2) : Math.round(v);
+    if (k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+function obtenerCuentasConsolidadas(lista){
+  const m = {};
+  lista.forEach(it => {
+    const c = String(it.cedula || '').trim();
+    m[c] = m[c] || { cedula: c, nombreEmpleado: it.nombreEmpleado || '', items: [], totalDeuda: 0, totalAbonado: 0, totalSaldo: 0, ultimaFecha: it.fecha || '' };
+    m[c].items.push(it);
+    m[c].totalDeuda += num(it.totalADeber);
+    m[c].totalAbonado += num(it.abonado);
+    m[c].totalSaldo += num(it.saldoPendiente ?? it.totalADeber);
+    if (it.fecha > m[c].ultimaFecha) m[c].ultimaFecha = it.fecha;
+  });
+  return Object.values(m);
+}
+
+function sincronizarDashboardGlobal(){
+  localStorage.setItem('hipergalerias_empleados_db', JSON.stringify(empleados));
+  localStorage.setItem('hipergalerias_articulos_db', JSON.stringify(articulosSup));
+  localStorage.setItem('hipergalerias_descuentos_db', JSON.stringify(descuentos));
+  const cuentas = obtenerCuentasConsolidadas(descuentos);
+  const pend = cuentas.filter(c => c.totalSaldo > .01 && c.totalAbonado <= .01).length;
+  const par = cuentas.filter(c => c.totalSaldo > .01 && c.totalAbonado > .01).length;
+  const liq = cuentas.filter(c => c.totalSaldo <= .01).length;
+  const sum = f => descuentos.reduce((a, d) => a + f(d), 0);
+  const resumen = {
+    totalRegistros: descuentos.length,
+    deudaTotal: sum(d => num(d.totalADeber)).toFixed(2),
+    abonadoTotal: sum(d => num(d.abonado)).toFixed(2),
+    saldoPendienteTotal: sum(d => num(d.saldoPendiente ?? d.totalADeber)).toFixed(2),
+    pendientes: pend, parciales: par, liquidados: liq,
+    ultimaActualizacion: new Date().toISOString()
+  };
+  localStorage.setItem('hipergalerias_dashboard_resumen', JSON.stringify(resumen));
+  localStorage.setItem('dashboard_stats', JSON.stringify(resumen));
+  animateNum($('stPend'), pend); animateNum($('stPar'), par); animateNum($('stLiq'), liq);
+  animateNum($('stCobrar'), parseFloat(resumen.saldoPendienteTotal), true);
+}
+
+/* ---------- Render ---------- */
+const delay = i => `style="animation-delay:${Math.min(i, 14) * 35}ms"`;
+
+const POR_PAG = 100;
+let pagEmp = 1, pagArt = 1;
+const fmtN = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+function pager(id, total, pag, fn){
+  const box = $(id), tp = Math.ceil(total / POR_PAG) || 1;
+  if (!total) { box.innerHTML = ''; return; }
+  const ini = (pag - 1) * POR_PAG + 1, fin = Math.min(pag * POR_PAG, total);
+  box.innerHTML = `<div>Mostrando <strong>${fmtN(ini)}-${fmtN(fin)}</strong> de <strong>${fmtN(total)}</strong> registros</div>
+    <div class="pg"><button class="pbtn" onclick="${fn}(${pag - 1})" ${pag <= 1 ? 'disabled' : ''}>◀ Anterior</button>
+    <span>Página <strong>${pag}</strong> de <strong>${tp}</strong></span>
+    <button class="pbtn" onclick="${fn}(${pag + 1})" ${pag >= tp ? 'disabled' : ''}>Siguiente ▶</button></div>`;
+}
+function irPagEmp(p){ pagEmp = p; renderBases(); $('tablaEmpleados').closest('.tw').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function irPagArt(p){ pagArt = p; renderBases(); $('tablaArticulosSup').closest('.tw').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+function renderBases(){
+  const fe = ($('filtroEmp').value || '').toLowerCase(), fa = ($('filtroArt').value || '').toLowerCase();
+  $('countEmpleados').textContent = empleados.length;
+  $('countArticulos').textContent = articulosSup.length;
+
+  const le = empleados.filter(e => `${e.cedula} ${e.nombre}`.toLowerCase().includes(fe));
+  pagEmp = Math.min(Math.max(pagEmp, 1), Math.ceil(le.length / POR_PAG) || 1);
+  const ve = le.slice((pagEmp - 1) * POR_PAG, pagEmp * POR_PAG);
+  $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => `<tr ${delay(i)}><td><strong>${esc(e.cedula)}</strong></td><td>${esc(e.nombre)}</td><td>${esc(normCargo(e.cargo))}</td><td>${esc(e.fechaIngreso || 'N/A')}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Aún no hay empleados. Agrégalos con el formulario de arriba.</td></tr>';
+  pager('pagerEmp', le.length, pagEmp, 'irPagEmp');
+
+  const la = articulosSup.filter(a => `${a.codigoBarras} ${a.codigoInterno} ${a.descripcion}`.toLowerCase().includes(fa));
+  pagArt = Math.min(Math.max(pagArt, 1), Math.ceil(la.length / POR_PAG) || 1);
+  const va = la.slice((pagArt - 1) * POR_PAG, pagArt * POR_PAG);
+  $('tablaArticulosSup').innerHTML = va.length ? va.map((a, i) => `<tr ${delay(i)}><td><code>${esc(a.codigoBarras || 'S/C')}</code></td><td><code>${esc(a.codigoInterno || 'S/C')}</code></td><td>${esc(a.descripcion)}</td><td><strong>${esc(a.departamento || 'General')}</strong></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Aún no hay artículos. Agrégalos con el formulario de arriba.</td></tr>';
+  pager('pagerArt', la.length, pagArt, 'irPagArt');
+}
+
+function renderizarTablaDescuentosConsolidada(lista){
+  const cs = obtenerCuentasConsolidadas(lista);
+  $('tablaDescuentos').innerHTML = cs.length ? cs.map((c, i) => {
+    const liq = c.totalSaldo <= .01, par = !liq && c.totalAbonado > .01;
+    const badge = liq ? '<span class="badge b-ok">LIQUIDADO</span>' : par ? '<span class="badge b-par">PARCIAL</span>' : '<span class="badge b-pend">PENDIENTE</span>';
+    const btn = liq ? `<button class="btn btn-gray btn-sm" data-ced="${esc(c.cedula)}">🔍 Ver detalle</button>` : `<button class="btn btn-amber btn-sm" data-ced="${esc(c.cedula)}">🛡️ Descontar (${c.items.length})</button>`;
+    return `<tr ${delay(i)}><td><strong>${esc(c.cedula)}</strong></td><td><strong>${esc(c.nombreEmpleado)}</strong></td><td><span class="count">${c.items.length} prod.</span></td><td>${esc(c.ultimaFecha)}</td><td>$${c.totalDeuda.toFixed(2)}</td><td>$${c.totalAbonado.toFixed(2)}</td><td><span class="saldo">$${c.totalSaldo.toFixed(2)}</span></td><td>${badge}</td><td>${btn}</td></tr>`;
+  }).join('') : '<tr><td colspan="9" class="empty">Aún no hay cuentas. Asigna el primer artículo a un empleado.</td></tr>';
+}
+$('tablaDescuentos').addEventListener('click', e => { const b = e.target.closest('button[data-ced]'); if (b) solicitarClaveParaDescontar(b.dataset.ced); });
+
+function actualizarContadoresYTablas(){
+  renderBases();
+  renderizarTablaDescuentosConsolidada(descuentos);
+  sincronizarDashboardGlobal();
+}
+
+function filtrarEstadoCuentas(){
+  const v = $('inputFiltroEstado').value.toLowerCase();
+  renderizarTablaDescuentosConsolidada(descuentos.filter(d => (d.nombreEmpleado || '').toLowerCase().includes(v) || String(d.cedula || '').toLowerCase().includes(v)));
+}
+
+/* ---------- Autocompletado ---------- */
+function sugerir(boxId, items, build, pick){
+  const box = $(boxId); box.innerHTML = '';
+  if (!items.length) { box.hidden = true; return; }
+  items.slice(0, 8).forEach(it => { const d = document.createElement('div'); d.innerHTML = build(it); d.onclick = () => { pick(it); box.hidden = true; }; box.appendChild(d); });
+  box.hidden = false;
+}
+function filtrarEmpleadosAsignacion(val){
+  const v = val.trim().toLowerCase();
+  sugerir('listaSugerenciasEmpleados', v ? empleados.filter(e => (e.nombre||'').toLowerCase().includes(v) || String(e.cedula||'').toLowerCase().includes(v)) : [],
+    e => `<strong>${esc(e.cedula)}</strong> - ${esc(e.nombre)}`,
+    e => { $('inputBuscadorEmpleado').value = `${e.cedula} - ${e.nombre}`; $('selectedCedula').value = e.cedula; $('selectedNombreEmpleado').value = e.nombre; });
+}
+function filtrarArticulos(val){
+  const v = val.trim().toLowerCase();
+  sugerir('listaSugerenciasArticulos', v ? articulosSup.filter(a => (a.descripcion||'').toLowerCase().includes(v) || String(a.codigoBarras||'').toLowerCase().includes(v) || String(a.codigoInterno||'').toLowerCase().includes(v)) : [],
+    a => `<strong>${esc(a.descripcion)}</strong> <small style="color:var(--muted)">(Cód: ${esc(a.codigoBarras || a.codigoInterno || 'S/C')})</small>`,
+    a => { $('inputBuscadorArticulo').value = a.descripcion; $('selectedCodigoArticulo').value = a.codigoBarras || a.codigoInterno || 'S/C'; $('selectedNombreArticulo').value = a.descripcion; $('precioBase').value = '0.00'; calcularTotales(); });
+}
+document.addEventListener('click', e => { if (!e.target.closest('.f')) { $('listaSugerenciasEmpleados').hidden = true; $('listaSugerenciasArticulos').hidden = true; } });
+
+/* ---------- Altas manuales ---------- */
+function agregarEmpleadoManual(e){
+  e.preventDefault();
+  const cedula = $('manualCedula').value.trim(), nombre = $('manualNombre').value.trim();
+  if (!cedula || !nombre) return;
+  empleados.unshift({ cedula, nombre, cargo: normCargo($('manualCargo').value), fechaIngreso: $('manualFechaIngreso').value || today() });
+  empleados = uniqEmp(empleados);
+  actualizarContadoresYTablas();
+  $('formAddEmpleado').reset(); $('manualFechaIngreso').value = today();
+  toast('Empleado agregado');
+}
+function agregarArticuloManual(e){
+  e.preventDefault();
+  const descripcion = $('manualArtDesc').value.trim(); if (!descripcion) return;
+  articulosSup.unshift({ codigoBarras: $('manualArtBarras').value.trim(), codigoInterno: $('manualArtInterno').value.trim(), descripcion, departamento: $('manualArtDpto').value });
+  articulosSup = uniqArt(articulosSup);
+  actualizarContadoresYTablas();
+  $('formAddArticulo').reset();
+  toast('Artículo registrado');
+}
+
+/* ---------- Asignación ---------- */
+function registrarDescuento(e){
+  e.preventDefault();
+  const cedula = $('selectedCedula').value, nombreEmpleado = $('selectedNombreEmpleado').value;
+  if (!cedula || !nombreEmpleado) return toast('Selecciona un empleado de la lista de sugerencias', true);
+  const producto = $('selectedNombreArticulo').value || $('inputBuscadorArticulo').value.trim();
+  let cod = $('selectedCodigoArticulo').value;
+  if (!cod || cod === 'S/C') {
+    const f = articulosSup.find(a => a && a.descripcion && a.descripcion.toLowerCase() === producto.toLowerCase());
+    cod = f ? (f.codigoBarras || f.codigoInterno || 'S/C') : 'S/C';
+  }
+  const cantidad = parseInt($('cantidad').value) || 1, total = num($('totalADeber').value);
+  descuentos.unshift({ id: Date.now(), fecha: today(), cedula, nombreEmpleado, codigoArticulo: cod, descripcionArticulo: producto, cantidad, producto: `${producto} (x${cantidad})`, descGerencia: num($('descGerencia').value), totalADeber: total.toFixed(2), abonado: '0.00', saldoPendiente: total.toFixed(2) });
+  $('formDescuento').reset();
+  ['selectedCedula','selectedNombreEmpleado','selectedCodigoArticulo','selectedNombreArticulo'].forEach(i => $(i).value = '');
+  calcularTotales(); actualizarContadoresYTablas();
+  toast('Deuda asignada al trabajador');
+}
+
+/* ---------- Descuento de quincena ---------- */
+function solicitarClaveParaDescontar(ced){
+  currentCedula = ced;
+  if (claveRecordada) { abrirModalDescuento(ced); return; }
+  $('inputClaveSeguridad').value = ''; $('chkRecordarClave').checked = false; openM('modalClave');
+  setTimeout(() => $('inputClaveSeguridad').focus(), 60);
+}
+function verificarClaveYContinuar(){
+  if ($('inputClaveSeguridad').value.trim() !== CLAVE_GERENCIAL_SECRETA) { toast('Clave inválida, acceso denegado', true); $('inputClaveSeguridad').select(); return; }
+  if ($('chkRecordarClave').checked) claveRecordada = true;
+  const c = currentCedula; closeM('modalClave');
+  setTimeout(() => abrirModalDescuento(c), 220);
+}
+function abrirModalDescuento(ced){
+  const cuenta = obtenerCuentasConsolidadas(descuentos).find(c => String(c.cedula) === String(ced));
+  if (!cuenta) return;
+  currentCedula = ced;
+  $('modalSubInfo').innerHTML = `Empleado: <strong>${esc(cuenta.nombreEmpleado)} (C.I: ${esc(cuenta.cedula)})</strong>`;
+  $('modalContenedorDetalleItems').innerHTML = cuenta.items.map(it => `<div class="it"><span>• <strong>${esc(it.descripcionArticulo || it.producto)}</strong> <small style="color:var(--muted)">(Cód: ${esc(it.codigoArticulo || 'S/C')} | Cant: ${esc(it.cantidad || 1)})</small></span><strong>$${esc(it.totalADeber)}</strong></div>`).join('');
+  $('modalDeudaTotal').value = cuenta.totalDeuda.toFixed(2);
+  $('modalAbonadoTotal').value = cuenta.totalAbonado.toFixed(2);
+  $('modalSaldoActual').value = cuenta.totalSaldo.toFixed(2);
+  $('modalEsquema').value = '1';
+  $('modalMontoPersonalizado').value = cuenta.totalSaldo.toFixed(2);
+  $('divMontoPersonalizado').hidden = true;
+  openM('modalDescuento');
+}
+function cambiarEsquemaModal(){
+  const e = $('modalEsquema').value, s = num($('modalSaldoActual').value);
+  $('divMontoPersonalizado').hidden = e !== 'custom';
+  if (e === '1') $('modalMontoPersonalizado').value = s.toFixed(2);
+  if (e === '2') $('modalMontoPersonalizado').value = (s / 2).toFixed(2);
+}
+function procesarAbonoModal(){
+  if (!currentCedula) return;
+  const e = $('modalEsquema').value, saldo = num($('modalSaldoActual').value);
+  const monto = e === '1' ? saldo : e === '2' ? saldo / 2 : num($('modalMontoPersonalizado').value);
+  if (monto <= 0) return toast('El monto a descontar debe ser mayor a 0', true);
+  if (monto > saldo + .001) return toast('El monto no puede superar el saldo pendiente', true);
+  let resto = monto;
+  /* Se cobra primero lo más antiguo: orden por fecha, luego id (la lista guarda lo nuevo al inicio) */
+  const orden = descuentos.map((d, i) => ({ d, i })).filter(x => String(x.d.cedula) === String(currentCedula))
+    .sort((a, b) => String(a.d.fecha || '').localeCompare(String(b.d.fecha || '')) || (num(a.d.id) - num(b.d.id)) || (b.i - a.i));
+  const nuevos = descuentos.slice();
+  orden.forEach(({ d, i }) => {
+    if (resto <= .001) return;
+    const sInd = num(d.saldoPendiente ?? d.totalADeber);
+    if (sInd <= 0) return;
+    const ab = Math.min(resto, sInd); resto -= ab;
+    const nuevoAb = num(d.abonado) + ab;
+    nuevos[i] = { ...d, abonado: nuevoAb.toFixed(2), saldoPendiente: Math.max(num(d.totalADeber) - nuevoAb, 0).toFixed(2) };
+  });
+  descuentos = nuevos;
+  closeM('modalDescuento'); currentCedula = null;
+  actualizarContadoresYTablas();
+  toast('Descuento de quincena procesado');
+}
+
+/* ---------- Excel ---------- */
+function parsearFechaExcel(v){
+  if (v === undefined || v === null || v === '') return 'N/A';
+  const n = Number(v);
+  if (!isNaN(n) && n > 1000) { const d = new Date((n - 25569) * 86400 * 1000); if (!isNaN(d)) return d.toISOString().substring(0, 10); }
+  const p = new Date(String(v).trim()); return isNaN(p) ? String(v).trim() : p.toISOString().substring(0, 10);
+}
+function leerArchivo(ev, cb){
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader(); r.onload = e => cb(XLSX.read(new Uint8Array(e.target.result), { type: 'array' })); r.readAsArrayBuffer(f);
+}
+function cargarExcelEmpleados(ev){
+  leerArchivo(ev, wb => {
+    try {
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' }), lista = [];
+      rows.forEach(row => {
+        let cedula = '', nombre = '', cargo = 'GENERAL', fechaIngreso = today();
+        Object.keys(row).forEach(k => {
+          const K = k.trim().toUpperCase(), val = row[k], s = String(val ?? '').trim();
+          if (!s) return;
+          if (K.includes('CEDULA') || K === 'CI' || K.includes('DOC')) cedula = s;
+          if (K.includes('NOMBRE') || K.includes('TRABAJADOR') || K.includes('EMPLEADO')) nombre = nombre ? nombre + ' ' + s : s;
+          if (K.includes('CARGO') || K.includes('PUESTO') || K.includes('DEP')) cargo = normCargo(s);
+          if (K.includes('FECHA') || K.includes('INGRESO') || K.includes('INICIO') || K.includes('REGISTRO')) fechaIngreso = parsearFechaExcel(val);
+        });
+        if (nombre && cedula) lista.push({ cedula, nombre, cargo, fechaIngreso });
+      });
+      empleados = uniqEmp(lista); actualizarContadoresYTablas();
+      toast(`Empleados cargados: ${empleados.length} únicos`);
+    } catch { toast('No se pudo leer el Excel de empleados', true); }
+    $('excelEmpleadosInput').value = '';
+  });
+}
+function cargarExcelArticulos(ev){
+  leerArchivo(ev, wb => {
+    try {
+      const raw = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: '' }), lista = [];
+      let ini = 0;
+      for (let i = 0; i < raw.length; i++) { const s = raw[i].join(' ').toUpperCase(); if (s.includes('DESCRIP') || s.includes('ARTICULO') || s.includes('BARRAS')) { ini = i; break; } }
+      const H = (raw[ini] || []).map(h => String(h).trim().toUpperCase());
+      const col = (names, def) => { const i = H.findIndex(h => names.some(n => h.includes(n))); return i >= 0 ? i : def; };
+      const cB = col(['BARRA'], 0), cI = col(['INTERNO'], 1), cD = col(['DESCRIP', 'ARTICULO', 'PRODUCTO'], 2), cP = col(['DEPART', 'DEPTO', 'SECCION'], 3);
+      for (let i = ini + 1; i < raw.length; i++) {
+        const r = raw[i]; if (!r || !r.length) continue;
+        const g = c => String(r[c] ?? '').trim(), descripcion = g(cD);
+        if (descripcion) lista.push({ codigoBarras: g(cB) || 'S/C', codigoInterno: g(cI) || 'S/C', descripcion, departamento: g(cP) || 'General' });
+      }
+      if (!lista.length) throw 0;
+      articulosSup = uniqArt(lista); actualizarContadoresYTablas();
+      toast(`Inventario actualizado: ${articulosSup.length} únicos`);
+    } catch { toast('No se pudo leer el Excel de artículos. Revisa que tenga datos válidos', true); }
+    $('excelArticulosInput').value = '';
+  });
+}
+function plantilla(datos, hoja, archivo){
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(datos), hoja); XLSX.writeFile(wb, archivo);
+}
+function descargarPlantillaArticulos(){ plantilla([["CODIGO DE BARRAS","CODIGO INTERNO","DESCRIPCION DE ARTICULO","DEPARTAMENTO"],["7591001234567","000001","CHOCOLATE GRANULADO","INSUMOS"]], 'Articulos', 'plantilla_articulos_hipergalerias.xlsx'); }
+function descargarPlantillaEmpleados(){ plantilla([["CEDULA","NOMBRE","CARGO","FECHA INGRESO"],["12345678","JUAN PEREZ","CAJERO","2024-01-15"]], 'Empleados', 'plantilla_empleados_hipergalerias.xlsx'); }
+
+/* ---------- Respaldo ---------- */
+function respaldarBaseDatos(){
+  const blob = new Blob([JSON.stringify({ empleados, articulosSup, descuentos, fechaRespaldo: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `respaldo_modulo2_hipergalerias_${today()}.json`; a.click(); URL.revokeObjectURL(a.href);
+  toast('Respaldo descargado');
+}
+function restaurarBaseDatos(ev){
+  const f = ev.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (d.empleados && d.articulosSup && d.descuentos) { empleados = d.empleados; articulosSup = d.articulosSup; descuentos = d.descuentos; actualizarContadoresYTablas(); toast('Base de datos restaurada'); }
+      else toast('El respaldo no tiene el formato correcto', true);
+    } catch { toast('No se pudo leer el archivo de respaldo', true); }
+    $('restoreInput').value = '';
+  };
+  r.readAsText(f);
+}
+
+/* ---------- Impresión ---------- */
+function imprimirPlanillaHorizontal(){
+  const fv = $('fechaSalida').value, p = fv.split('-');
+  $('printDateVal').textContent = fv ? (p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : fv) : new Date().toLocaleDateString('es-VE');
+  const tb = $('printTableBody');
+  /* Une los ítems repetidos (mismo empleado + mismo artículo) y suma la cantidad */
+  const grupos = new Map();
+  descuentos.forEach(it => {
+    let cod = it.codigoArticulo;
+    const d = (it.descripcionArticulo || it.producto || '').toLowerCase().trim();
+    if (!cod || cod === 'S/C') { const a = articulosSup.find(a => a && a.descripcion && a.descripcion.toLowerCase().trim() === d); cod = a ? (a.codigoBarras || a.codigoInterno || 'S/C') : 'S/C'; }
+    const desc = it.descripcionArticulo || (it.producto ? it.producto.replace(/\s\([^)]*\)$/, '') : 'S/D');
+    const key = [String(it.cedula || '').trim(), String(cod).trim(), desc.toLowerCase().trim()].join('|');
+    const cant = parseInt(it.cantidad) || 1;
+    if (grupos.has(key)) grupos.get(key).cant += cant;
+    else grupos.set(key, { cedula: it.cedula, nombre: it.nombreEmpleado, cod, desc, cant });
+  });
+  tb.innerHTML = !grupos.size ? '<tr><td colspan="6" class="tc" style="padding:15px">No hay asignaciones registradas para autorizar salida.</td></tr>' : [...grupos.values()].map((g, i) =>
+    `<tr><td class="tc">${i + 1}</td><td class="tc"><strong>${esc(g.cedula)}</strong></td><td class="tl">${esc(g.nombre)}</td><td class="tc"><code>${esc(g.cod)}</code></td><td class="tl">${esc(g.desc)}</td><td class="tc"><strong>${g.cant}</strong></td></tr>`).join('');
+  window.print();
+}
+
+/* ---------- Sesión (Supabase, compartida con los demás módulos) ---------- */
+function abrirModalLogin(msg){
+  const er = $('loginError');
+  if (msg) { er.textContent = msg; er.hidden = false; } else er.hidden = true;
+  openM('loginModal'); document.body.style.overflow = 'hidden';
+  setTimeout(() => $('loginEmail').focus(), 80);
+}
+function cerrarModalLogin(){ closeM('loginModal'); document.body.style.overflow = ''; }
+
+async function ejecutarLogin(e){
+  e.preventDefault();
+  const btn = $('btnSubmitLogin'), er = $('loginError');
+  if (typeof supabaseClient === 'undefined') { er.textContent = "No se encontró la configuración de Supabase en 'conexion.js'."; er.hidden = false; return; }
+  er.hidden = true; btn.textContent = 'Verificando...'; btn.disabled = true;
+  const { error } = await supabaseClient.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPassword').value });
+  btn.textContent = 'Ingresar'; btn.disabled = false;
+  if (error) { er.textContent = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message); er.hidden = false; }
+  else { $('loginForm').reset(); cerrarModalLogin(); }
+}
+async function ejecutarLogout(){
+  claveRecordada = false;
+  if (typeof supabaseClient !== 'undefined') await supabaseClient.auth.signOut();
+  window.location.href = 'index.html';
+}
+function gestionarEstadoSesion(session){
+  const box = $('userAuthContainer');
+  if (session && session.user) {
+    cerrarModalLogin();
+    const m = session.user.user_metadata || {};
+    const nombre = m.display_name || m.full_name || session.user.email.split('@')[0];
+    box.innerHTML = `<div class="pill">Bienvenid@,<strong>${esc(nombre.charAt(0).toUpperCase() + nombre.slice(1))}</strong> <button class="salir" onclick="ejecutarLogout()">Salir</button></div>`;
+  } else {
+    claveRecordada = false;
+    box.innerHTML = '<button class="btn btn-dark" onclick="abrirModalLogin()">🔑 Iniciar sesión</button>';
+    abrirModalLogin();
+  }
+}
+async function iniciarSesion(){
+  if (typeof supabaseClient === 'undefined') { gestionarEstadoSesion(null); abrirModalLogin("No se encontró la configuración de Supabase en 'conexion.js'."); return; }
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  gestionarEstadoSesion(session);
+  supabaseClient.auth.onAuthStateChange((_ev, s) => gestionarEstadoSesion(s));
+}
+
+$('fechaSalida').value = today();
+$('manualFechaIngreso').value = today();
+window.onload = () => { actualizarContadoresYTablas(); iniciarSesion(); };
+</script>
+</body>
+</html>
