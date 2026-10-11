@@ -35,6 +35,7 @@ header{background:var(--card);border-bottom:3px solid var(--y);padding:12px 32px
 [data-theme=dark] .switch{background:var(--g)}[data-theme=dark] .switch::after{transform:translateX(20px)}
 .btn{border:1px solid transparent;border-radius:10px;padding:9px 16px;font-weight:700;font-size:.86rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .2s var(--ease),box-shadow .2s,background .2s;font-family:inherit;text-decoration:none}
 .btn:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.15)}.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.6;cursor:wait;transform:none}
 .btn-dark{background:var(--gd);color:#fff}.btn-dark:hover{background:var(--g)}
 [data-theme=dark] .btn-dark{background:var(--g)}
 .btn-out{background:transparent;color:var(--red);border-color:var(--red)}.btn-out:hover{background:var(--red);color:#fff}
@@ -104,7 +105,7 @@ tbody tr{animation:rise .4s var(--ease) both;transition:background .2s}tbody tr:
 .pbtn:hover:not(:disabled){border-color:var(--g);background:var(--gbg);transform:translateY(-1px)}
 .pbtn:disabled{opacity:.4;cursor:not-allowed}
 #toasts{position:fixed;right:22px;bottom:22px;display:flex;flex-direction:column;gap:10px;z-index:400}
-.toast{background:var(--gd);color:#fff;padding:13px 20px;border-radius:12px;font-weight:600;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.3);border-left:5px solid var(--y);animation:rise .35s var(--ease)}
+.toast{background:var(--gd);color:#fff;padding:13px 20px;border-radius:12px;font-weight:600;font-size:.9rem;box-shadow:0 8px 24px rgba(0,0,0,.3);border-left:5px solid var(--y);animation:rise .35s var(--ease);max-width:380px}
 .toast.err{background:#b91c1c}.toast.out{animation:fadeOut .3s forwards}
 :focus-visible{outline:3px solid var(--y);outline-offset:2px}
 @media(max-width:760px){header,main{padding-left:14px;padding-right:14px}.three{grid-template-columns:1fr}.grid .wide{grid-column:auto}.hero h2{font-size:1.25rem}}
@@ -189,7 +190,7 @@ body *{visibility:hidden!important}
           <div class="f"><label for="cantidad">Cant.</label><input type="number" id="cantidad" min="1" value="1" oninput="calcularTotales()" required></div>
           <div class="f"><label for="totalADeber">Total a deber ($)</label><input type="text" id="totalADeber" class="ro-y" value="0.00" readonly></div>
         </div>
-        <div style="margin-top:18px"><button type="submit" class="btn btn-dark">➕ Asignar deuda</button></div>
+        <div style="margin-top:18px"><button type="submit" class="btn btn-dark" id="btnAsignar">➕ Asignar deuda</button></div>
       </form>
     </div>
 
@@ -293,7 +294,7 @@ body *{visibility:hidden!important}
     <div class="acts">
       <button class="btn btn-out" onclick="eliminarCuentaConsolidada()">🗑️ Eliminar cuenta completa</button>
       <button class="btn btn-gray" onclick="closeM('modalDescuento')">Cancelar</button>
-      <button class="btn btn-dark" onclick="procesarAbonoModal()">💾 Procesar descuento</button>
+      <button class="btn btn-dark" id="btnProcesarAbono" onclick="procesarAbonoModal()">💾 Procesar descuento</button>
     </div>
   </div>
 </div>
@@ -340,6 +341,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const load = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
 const num = v => parseFloat(v) || 0;
 const CLAVE_GERENCIAL_SECRETA = "1234";
+const hayDB = () => typeof supabaseClient !== 'undefined' && !!supabaseClient;
 
 window.empleados = load('hipergalerias_empleados_db');
 window.articulosSup = load('hipergalerias_articulos_db');
@@ -347,7 +349,8 @@ window.descuentos = load('hipergalerias_descuentos_db');
 
 let currentCedula = null;
 let claveRecordada = false;
-let datosCargados = false; // Control de sincronización única
+let datosCargados = false;   // true solo cuando los descuentos se leyeron bien de Supabase
+let registrando = false, procesando = false;
 
 const uniqEmp = l => Array.from(new Map(l.map(e => [String(e.cedula||'').trim(), e])).values());
 const uniqArt = l => Array.from(new Map(l.map(a => [String((a.codigoBarras&&a.codigoBarras!=='S/C' ? a.codigoBarras : '') + (a.descripcion||'')).trim(), a])).values());
@@ -356,39 +359,52 @@ const normCargo = c => String(c || '').replace(/\+/g, '').replace(/\s+/g, ' ').t
 window.empleados = uniqEmp(window.empleados).map(e => ({ ...e, cargo: normCargo(e.cargo) }));
 window.articulosSup = uniqArt(window.articulosSup);
 
+// "COCA COLA 2L (x3)" -> { desc: "COCA COLA 2L", cant: 3 }
+function parseProducto(p){
+  const m = String(p || '').match(/^(.*?)\s*\(x(\d+)\)\s*$/i);
+  return m ? { desc: m[1].trim(), cant: parseInt(m[2]) || 1 } : { desc: String(p || '').trim(), cant: 1 };
+}
+// Busca el código del artículo por descripción (prefiere código de barras real, luego interno)
+function buscarCodigo(desc){
+  const d = String(desc || '').toLowerCase().trim();
+  const a = window.articulosSup.find(x => x && x.descripcion && x.descripcion.toLowerCase().trim() === d);
+  if (!a) return 'S/C';
+  if (a.codigoBarras && a.codigoBarras !== 'S/C') return a.codigoBarras;
+  return a.codigoInterno || 'S/C';
+}
+
+// Devuelve el arreglo de filas, o null si la consulta falló (así no se confunde "error" con "tabla vacía")
 async function fetchAllSupabase(tableName) {
-  if (typeof supabaseClient === 'undefined' || !supabaseClient) return [];
-  let allData = [];
-  let from = 0;
+  if (!hayDB()) return null;
+  const allData = [];
   const step = 1000;
   try {
-    while (true) {
-      const { data, error } = await supabaseClient
-        .from(tableName)
-        .select('*')
-        .range(from, from + step - 1);
+    for (let from = 0; ; from += step) {
+      const { data, error } = await supabaseClient.from(tableName).select('*').range(from, from + step - 1);
       if (error) {
         console.error("Error consultando " + tableName + ":", error);
-        break;
+        return null;
       }
       if (!data || data.length === 0) break;
       allData.push(...data);
       if (data.length < step) break;
-      from += step;
     }
   } catch (err) {
     console.error("Excepcion al consultar " + tableName + ":", err);
+    return null;
   }
   return allData;
 }
 
 async function cargarTodoDesdeSupabase(silent = true) {
-  if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+  if (!hayDB()) return;
   if (!silent) toast('Sincronizando con Supabase...');
+  const fallos = [];
 
   try {
     const rawEmp = await fetchAllSupabase('empleados');
-    if (rawEmp && rawEmp.length > 0) {
+    if (rawEmp === null) fallos.push('empleados');
+    else if (rawEmp.length > 0) {
       window.empleados = rawEmp.map(e => ({
         cedula: String(e.cedula || e['CEDULA'] || '').trim(),
         nombre: String(e.nombre_apellido || e['APELLIDOS Y NOMBRES'] || e.nombre || '').trim(),
@@ -400,7 +416,8 @@ async function cargarTodoDesdeSupabase(silent = true) {
     }
 
     const rawArt = await fetchAllSupabase('articulos');
-    if (rawArt && rawArt.length > 0) {
+    if (rawArt === null) fallos.push('artículos');
+    else if (rawArt.length > 0) {
       window.articulosSup = rawArt.map(a => ({
         id: a.id,
         codigoBarras: String(a.codigoBarras || 'S/C').trim(),
@@ -412,31 +429,38 @@ async function cargarTodoDesdeSupabase(silent = true) {
     }
 
     const rawDesc = await fetchAllSupabase('descuento_empleados');
-    if (rawDesc && rawDesc.length > 0) {
-      window.descuentos = rawDesc.map(d => ({
-        id: d.id,
-        fecha: String(d.fecha || today()).trim(),
-        cedula: String(d.cedula || '').trim(),
-        nombreEmpleado: String(d.nombre_empleado || d.nombreEmpleado || '').trim(),
-        codigoArticulo: 'S/C',
-        descripcionArticulo: String(d.producto || '').trim(),
-        cantidad: 1,
-        producto: String(d.producto || '').trim(),
-        descGerencia: 0,
-        totalADeber: num(d.total_deuda).toFixed(2),
-        abonado: num(d.monto_abonado).toFixed(2),
-        saldoPendiente: num(d.saldo_pendiente).toFixed(2)
-      }));
+    if (rawDesc === null) {
+      fallos.push('descuentos');
     } else {
-      window.descuentos = [];
+      window.descuentos = rawDesc.map(d => {
+        const p = parseProducto(d.producto);
+        const total = num(d.total_deuda), abon = num(d.monto_abonado);
+        const saldo = (d.saldo_pendiente !== null && d.saldo_pendiente !== undefined) ? num(d.saldo_pendiente) : Math.max(total - abon, 0);
+        return {
+          id: d.id,
+          fecha: String(d.fecha || today()).trim(),
+          cedula: String(d.cedula || '').trim(),
+          nombreEmpleado: String(d.nombre_empleado || d.nombreEmpleado || '').trim(),
+          codigoArticulo: buscarCodigo(p.desc),
+          descripcionArticulo: p.desc,
+          cantidad: p.cant,
+          producto: String(d.producto || '').trim(),
+          descGerencia: 0,
+          totalADeber: total.toFixed(2),
+          abonado: abon.toFixed(2),
+          saldoPendiente: saldo.toFixed(2)
+        };
+      });
+      datosCargados = true;
     }
 
-    datosCargados = true;
     actualizarContadoresYTablas();
-    if (!silent) toast('Sincronización finalizada');
+
+    if (fallos.length) toast('No se pudo leer de Supabase: ' + fallos.join(', ') + '. Se muestran los datos guardados en este equipo.', true);
+    else if (!silent) toast('Sincronización finalizada');
   } catch (err) {
     console.error('Error al cargar datos:', err);
-    if (!silent) toast('Error en la carga desde Supabase', true);
+    toast('Error en la carga desde Supabase', true);
   }
 }
 
@@ -454,7 +478,7 @@ function toast(msg, err){
   const t = document.createElement('div');
   t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg;
   $('toasts').appendChild(t);
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3200);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, err ? 6000 : 3200);
 }
 function openM(id){ const m = $(id); m.classList.remove('closing'); m.classList.add('open'); }
 function closeM(id){
@@ -504,9 +528,14 @@ function obtenerCuentasConsolidadas(lista){
 }
 
 function sincronizarDashboardGlobal(){
+  // Solo se guardan copias locales y el resumen del index cuando son confiables:
+  // datos leídos de Supabase, o datos locales que no están vacíos.
+  // Así una carga fallida o previa a iniciar sesión no pisa el resumen con ceros.
+  const confiable = datosCargados || window.descuentos.length > 0;
+
   try { localStorage.setItem('hipergalerias_empleados_db', JSON.stringify(window.empleados)); } catch(e){}
-  try { localStorage.setItem('hipergalerias_descuentos_db', JSON.stringify(window.descuentos)); } catch(e){}
   try { localStorage.setItem('hipergalerias_articulos_db', JSON.stringify(window.articulosSup.slice(0, 1000))); } catch(e){}
+  if (confiable) { try { localStorage.setItem('hipergalerias_descuentos_db', JSON.stringify(window.descuentos)); } catch(e){} }
 
   const cuentas = obtenerCuentasConsolidadas(window.descuentos);
   const pend = cuentas.filter(c => c.totalSaldo > .01 && c.totalAbonado <= .01).length;
@@ -521,10 +550,12 @@ function sincronizarDashboardGlobal(){
     pendientes: pend, parciales: par, liquidados: liq,
     ultimaActualizacion: new Date().toISOString()
   };
-  try {
-    localStorage.setItem('hipergalerias_dashboard_resumen', JSON.stringify(resumen));
-    localStorage.setItem('dashboard_stats', JSON.stringify(resumen));
-  } catch(e){}
+  if (confiable) {
+    try {
+      localStorage.setItem('hipergalerias_dashboard_resumen', JSON.stringify(resumen));
+      localStorage.setItem('dashboard_stats', JSON.stringify(resumen));
+    } catch(e){}
+  }
 
   animateNum($('stPend'), pend); animateNum($('stPar'), par); animateNum($('stLiq'), liq);
   animateNum($('stCobrar'), parseFloat(resumen.saldoPendienteTotal), true);
@@ -555,7 +586,7 @@ function renderBases(){
   const le = window.empleados.filter(e => (e.cedula + ' ' + e.nombre).toLowerCase().includes(fe));
   pagEmp = Math.min(Math.max(pagEmp, 1), Math.ceil(le.length / POR_PAG) || 1);
   const ve = le.slice((pagEmp - 1) * POR_PAG, pagEmp * POR_PAG);
-  $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(e.fechaIngreso || 'N/A') + '</td><td><button class="btn btn-out btn-sm" onclick="eliminarEmpleadoManual(\'' + esc(e.cedula) + '\')">🗑️</button></td></tr>').join('') : '<tr><td colspan="5" class="empty">Aún no hay empleados registrados.</td></tr>';
+  $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(e.fechaIngreso || 'N/A') + '</td><td><button class="btn btn-out btn-sm" data-del-emp="' + esc(e.cedula) + '">🗑️</button></td></tr>').join('') : '<tr><td colspan="5" class="empty">Aún no hay empleados registrados.</td></tr>';
   pager('pagerEmp', le.length, pagEmp, 'irPagEmp');
 
   const la = window.articulosSup.filter(a => (a.codigoBarras + ' ' + a.codigoInterno + ' ' + a.descripcion).toLowerCase().includes(fa));
@@ -564,6 +595,7 @@ function renderBases(){
   $('tablaArticulosSup').innerHTML = va.length ? va.map((a, i) => '<tr ' + delay(i) + '><td><code>' + esc(a.codigoBarras || 'S/C') + '</code></td><td><code>' + esc(a.codigoInterno || 'S/C') + '</code></td><td>' + esc(a.descripcion) + '</td><td><strong>' + esc(a.departamento || 'General') + '</strong></td></tr>').join('') : '<tr><td colspan="4" class="empty">Aún no hay artículos cargados.</td></tr>';
   pager('pagerArt', la.length, pagArt, 'irPagArt');
 }
+$('tablaEmpleados').addEventListener('click', e => { const b = e.target.closest('button[data-del-emp]'); if (b) eliminarEmpleadoManual(b.dataset.delEmp); });
 
 function renderizarTablaDescuentosConsolidada(lista){
   const cs = obtenerCuentasConsolidadas(lista);
@@ -575,6 +607,7 @@ function renderizarTablaDescuentosConsolidada(lista){
   }).join('') : '<tr><td colspan="9" class="empty">Aún no hay cuentas activas.</td></tr>';
 }
 $('tablaDescuentos').addEventListener('click', e => { const b = e.target.closest('button[data-ced]'); if (b) solicitarClaveParaDescontar(b.dataset.ced); });
+$('modalContenedorDetalleItems').addEventListener('click', e => { const b = e.target.closest('button[data-del-id]'); if (b) eliminarRegistroItem(b.dataset.delId); });
 
 function actualizarContadoresYTablas(){
   renderBases();
@@ -614,14 +647,18 @@ async function agregarEmpleadoManual(e){
   const cargo = normCargo($('manualCargo').value);
   const fechaIngreso = $('manualFechaIngreso').value || today();
 
-  if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+  if (hayDB()) {
     const { error } = await supabaseClient.from('empleados').insert([{
       cedula: cedula,
       nombre_apellido: nombre,
       cargo: cargo,
       fecha_ingreso: fechaIngreso
     }]);
-    if (error) console.error("Error al registrar en Supabase:", error);
+    if (error) {
+      console.error("Error al registrar en Supabase:", error);
+      toast('No se pudo registrar el empleado: ' + error.message, true);
+      return;
+    }
   }
 
   window.empleados.unshift({ cedula, nombre, cargo, fechaIngreso });
@@ -633,8 +670,9 @@ async function agregarEmpleadoManual(e){
 
 async function eliminarEmpleadoManual(cedula){
   if (!confirm('¿Seguro de eliminar este empleado?')) return;
-  if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-    await supabaseClient.from('empleados').delete().eq('cedula', cedula);
+  if (hayDB()) {
+    const { error } = await supabaseClient.from('empleados').delete().eq('cedula', cedula);
+    if (error) { console.error(error); toast('No se pudo eliminar el empleado: ' + error.message, true); return; }
   }
   window.empleados = window.empleados.filter(e => String(e.cedula) !== String(cedula));
   actualizarContadoresYTablas();
@@ -647,15 +685,21 @@ async function agregarArticuloManual(e){
   const codigoBarras = $('manualArtBarras').value.trim() || 'S/C';
   const codigoInterno = $('manualArtInterno').value.trim() || 'S/C';
   const departamento = $('manualArtDpto').value;
+  let id;
 
-  if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-    const { error } = await supabaseClient.from('articulos').insert([{
+  if (hayDB()) {
+    const { data, error } = await supabaseClient.from('articulos').insert([{
       codigoBarras, codigoInterno, descripcion, departamento
-    }]);
-    if (error) console.error("Error al registrar en Supabase:", error);
+    }]).select();
+    if (error) {
+      console.error("Error al registrar en Supabase:", error);
+      toast('No se pudo registrar el artículo: ' + error.message, true);
+      return;
+    }
+    if (data && data[0]) id = data[0].id;
   }
 
-  window.articulosSup.unshift({ codigoBarras, codigoInterno, descripcion, departamento });
+  window.articulosSup.unshift({ id, codigoBarras, codigoInterno, descripcion, departamento });
   window.articulosSup = uniqArt(window.articulosSup);
   actualizarContadoresYTablas();
   $('formAddArticulo').reset();
@@ -664,14 +708,13 @@ async function agregarArticuloManual(e){
 
 async function registrarDescuento(e){
   e.preventDefault();
+  if (registrando) return;
   const cedula = $('selectedCedula').value, nombreEmpleado = $('selectedNombreEmpleado').value;
   if (!cedula || !nombreEmpleado) return toast('Selecciona un empleado de la lista de sugerencias', true);
+
   const producto = $('selectedNombreArticulo').value || $('inputBuscadorArticulo').value.trim();
   let cod = $('selectedCodigoArticulo').value;
-  if (!cod || cod === 'S/C') {
-    const f = window.articulosSup.find(a => a && a.descripcion && a.descripcion.toLowerCase() === producto.toLowerCase());
-    cod = f ? (f.codigoBarras || f.codigoInterno || 'S/C') : 'S/C';
-  }
+  if (!cod || cod === 'S/C') cod = buscarCodigo(producto);
   const cantidad = parseInt($('cantidad').value) || 1, total = num($('totalADeber').value);
 
   const regDesc = {
@@ -684,37 +727,42 @@ async function registrarDescuento(e){
     saldo_pendiente: total
   };
 
-  let assignedId = Date.now();
-  if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-    const { data, error } = await supabaseClient.from('descuento_empleados').insert([regDesc]).select();
-    if (error) {
-      console.error('Error insertando en Supabase:', error);
-      toast('Error guardando registro en Supabase', true);
-      return;
+  registrando = true; $('btnAsignar').disabled = true;
+  try {
+    let assignedId = Date.now();
+    if (hayDB()) {
+      const { data, error } = await supabaseClient.from('descuento_empleados').insert([regDesc]).select();
+      if (error) {
+        console.error('Error insertando en Supabase:', error);
+        toast('No se pudo guardar la deuda: ' + error.message, true);
+        return;
+      }
+      if (data && data.length > 0) assignedId = data[0].id;
     }
-    if (data && data.length > 0) assignedId = data[0].id;
+
+    window.descuentos.unshift({
+      id: assignedId,
+      fecha: regDesc.fecha,
+      cedula: regDesc.cedula,
+      nombreEmpleado: regDesc.nombre_empleado,
+      codigoArticulo: cod,
+      descripcionArticulo: producto,
+      cantidad: cantidad,
+      producto: regDesc.producto,
+      descGerencia: num($('descGerencia').value),
+      totalADeber: total.toFixed(2),
+      abonado: '0.00',
+      saldoPendiente: total.toFixed(2)
+    });
+
+    $('formDescuento').reset();
+    ['selectedCedula','selectedNombreEmpleado','selectedCodigoArticulo','selectedNombreArticulo'].forEach(i => $(i).value = '');
+    calcularTotales();
+    actualizarContadoresYTablas();
+    toast('Deuda asignada al trabajador');
+  } finally {
+    registrando = false; $('btnAsignar').disabled = false;
   }
-
-  window.descuentos.unshift({
-    id: assignedId,
-    fecha: regDesc.fecha,
-    cedula: regDesc.cedula,
-    nombreEmpleado: regDesc.nombre_empleado,
-    codigoArticulo: cod,
-    descripcionArticulo: producto,
-    cantidad: cantidad,
-    producto: regDesc.producto,
-    descGerencia: num($('descGerencia').value),
-    totalADeber: total.toFixed(2),
-    abonado: '0.00',
-    saldoPendiente: total.toFixed(2)
-  });
-
-  $('formDescuento').reset();
-  ['selectedCedula','selectedNombreEmpleado','selectedCodigoArticulo','selectedNombreArticulo'].forEach(i => $(i).value = '');
-  calcularTotales();
-  actualizarContadoresYTablas();
-  toast('Deuda asignada al trabajador');
 }
 
 function solicitarClaveParaDescontar(ced){
@@ -734,7 +782,7 @@ function abrirModalDescuento(ced){
   if (!cuenta) return;
   currentCedula = ced;
   $('modalSubInfo').innerHTML = 'Empleado: <strong>' + esc(cuenta.nombreEmpleado) + ' (C.I: ' + esc(cuenta.cedula) + ')</strong>';
-  $('modalContenedorDetalleItems').innerHTML = cuenta.items.map(it => '<div class="it"><span>• <strong>' + esc(it.descripcionArticulo || it.producto) + '</strong> <small style="color:var(--muted)">(Cód: ' + esc(it.codigoArticulo || 'S/C') + ' | Cant: ' + esc(it.cantidad || 1) + ')</small></span><strong>$' + esc(it.totalADeber) + '</strong> <button class="btn btn-out btn-sm" onclick="eliminarRegistroItem(' + it.id + ')" title="Eliminar este ítem">🗑️</button></div>').join('');
+  $('modalContenedorDetalleItems').innerHTML = cuenta.items.map(it => '<div class="it"><span>• <strong>' + esc(it.descripcionArticulo || it.producto) + '</strong> <small style="color:var(--muted)">(Cód: ' + esc(it.codigoArticulo || 'S/C') + ' | Cant: ' + esc(it.cantidad || 1) + ')</small></span><strong>$' + esc(it.totalADeber) + '</strong> <button class="btn btn-out btn-sm" data-del-id="' + esc(it.id) + '" title="Eliminar este ítem">🗑️</button></div>').join('');
   $('modalDeudaTotal').value = cuenta.totalDeuda.toFixed(2);
   $('modalAbonadoTotal').value = cuenta.totalAbonado.toFixed(2);
   $('modalSaldoActual').value = cuenta.totalSaldo.toFixed(2);
@@ -746,8 +794,9 @@ function abrirModalDescuento(ced){
 
 async function eliminarRegistroItem(id){
   if (!confirm('¿Deseas eliminar este registro de deuda permanentemente?')) return;
-  if (typeof supabaseClient !== 'undefined' && supabaseClient && id) {
-    await supabaseClient.from('descuento_empleados').delete().eq('id', id);
+  if (hayDB() && id) {
+    const { error } = await supabaseClient.from('descuento_empleados').delete().eq('id', id);
+    if (error) { console.error(error); toast('No se pudo eliminar el registro: ' + error.message, true); return; }
   }
   window.descuentos = window.descuentos.filter(d => String(d.id) !== String(id));
   closeM('modalDescuento');
@@ -757,11 +806,13 @@ async function eliminarRegistroItem(id){
 
 async function eliminarCuentaConsolidada(){
   if (!currentCedula) return;
+  const ced = currentCedula;
   if (!confirm('¿Seguro de eliminar TODA la cuenta y compras de este empleado?')) return;
-  if (typeof supabaseClient !== 'undefined' && supabaseClient) {
-    await supabaseClient.from('descuento_empleados').delete().eq('cedula', currentCedula);
+  if (hayDB()) {
+    const { error } = await supabaseClient.from('descuento_empleados').delete().eq('cedula', ced);
+    if (error) { console.error(error); toast('No se pudo eliminar la cuenta: ' + error.message, true); return; }
   }
-  window.descuentos = window.descuentos.filter(d => String(d.cedula) !== String(currentCedula));
+  window.descuentos = window.descuentos.filter(d => String(d.cedula) !== String(ced));
   closeM('modalDescuento');
   currentCedula = null;
   actualizarContadoresYTablas();
@@ -775,39 +826,54 @@ function cambiarEsquemaModal(){
   if (e === '2') $('modalMontoPersonalizado').value = (s / 2).toFixed(2);
 }
 async function procesarAbonoModal(){
-  if (!currentCedula) return;
+  if (!currentCedula || procesando) return;
+  const ced = currentCedula;
   const e = $('modalEsquema').value, saldo = num($('modalSaldoActual').value);
   const monto = e === '1' ? saldo : e === '2' ? saldo / 2 : num($('modalMontoPersonalizado').value);
   if (monto <= 0) return toast('El monto a descontar debe ser mayor a 0', true);
   if (monto > saldo + .001) return toast('El monto no puede superar el saldo pendiente', true);
-  let resto = monto;
 
-  const orden = window.descuentos.map((d, i) => ({ d, i })).filter(x => String(x.d.cedula) === String(currentCedula))
-    .sort((a, b) => String(a.d.fecha || '').localeCompare(String(b.d.fecha || '')) || (num(a.d.id) - num(b.d.id)) || (b.i - a.i));
-  const nuevos = window.descuentos.slice();
+  procesando = true; $('btnProcesarAbono').disabled = true;
+  try {
+    let resto = monto;
+    const orden = window.descuentos.map((d, i) => ({ d, i })).filter(x => String(x.d.cedula) === String(ced))
+      .sort((a, b) => String(a.d.fecha || '').localeCompare(String(b.d.fecha || '')) || (num(a.d.id) - num(b.d.id)) || (b.i - a.i));
+    const nuevos = window.descuentos.slice();
+    const updates = [];
 
-  for (const { d, i } of orden) {
-    if (resto <= .001) break;
-    const sInd = num(d.saldoPendiente ?? d.totalADeber);
-    if (sInd <= 0) continue;
-    const ab = Math.min(resto, sInd); resto -= ab;
-    const nuevoAb = num(d.abonado) + ab;
-    const nuevoSaldo = Math.max(num(d.totalADeber) - nuevoAb, 0);
-
-    nuevos[i] = { ...d, abonado: nuevoAb.toFixed(2), saldoPendiente: nuevoSaldo.toFixed(2) };
-
-    if (typeof supabaseClient !== 'undefined' && supabaseClient && d.id) {
-      await supabaseClient.from('descuento_empleados').update({
-        monto_abonado: nuevoAb,
-        saldo_pendiente: nuevoSaldo
-      }).eq('id', d.id);
+    for (const { d, i } of orden) {
+      if (resto <= .001) break;
+      const sInd = num(d.saldoPendiente ?? d.totalADeber);
+      if (sInd <= 0) continue;
+      const ab = Math.min(resto, sInd); resto -= ab;
+      const nuevoAb = num(d.abonado) + ab;
+      const nuevoSaldo = Math.max(num(d.totalADeber) - nuevoAb, 0);
+      nuevos[i] = { ...d, abonado: nuevoAb.toFixed(2), saldoPendiente: nuevoSaldo.toFixed(2) };
+      if (d.id) updates.push({ id: d.id, ab: nuevoAb, saldo: nuevoSaldo });
     }
-  }
 
-  window.descuentos = nuevos;
-  closeM('modalDescuento'); currentCedula = null;
-  actualizarContadoresYTablas();
-  toast('Descuento de quincena procesado');
+    // Primero se guarda en Supabase; si algo falla se avisa y se vuelve a leer la base (no se muestra un éxito falso)
+    if (hayDB()) {
+      for (const u of updates) {
+        const { error } = await supabaseClient.from('descuento_empleados')
+          .update({ monto_abonado: u.ab, saldo_pendiente: u.saldo }).eq('id', u.id);
+        if (error) {
+          console.error('Error actualizando descuento:', error);
+          toast('No se pudo guardar el descuento: ' + error.message, true);
+          closeM('modalDescuento');
+          await cargarTodoDesdeSupabase(true);
+          return;
+        }
+      }
+    }
+
+    window.descuentos = nuevos;
+    closeM('modalDescuento'); currentCedula = null;
+    actualizarContadoresYTablas();
+    toast('Descuento de quincena procesado');
+  } finally {
+    procesando = false; $('btnProcesarAbono').disabled = false;
+  }
 }
 
 function imprimirPlanillaHorizontal(){
@@ -816,10 +882,10 @@ function imprimirPlanillaHorizontal(){
   const tb = $('printTableBody');
   const grupos = new Map();
   window.descuentos.forEach(it => {
+    const pr = parseProducto(it.descripcionArticulo || it.producto || '');
+    const desc = pr.desc || 'S/D';
     let cod = it.codigoArticulo;
-    const d = (it.descripcionArticulo || it.producto || '').toLowerCase().trim();
-    if (!cod || cod === 'S/C') { const a = window.articulosSup.find(a => a && a.descripcion && a.descripcion.toLowerCase().trim() === d); cod = a ? (a.codigoBarras || a.codigoInterno || 'S/C') : 'S/C'; }
-    const desc = it.descripcionArticulo || (it.producto ? it.producto.replace(/\s\([^)]*\)$/, '') : 'S/D');
+    if (!cod || cod === 'S/C') cod = buscarCodigo(desc);
     const key = [String(it.cedula || '').trim(), String(cod).trim(), desc.toLowerCase().trim()].join('|');
     const cant = parseInt(it.cantidad) || 1;
     if (grupos.has(key)) grupos.get(key).cant += cant;
@@ -841,7 +907,7 @@ function cerrarModalLogin(){ closeM('loginModal'); document.body.style.overflow 
 async function ejecutarLogin(e){
   e.preventDefault();
   const btn = $('btnSubmitLogin'), er = $('loginError');
-  if (typeof supabaseClient === 'undefined' || !supabaseClient) { er.textContent = "No se encontró la configuración de Supabase en 'conexion.js'."; er.hidden = false; return; }
+  if (!hayDB()) { er.textContent = "No se encontró la configuración de Supabase en 'conexion.js'."; er.hidden = false; return; }
   er.hidden = true; btn.textContent = 'Verificando...'; btn.disabled = true;
   const { error } = await supabaseClient.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPassword').value });
   btn.textContent = 'Ingresar'; btn.disabled = false;
@@ -850,7 +916,7 @@ async function ejecutarLogin(e){
 }
 async function ejecutarLogout(){
   claveRecordada = false;
-  if (typeof supabaseClient !== 'undefined' && supabaseClient) await supabaseClient.auth.signOut();
+  if (hayDB()) await supabaseClient.auth.signOut();
   window.location.href = 'index.html';
 }
 async function gestionarEstadoSesion(session, eventName){
@@ -860,10 +926,10 @@ async function gestionarEstadoSesion(session, eventName){
     const m = session.user.user_metadata || {};
     const nombre = m.display_name || m.full_name || session.user.email.split('@')[0];
     box.innerHTML = '<div class="pill">Bienvenid@,<strong>' + esc(nombre.charAt(0).toUpperCase() + nombre.slice(1)) + '</strong> <button class="salir" onclick="ejecutarLogout()">Salir</button></div>';
-    
-    // Solo sincronizar con Supabase en la carga inicial o inicio explícito de sesión
+
+    // Se reintenta mientras la carga no haya sido exitosa
     if (!datosCargados || eventName === 'SIGNED_IN') {
-      await cargarTodoDesdeSupabase(true); // Carga silenciosa
+      await cargarTodoDesdeSupabase(true);
     }
   } else {
     claveRecordada = false;
@@ -872,7 +938,7 @@ async function gestionarEstadoSesion(session, eventName){
   }
 }
 async function iniciarSesion(){
-  if (typeof supabaseClient === 'undefined' || !supabaseClient) { gestionarEstadoSesion(null); abrirModalLogin("No se encontró la configuración de Supabase en 'conexion.js'."); return; }
+  if (!hayDB()) { gestionarEstadoSesion(null); abrirModalLogin("No se encontró la configuración de Supabase en 'conexion.js'."); return; }
   const { data: { session } } = await supabaseClient.auth.getSession();
   await gestionarEstadoSesion(session, 'INITIAL');
   supabaseClient.auth.onAuthStateChange(async (event, s) => {

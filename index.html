@@ -81,6 +81,7 @@ body.dark-mode .welcome-card{background:linear-gradient(120deg,#052e22,#047857 6
 .metric-box:hover{transform:translateY(-2px)}
 .metric-title{margin-bottom:4px;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
 .metric-value{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;color:var(--mu);font-variant-numeric:tabular-nums}
+.metric-sub{display:block;margin-top:4px;font-size:.64rem;font-weight:600;color:var(--mu);min-height:1em}
 .state-alert-green{background:#f0fdf4;border-color:#bbf7d0}.state-alert-green .metric-value{color:#166534}
 .state-alert-blue{background:#f0f9ff;border-color:#bae6fd}.state-alert-blue .metric-value{color:#0369a1}
 .state-alert-orange{background:#fff7ed;border-color:#fed7aa}.state-alert-orange .metric-value{color:#c2410c}
@@ -173,8 +174,8 @@ body.dark-mode .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b
         <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/9c924f2d-0a9f-4258-b925-e1582d676f64/W5x2kJgrfs.lottie" loop data-emoji="👥"></dotlottie-wc></div>
           <div class="module-title-zone"><h3>Descuentos para Empleados</h3><p class="module-desc">Cobro de productos al personal.</p></div></div>
         <div class="dashboard-metrics cols-3">
-          <div class="metric-box" id="box-mod2-pendientes" title="Descuentos sin ningún abono"><span class="metric-title">Pend. Pago</span><span class="metric-value" id="val-mod2-pendientes">0</span></div>
-          <div class="metric-box" id="box-mod2-parciales" title="Descuentos con abono parcial"><span class="metric-title">Parciales</span><span class="metric-value" id="val-mod2-parciales">0</span></div>
+          <div class="metric-box" id="box-mod2-pendientes" title="Empleados con deuda y ningún abono"><span class="metric-title">Pend. Pago</span><span class="metric-value" id="val-mod2-pendientes">0</span></div>
+          <div class="metric-box" id="box-mod2-parciales" title="Empleados con deuda y abono parcial"><span class="metric-title">Parciales</span><span class="metric-value" id="val-mod2-parciales">0</span></div>
           <div class="metric-box" id="box-mod2-porcobrar" title="Monto total pendiente de cobro"><span class="metric-title">Por Cobrar</span><span class="metric-value" id="val-mod2-porcobrar">$0</span></div>
         </div>
       </div>
@@ -277,6 +278,8 @@ function cargarTemaGuardado() {
 }
 
 // --- AYUDAS DE INTERFAZ (solo visuales) ---
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 function alternarPassword() {
     const input = document.getElementById('loginPassword');
     const btn = document.getElementById('pwToggle');
@@ -381,7 +384,7 @@ function gestionarEstadoSesion(session) {
         if (authContainer) {
             authContainer.innerHTML = `
                 <div class="user-profile-badge">
-                    <span>Bienvenid@, <strong>${nombreFormateado}</strong></span>
+                    <span>Bienvenid@, <strong>${esc(nombreFormateado)}</strong></span>
                     <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
                 </div>
             `;
@@ -411,6 +414,43 @@ async function protegerEnlaceModulo(event, url) {
     }
 }
 
+// --- LECTURA DE DATOS ---
+// Lee tablas completas (Supabase corta en 1000 filas por consulta).
+// El .order('id') da un orden estable para que la paginación no repita ni omita filas.
+async function leerTodo(tabla, columnas = '*') {
+    const out = [], paso = 1000;
+    for (let desde = 0; ; desde += paso) {
+        const { data, error } = await supabaseClient
+            .from(tabla).select(columnas).order('id').range(desde, desde + paso - 1);
+        if (error) throw error;
+        out.push(...data);
+        if (data.length < paso) break;
+    }
+    return out;
+}
+
+// Descuentos: misma lógica que descuentos.html (se agrupa por cédula)
+function resumirDescuentos(filas) {
+    const n = v => parseFloat(v) || 0;
+    const cuentas = {};
+    filas.forEach(f => {
+        const ced = String(f.cedula || '').trim();
+        const c = cuentas[ced] || (cuentas[ced] = { abonado: 0, saldo: 0 });
+        c.abonado += n(f.monto_abonado);
+        c.saldo += n(f.saldo_pendiente ?? f.total_deuda);
+    });
+    let pendientes = 0, parciales = 0, porCobrar = 0;
+    Object.values(cuentas).forEach(c => {
+        if (c.saldo > 0.01) {
+            porCobrar += c.saldo;
+            if (c.abonado > 0.01) parciales++; else pendientes++;
+        }
+    });
+    return { pendientes, parciales, porCobrar };
+}
+
+const leerLocal = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
+
 // --- METRICAS Y DASHBOARD ---
 function actualizarColorMetrica(boxId, valor, tipoAlerta) {
     const box = document.getElementById(boxId);
@@ -428,121 +468,123 @@ function actualizarColorMetrica(boxId, valor, tipoAlerta) {
     }
 }
 
+let sincronizando = false;
+
 async function sincronizarDashboard() {
-    // Módulo 1: Recepción y Fechas
-    let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
-    let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
-    let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
-
-    document.getElementById('val-mod1-optimos').innerText = optimos;
-    document.getElementById('val-mod1-porvencer').innerText = porVencer;
-    document.getElementById('val-mod1-vencidos').innerText = vencidos;
-
-    actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
-    actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
-    actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
-
-    // Módulo 2: Descuentos Empleados
+    if (sincronizando) return; // evita consultas duplicadas si llegan varios eventos seguidos
+    sincronizando = true;
     try {
-        const descuentosDB = JSON.parse(localStorage.getItem('hipergalerias_descuentos_db')) || [];
-        let cantPendientes = 0;
-        let cantParciales = 0;
-        let montoPorCobrar = 0;
+        const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+        const hayDB = typeof supabaseClient !== 'undefined' && supabaseClient;
 
-        descuentosDB.forEach(item => {
-            const montoTotal = parseFloat(item.monto || item.total || 0);
-            const abonado = parseFloat(item.abonado || 0);
-            const saldoPendiente = parseFloat(item.saldoPendiente !== undefined ? item.saldoPendiente : (montoTotal - abonado));
+        // Módulo 1: Recepción y Fechas
+        let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
+        let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
+        let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
 
-            if (saldoPendiente > 0) {
-                montoPorCobrar += saldoPendiente;
-                if (abonado > 0) cantParciales++;
-                else cantPendientes++;
-            }
-        });
+        set('val-mod1-optimos', optimos);
+        set('val-mod1-porvencer', porVencer);
+        set('val-mod1-vencidos', vencidos);
 
-        document.getElementById('val-mod2-pendientes').innerText = cantPendientes;
-        document.getElementById('val-mod2-parciales').innerText = cantParciales;
-        document.getElementById('val-mod2-porcobrar').innerText = '$' + montoPorCobrar.toFixed(2);
+        actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
+        actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
+        actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
 
-        actualizarColorMetrica('box-mod2-pendientes', cantPendientes, 'orange');
-        actualizarColorMetrica('box-mod2-parciales', cantParciales, 'orange');
-        actualizarColorMetrica('box-mod2-porcobrar', montoPorCobrar, 'red');
-    } catch (e) {
-        console.error("Error al sincronizar descuentos en el index:", e);
-    }
+        // Módulo 2: Descuentos Empleados
+        try {
+            let r = null;
 
-    // Módulo 3: Recetas y Costos (Consulta directa a Supabase con fallback a localStorage)
-    try {
-        let totalInsumos = null;
-        let totalRecetas = null;
-
-        if (typeof supabaseClient !== 'undefined' && supabaseClient !== null) {
-            const [resInsumos, resRecetas] = await Promise.allSettled([
-                supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
-                supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
-            ]);
-
-            if (resInsumos.status === 'fulfilled' && !resInsumos.value.error && resInsumos.value.count !== null) {
-                totalInsumos = resInsumos.value.count;
+            if (hayDB) {
+                try {
+                    const filas = await leerTodo('descuento_empleados', 'id,cedula,total_deuda,monto_abonado,saldo_pendiente');
+                    r = resumirDescuentos(filas);
+                } catch (err) {
+                    console.warn('Descuentos: no se pudo leer Supabase', err);
+                }
             }
 
-            if (resRecetas.status === 'fulfilled' && !resRecetas.value.error && resRecetas.value.count !== null) {
-                totalRecetas = resRecetas.value.count;
+            // Respaldo: el resumen que guarda descuentos.html al abrirse
+            if (!r) {
+                const g = JSON.parse(localStorage.getItem('hipergalerias_dashboard_resumen') || 'null');
+                r = g
+                    ? { pendientes: g.pendientes || 0, parciales: g.parciales || 0, porCobrar: parseFloat(g.saldoPendienteTotal) || 0 }
+                    : { pendientes: 0, parciales: 0, porCobrar: 0 };
             }
+
+            set('val-mod2-pendientes', r.pendientes.toLocaleString('es-ES'));
+            set('val-mod2-parciales', r.parciales.toLocaleString('es-ES'));
+            set('val-mod2-porcobrar', '$' + r.porCobrar.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+            actualizarColorMetrica('box-mod2-pendientes', r.pendientes, 'orange');
+            actualizarColorMetrica('box-mod2-parciales', r.parciales, 'orange');
+            actualizarColorMetrica('box-mod2-porcobrar', r.porCobrar, 'red');
+        } catch (e) {
+            console.error("Error al sincronizar descuentos en el index:", e);
         }
 
-        if (totalInsumos === null) {
-            const rawInsumos = localStorage.getItem('hipergalerias_insumos_db') || localStorage.getItem('insumos');
-            const insumosDB = rawInsumos ? JSON.parse(rawInsumos) : [];
-            totalInsumos = Array.isArray(insumosDB) ? insumosDB.length : Object.keys(insumosDB).length;
+        // Módulo 3: Recetas y Costos (conteo directo en Supabase; respaldo local)
+        try {
+            let totalInsumos = null, totalRecetas = null;
+
+            if (hayDB) {
+                const [rI, rR] = await Promise.allSettled([
+                    supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
+                    supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
+                ]);
+                if (rI.status === 'fulfilled' && !rI.value.error && rI.value.count !== null) totalInsumos = rI.value.count;
+                if (rR.status === 'fulfilled' && !rR.value.error && rR.value.count !== null) totalRecetas = rR.value.count;
+            }
+
+            if (totalInsumos === null) totalInsumos = leerLocal('hipergalerias_insumos_db').length;
+            if (totalRecetas === null) totalRecetas = leerLocal('hipergalerias_recetas_db').length;
+
+            set('val-mod3-recetas', totalRecetas.toLocaleString('es-ES'));
+            set('val-mod3-ingredientes', totalInsumos.toLocaleString('es-ES'));
+
+            actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
+            actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
+        } catch (e) {
+            console.error("Error al sincronizar recetas en el index:", e);
+            set('val-mod3-recetas', '0');
+            set('val-mod3-ingredientes', '0');
         }
 
-        if (totalRecetas === null) {
-            const rawRecetas = localStorage.getItem('hipergalerias_recetas_db') || localStorage.getItem('recetas');
-            const recetasDB = rawRecetas ? JSON.parse(rawRecetas) : [];
-            totalRecetas = Array.isArray(recetasDB) ? recetasDB.length : Object.keys(recetasDB).length;
+        // Módulo 4: TI Equipos
+        try {
+            const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
+            set('val-mod4-equipos', tiDB.length);
+            set('val-mod4-mant', '0');
+
+            actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
+            actualizarColorMetrica('box-mod4-mant', 0, 'orange');
+        } catch (e) {
+            console.error("Error al sincronizar TI Equipos en el index:", e);
         }
 
-        document.getElementById('val-mod3-recetas').innerText = totalRecetas.toLocaleString('es-ES');
-        document.getElementById('val-mod3-ingredientes').innerText = totalInsumos.toLocaleString('es-ES');
-
-        actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
-        actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
-    } catch (e) {
-        console.error("Error al sincronizar recetas en el index:", e);
-        document.getElementById('val-mod3-recetas').innerText = '0';
-        document.getElementById('val-mod3-ingredientes').innerText = '0';
+        document.getElementById('modulesGrid').classList.remove('is-loading');
+    } finally {
+        sincronizando = false;
     }
-
-    // Módulo 4: TI Equipos
-    try {
-        const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
-        document.getElementById('val-mod4-equipos').innerText = tiDB.length;
-        document.getElementById('val-mod4-mant').innerText = '0';
-
-        actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
-        actualizarColorMetrica('box-mod4-mant', 0, 'orange');
-    } catch (e) {
-        console.error("Error al sincronizar TI Equipos en el index:", e);
-    }
-
-    document.getElementById('modulesGrid').classList.remove('is-loading');
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
     cargarTemaGuardado();
     iniciarIconosLottie();
-    await sincronizarDashboard();
 
     if (typeof supabaseClient !== 'undefined') {
+        // Las consultas se hacen DESPUÉS de tener sesión: con RLS, sin sesión Supabase devuelve 0 filas
         const { data: { session } } = await supabaseClient.auth.getSession();
         gestionarEstadoSesion(session);
 
+        if (session) await sincronizarDashboard();
+        else document.getElementById('modulesGrid').classList.remove('is-loading');
+
         supabaseClient.auth.onAuthStateChange((_event, session) => {
             gestionarEstadoSesion(session);
+            if (session) sincronizarDashboard();
         });
     } else {
+        await sincronizarDashboard();
         abrirModalLogin();
     }
 });
