@@ -249,7 +249,7 @@ body *{visibility:hidden!important}
           <div><button type="submit" class="btn btn-dark">Registrar producto</button></div>
         </form>
       </div>
-      <input type="text" id="filtroArt" placeholder="🔍 Buscar artículo o código..." oninput="pagArt=1;renderBases()" style="margin-bottom:14px">
+      <input type="text" id="filtroArt" placeholder="🔍 Buscar artículo o código..." oninput="filtrarArtTabla()" style="margin-bottom:14px">
       <div class="tw"><table><thead><tr><th>Código de barras</th><th>Código interno</th><th>Descripción</th><th>Departamento</th></tr></thead><tbody id="tablaArticulosSup"></tbody></table></div>
       <div class="pager" id="pagerArt"></div>
     </div>
@@ -344,7 +344,6 @@ const CLAVE_GERENCIAL_SECRETA = "1234";
 const hayDB = () => typeof supabaseClient !== 'undefined' && !!supabaseClient;
 
 window.empleados = load('hipergalerias_empleados_db');
-window.articulosSup = load('hipergalerias_articulos_db');
 window.descuentos = load('hipergalerias_descuentos_db');
 
 let currentCedula = null;
@@ -353,24 +352,52 @@ let datosCargados = false;   // true solo cuando los descuentos se leyeron bien 
 let registrando = false, procesando = false;
 
 const uniqEmp = l => Array.from(new Map(l.map(e => [String(e.cedula||'').trim(), e])).values());
-const uniqArt = l => Array.from(new Map(l.map(a => [String((a.codigoBarras&&a.codigoBarras!=='S/C' ? a.codigoBarras : '') + (a.descripcion||'')).trim(), a])).values());
 const normCargo = c => String(c || '').replace(/\+/g, '').replace(/\s+/g, ' ').trim().toUpperCase() || 'GENERAL';
 
 window.empleados = uniqEmp(window.empleados).map(e => ({ ...e, cargo: normCargo(e.cargo) }));
-window.articulosSup = uniqArt(window.articulosSup);
 
 // "COCA COLA 2L (x3)" -> { desc: "COCA COLA 2L", cant: 3 }
 function parseProducto(p){
   const m = String(p || '').match(/^(.*?)\s*\(x(\d+)\)\s*$/i);
   return m ? { desc: m[1].trim(), cant: parseInt(m[2]) || 1 } : { desc: String(p || '').trim(), cant: 1 };
 }
-// Busca el código del artículo por descripción (prefiere código de barras real, luego interno)
+
+// ===== ARTÍCULOS: búsqueda en el servidor (ya no se descarga toda la tabla) =====
+const cacheCodigos = new Map();               // descripcion(lower) -> código
+const limpiarTermino = s => String(s || '').replace(/[%,()*"\\]/g, ' ').trim();
+const ART_COLS = 'id,codigoBarras,codigoInterno,descripcion,departamento';
+const codigoDe = a => (a.codigoBarras && a.codigoBarras !== 'S/C') ? a.codigoBarras : (a.codigoInterno || 'S/C');
+const filtroArtOr = t => {
+  const p = '"%' + t + '%"';
+  return 'descripcion.ilike.' + p + ',codigoBarras.ilike.' + p + ',codigoInterno.ilike.' + p;
+};
+
+async function buscarArticulosDB(term, limit = 8){
+  const t = limpiarTermino(term);
+  if (!t || !hayDB()) return [];
+  const { data, error } = await supabaseClient.from('articulos')
+    .select(ART_COLS).or(filtroArtOr(t)).limit(limit);
+  if (error) { console.error(error); toast('Error buscando artículos: ' + error.message, true); return []; }
+  return data || [];
+}
+
+// Trae los códigos solo de los artículos que se necesitan (para imprimir)
+async function resolverCodigos(descs){
+  const faltan = [...new Set(descs.map(d => String(d || '').trim()))]
+    .filter(d => d && !cacheCodigos.has(d.toLowerCase()));
+  if (!faltan.length || !hayDB()) return;
+  for (let i = 0; i < faltan.length; i += 100) {
+    const lote = faltan.slice(i, i + 100);
+    const { data, error } = await supabaseClient.from('articulos')
+      .select('codigoBarras,codigoInterno,descripcion').in('descripcion', lote);
+    if (error) { console.error(error); continue; }
+    (data || []).forEach(a => cacheCodigos.set(String(a.descripcion).toLowerCase().trim(), codigoDe(a)));
+  }
+}
+
+// Busca el código en la caché (se llena al seleccionar un artículo o al imprimir)
 function buscarCodigo(desc){
-  const d = String(desc || '').toLowerCase().trim();
-  const a = window.articulosSup.find(x => x && x.descripcion && x.descripcion.toLowerCase().trim() === d);
-  if (!a) return 'S/C';
-  if (a.codigoBarras && a.codigoBarras !== 'S/C') return a.codigoBarras;
-  return a.codigoInterno || 'S/C';
+  return cacheCodigos.get(String(desc || '').toLowerCase().trim()) || 'S/C';
 }
 
 // Devuelve el arreglo de filas, o null si la consulta falló (así no se confunde "error" con "tabla vacía")
@@ -415,19 +442,6 @@ async function cargarTodoDesdeSupabase(silent = true) {
       window.empleados = uniqEmp(window.empleados);
     }
 
-    const rawArt = await fetchAllSupabase('articulos');
-    if (rawArt === null) fallos.push('artículos');
-    else if (rawArt.length > 0) {
-      window.articulosSup = rawArt.map(a => ({
-        id: a.id,
-        codigoBarras: String(a.codigoBarras || 'S/C').trim(),
-        codigoInterno: String(a.codigoInterno || 'S/C').trim(),
-        descripcion: String(a.descripcion || '').trim(),
-        departamento: String(a.departamento || 'General').trim()
-      })).filter(a => a.descripcion);
-      window.articulosSup = uniqArt(window.articulosSup);
-    }
-
     const rawDesc = await fetchAllSupabase('descuento_empleados');
     if (rawDesc === null) {
       fallos.push('descuentos');
@@ -455,6 +469,7 @@ async function cargarTodoDesdeSupabase(silent = true) {
     }
 
     actualizarContadoresYTablas();
+    cargarArticulosPagina();   // solo trae la primera página (100 filas) + el total
 
     if (fallos.length) toast('No se pudo leer de Supabase: ' + fallos.join(', ') + '. Se muestran los datos guardados en este equipo.', true);
     else if (!silent) toast('Sincronización finalizada');
@@ -534,7 +549,6 @@ function sincronizarDashboardGlobal(){
   const confiable = datosCargados || window.descuentos.length > 0;
 
   try { localStorage.setItem('hipergalerias_empleados_db', JSON.stringify(window.empleados)); } catch(e){}
-  try { localStorage.setItem('hipergalerias_articulos_db', JSON.stringify(window.articulosSup.slice(0, 1000))); } catch(e){}
   if (confiable) { try { localStorage.setItem('hipergalerias_descuentos_db', JSON.stringify(window.descuentos)); } catch(e){} }
 
   const cuentas = obtenerCuentasConsolidadas(window.descuentos);
@@ -576,24 +590,38 @@ function pager(id, total, pag, fn){
     '<button class="pbtn" onclick="' + fn + '(' + (pag + 1) + ')" ' + (pag >= tp ? 'disabled' : '') + '>Siguiente ▶</button></div>';
 }
 function irPagEmp(p){ pagEmp = p; renderBases(); $('tablaEmpleados').closest('.tw').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-function irPagArt(p){ pagArt = p; renderBases(); $('tablaArticulosSup').closest('.tw').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+
+// ===== Pestaña Artículos con paginación en el servidor =====
+let totalArt = 0, artFiltroTimer, artPagSeq = 0;
+async function cargarArticulosPagina(){
+  if (!hayDB()) return;
+  const mine = ++artPagSeq;
+  const t = limpiarTermino($('filtroArt').value);
+  let q = supabaseClient.from('articulos').select(ART_COLS, { count: 'exact' });
+  if (t) q = q.or(filtroArtOr(t));
+  const from = (pagArt - 1) * POR_PAG;
+  const { data, count, error } = await q.order('descripcion').range(from, from + POR_PAG - 1);
+  if (mine !== artPagSeq) return;   // llegó una consulta más nueva
+  if (error) { console.error(error); toast('No se pudieron cargar los artículos: ' + error.message, true); return; }
+  totalArt = count || 0;
+  $('countArticulos').textContent = fmtN(totalArt);
+  $('tablaArticulosSup').innerHTML = (data || []).length
+    ? data.map((a, i) => '<tr ' + delay(i) + '><td><code>' + esc(a.codigoBarras || 'S/C') + '</code></td><td><code>' + esc(a.codigoInterno || 'S/C') + '</code></td><td>' + esc(a.descripcion) + '</td><td><strong>' + esc(a.departamento || 'General') + '</strong></td></tr>').join('')
+    : '<tr><td colspan="4" class="empty">No hay artículos que coincidan.</td></tr>';
+  pager('pagerArt', totalArt, pagArt, 'irPagArt');
+}
+function irPagArt(p){ pagArt = p; cargarArticulosPagina(); $('tablaArticulosSup').closest('.tw').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+function filtrarArtTabla(){ pagArt = 1; clearTimeout(artFiltroTimer); artFiltroTimer = setTimeout(cargarArticulosPagina, 300); }
 
 function renderBases(){
-  const fe = ($('filtroEmp').value || '').toLowerCase(), fa = ($('filtroArt').value || '').toLowerCase();
+  const fe = ($('filtroEmp').value || '').toLowerCase();
   $('countEmpleados').textContent = window.empleados.length;
-  $('countArticulos').textContent = window.articulosSup.length;
 
   const le = window.empleados.filter(e => (e.cedula + ' ' + e.nombre).toLowerCase().includes(fe));
   pagEmp = Math.min(Math.max(pagEmp, 1), Math.ceil(le.length / POR_PAG) || 1);
   const ve = le.slice((pagEmp - 1) * POR_PAG, pagEmp * POR_PAG);
   $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(e.fechaIngreso || 'N/A') + '</td><td><button class="btn btn-out btn-sm" data-del-emp="' + esc(e.cedula) + '">🗑️</button></td></tr>').join('') : '<tr><td colspan="5" class="empty">Aún no hay empleados registrados.</td></tr>';
   pager('pagerEmp', le.length, pagEmp, 'irPagEmp');
-
-  const la = window.articulosSup.filter(a => (a.codigoBarras + ' ' + a.codigoInterno + ' ' + a.descripcion).toLowerCase().includes(fa));
-  pagArt = Math.min(Math.max(pagArt, 1), Math.ceil(la.length / POR_PAG) || 1);
-  const va = la.slice((pagArt - 1) * POR_PAG, pagArt * POR_PAG);
-  $('tablaArticulosSup').innerHTML = va.length ? va.map((a, i) => '<tr ' + delay(i) + '><td><code>' + esc(a.codigoBarras || 'S/C') + '</code></td><td><code>' + esc(a.codigoInterno || 'S/C') + '</code></td><td>' + esc(a.descripcion) + '</td><td><strong>' + esc(a.departamento || 'General') + '</strong></td></tr>').join('') : '<tr><td colspan="4" class="empty">Aún no hay artículos cargados.</td></tr>';
-  pager('pagerArt', la.length, pagArt, 'irPagArt');
 }
 $('tablaEmpleados').addEventListener('click', e => { const b = e.target.closest('button[data-del-emp]'); if (b) eliminarEmpleadoManual(b.dataset.delEmp); });
 
@@ -632,11 +660,28 @@ function filtrarEmpleadosAsignacion(val){
     e => '<strong>' + esc(e.cedula) + '</strong> - ' + esc(e.nombre),
     e => { $('inputBuscadorEmpleado').value = e.cedula + ' - ' + e.nombre; $('selectedCedula').value = e.cedula; $('selectedNombreEmpleado').value = e.nombre; });
 }
+
+// Autocompletado de artículos: consulta a Supabase con debounce
+let artSeq = 0, artTimer;
 function filtrarArticulos(val){
-  const v = val.trim().toLowerCase();
-  sugerir('listaSugerenciasArticulos', v ? window.articulosSup.filter(a => (a.descripcion||'').toLowerCase().includes(v) || String(a.codigoBarras||'').toLowerCase().includes(v) || String(a.codigoInterno||'').toLowerCase().includes(v)) : [],
-    a => '<strong>' + esc(a.descripcion) + '</strong> <small style="color:var(--muted)">(Cód: ' + esc(a.codigoBarras || a.codigoInterno || 'S/C') + ')</small>',
-    a => { $('inputBuscadorArticulo').value = a.descripcion; $('selectedCodigoArticulo').value = a.codigoBarras || a.codigoInterno || 'S/C'; $('selectedNombreArticulo').value = a.descripcion; $('precioBase').value = '0.00'; calcularTotales(); });
+  clearTimeout(artTimer);
+  const v = val.trim();
+  if (v.length < 2) { artSeq++; $('listaSugerenciasArticulos').hidden = true; return; }
+  const mine = ++artSeq;
+  artTimer = setTimeout(async () => {
+    const res = await buscarArticulosDB(v);
+    if (mine !== artSeq) return;   // llegó una búsqueda más nueva
+    sugerir('listaSugerenciasArticulos', res,
+      a => '<strong>' + esc(a.descripcion) + '</strong> <small style="color:var(--muted)">(Cód: ' + esc(codigoDe(a)) + ')</small>',
+      a => {
+        const cod = codigoDe(a);
+        cacheCodigos.set(String(a.descripcion).toLowerCase().trim(), cod);
+        $('inputBuscadorArticulo').value = a.descripcion;
+        $('selectedCodigoArticulo').value = cod;
+        $('selectedNombreArticulo').value = a.descripcion;
+        $('precioBase').value = '0.00'; calcularTotales();
+      });
+  }, 250);
 }
 document.addEventListener('click', e => { if (!e.target.closest('.f')) { $('listaSugerenciasEmpleados').hidden = true; $('listaSugerenciasArticulos').hidden = true; } });
 
@@ -685,24 +730,21 @@ async function agregarArticuloManual(e){
   const codigoBarras = $('manualArtBarras').value.trim() || 'S/C';
   const codigoInterno = $('manualArtInterno').value.trim() || 'S/C';
   const departamento = $('manualArtDpto').value;
-  let id;
 
-  if (hayDB()) {
-    const { data, error } = await supabaseClient.from('articulos').insert([{
-      codigoBarras, codigoInterno, descripcion, departamento
-    }]).select();
-    if (error) {
-      console.error("Error al registrar en Supabase:", error);
-      toast('No se pudo registrar el artículo: ' + error.message, true);
-      return;
-    }
-    if (data && data[0]) id = data[0].id;
+  if (!hayDB()) { toast('Sin conexión a Supabase: no se puede registrar el artículo', true); return; }
+  const { error } = await supabaseClient.from('articulos').insert([{
+    codigoBarras, codigoInterno, descripcion, departamento
+  }]);
+  if (error) {
+    console.error("Error al registrar en Supabase:", error);
+    toast('No se pudo registrar el artículo: ' + error.message, true);
+    return;
   }
 
-  window.articulosSup.unshift({ id, codigoBarras, codigoInterno, descripcion, departamento });
-  window.articulosSup = uniqArt(window.articulosSup);
-  actualizarContadoresYTablas();
+  cacheCodigos.set(descripcion.toLowerCase().trim(), codigoDe({ codigoBarras, codigoInterno }));
   $('formAddArticulo').reset();
+  $('filtroArt').value = ''; pagArt = 1;
+  cargarArticulosPagina();
   toast('Artículo registrado');
 }
 
@@ -876,7 +918,10 @@ async function procesarAbonoModal(){
   }
 }
 
-function imprimirPlanillaHorizontal(){
+async function imprimirPlanillaHorizontal(){
+  // Trae solo los códigos de los artículos que realmente están en las deudas
+  await resolverCodigos(window.descuentos.map(it => parseProducto(it.descripcionArticulo || it.producto).desc));
+
   const fv = $('fechaSalida').value, p = fv.split('-');
   $('printDateVal').textContent = fv ? (p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : fv) : new Date().toLocaleDateString('es-VE');
   const tb = $('printTableBody');
