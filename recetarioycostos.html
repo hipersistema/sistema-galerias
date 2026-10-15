@@ -241,6 +241,10 @@
     .row-subreceta { background-color: #f2f9f4 !important; }
     .row-subreceta:hover { background-color: #e4f3e7 !important; }
 
+    /* DROPDOWN DE INSUMOS: sin selección de texto y con opción resaltada */
+    [id^="dropdown-insumo-"] { user-select: none; -webkit-user-select: none; }
+    .opcion-activa { background-color: #e8f5e9; }
+
     /* MODO OSCURO GLOBAL */
     html:has(body.theme-dark) { color-scheme: dark; }
 
@@ -288,6 +292,7 @@
     body.theme-dark [id^="dropdown-insumo-"] div:hover {
       background-color: #173329 !important;
     }
+    body.theme-dark .opcion-activa { background-color: #173329 !important; }
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
@@ -436,7 +441,7 @@
               </select>
             </div>
             <div>
-              <label id="labelRendimiento" class="block text-xs font-semibold text-gray-600 uppercase mb-1">Peso Total Lote (Peso T / KG)</label>
+              <label id="labelRendimiento" class="block text-xs font-semibold text-gray-600 uppercase mb-1">Peso Neto del Lote (después de merma / KG)</label>
               <input type="number" id="rendimientoCant" value="1.0" min="0.001" step="any" oninput="recalcularEscandallo()" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none font-bold">
             </div>
             <div>
@@ -462,6 +467,35 @@
               ⭐ Registrar también como Producto Base / Sub-receta (Disponible para otras recetas)
             </label>
           </div>
+
+          <!-- MERMA ÚNICA POR RECETA -->
+          <div class="pt-3 border-t border-gray-100 space-y-3">
+            <div class="flex items-center gap-4 flex-wrap">
+              <span class="text-xs font-bold text-gray-700">⚖️ ¿La receta lleva merma?</span>
+              <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer">
+                <input type="radio" name="llevaMerma" value="no" checked onchange="toggleMerma()" class="w-4 h-4 cursor-pointer"> No
+              </label>
+              <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer">
+                <input type="radio" name="llevaMerma" value="si" onchange="toggleMerma()" class="w-4 h-4 cursor-pointer"> Sí
+              </label>
+            </div>
+            <div id="bloqueMerma" class="hidden">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Merma total de la receta</label>
+                  <input type="number" id="mermaCant" min="0" step="any" oninput="recalcularEscandallo()" placeholder="0.00" class="w-full p-2.5 border border-red-200 bg-red-50/50 rounded-md text-sm font-bold text-red-600 outline-none focus:ring-2 focus:ring-red-400">
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Unidad de la merma</label>
+                  <select id="mermaUnidad" onchange="recalcularEscandallo()" class="w-full p-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#2e7d32] text-sm outline-none bg-white font-bold">
+                    <option value="kg">Kilogramos (kg)</option>
+                    <option value="gr">Gramos (g)</option>
+                  </select>
+                </div>
+                <div id="resumenMerma" class="text-xs font-bold text-[#123e1b] pb-2"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
@@ -478,7 +512,6 @@
                 <tr>
                   <th class="p-3 w-1/3">Ingrediente / Base</th>
                   <th class="p-3 w-24 text-center">Cant. Bruta</th>
-                  <th class="p-3 w-24 text-center text-red-700">Merma (Peso)</th>
                   <th class="p-3 w-28 text-right">P. Venta Usado ($)</th>
                   <th class="p-3 w-28 text-right">Total ($)</th>
                   <th class="p-3 w-10"></th>
@@ -735,6 +768,7 @@
                   <span id="modalPvp" class="font-extrabold text-orange-600 text-sm">-</span>
                 </div>
             </div>
+            <div id="modalMermaInfo" class="hidden mt-3 text-xs font-bold text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></div>
         </div>
 
         <div class="mb-6">
@@ -745,8 +779,6 @@
                       <tr>
                           <th class="p-3">Ingrediente / Base</th>
                           <th class="p-3 text-center">Cant. Bruta</th>
-                          <th class="p-3 text-center text-red-600">Merma</th>
-                          <th class="p-3 text-center text-emerald-700 font-extrabold">Peso Neto</th>
                           <th class="p-3 text-right">P. Venta Usado ($)</th>
                           <th class="p-3 text-right">Costo Total ($)</th>
                       </tr>
@@ -894,6 +926,78 @@
         limpiarNombreBase(i.nombre).toUpperCase() === limpiarNombreBase(nombreInsumo).toUpperCase()
       );
       return match ? match.tipo === 'base' : false;
+    }
+
+    // ===== CONVERSIÓN UNIDAD <-> PESO (ej. HUEVO = 60 g) =====
+    function obtenerPesosUnitarios() {
+      try { return JSON.parse(localStorage.getItem('pesos_unitarios_insumos') || '{}'); }
+      catch (e) { return {}; }
+    }
+
+    function obtenerPesoUnitarioG(ins) {
+      if (!ins) return 0;
+      const guardado = parseFloat(obtenerPesosUnitarios()[ins.id]);
+      if (guardado > 0) return guardado;
+      if (/HUEVO/i.test(ins.nombre || '')) return 60;
+      return 0;
+    }
+
+    function guardarPesoUnitarioG(ins, gramos) {
+      const m = obtenerPesosUnitarios();
+      m[ins.id] = gramos;
+      localStorage.setItem('pesos_unitarios_insumos', JSON.stringify(m));
+    }
+
+    function insumoAdmiteModoPeso(ins) {
+      return !!ins && String(ins.unidad || '').toUpperCase() === 'UND';
+    }
+
+    // Devuelve la cantidad expresada en la unidad del insumo (para multiplicar por el precio)
+    function cantidadEfectiva(fila, ins) {
+      const c = parseFloat(fila.cantidad) || 0;
+      const modo = fila.modo || 'und';
+      if (!ins || !insumoAdmiteModoPeso(ins) || modo === 'und') return c;
+      const p = obtenerPesoUnitarioG(ins);
+      if (!p) return 0;
+      const gramos = modo === 'kg' ? c * 1000 : c;
+      return gramos / p;
+    }
+
+    function textoEquivalencia(fila, ins) {
+      if (!ins || !insumoAdmiteModoPeso(ins) || (fila.modo || 'und') === 'und') return '';
+      const p = obtenerPesoUnitarioG(ins);
+      if (!p) return '';
+      return `≈ ${parseFloat(cantidadEfectiva(fila, ins).toFixed(2))} und (${p} g c/u)`;
+    }
+
+    function cambiarModoFila(idx, modo) {
+      const fila = recetaActual.filas[idx];
+      const ins = insumosBase.find(i => String(i.id) === String(fila.insumoId));
+      if (!ins) return;
+
+      if (modo !== 'und' && !obtenerPesoUnitarioG(ins)) {
+        const resp = prompt(`¿Cuántos gramos pesa 1 unidad de "${limpiarNombreBase(ins.nombre)}"?`);
+        const g = parseFloat(String(resp || '').replace(',', '.'));
+        if (!(g > 0)) {
+          fila.modo = 'und';
+          renderizarFilasCreador();
+          return;
+        }
+        guardarPesoUnitarioG(ins, g);
+      }
+      fila.modo = modo;
+      actualizarCostosFilaVisibles(idx);
+      recalcularEscandallo();
+    }
+
+    // Texto de cantidad para fichas (muestra lo ingresado + equivalencia)
+    function textoCantidadIng(ing) {
+      const u = ing.unidad || '';
+      if (ing.modo && ing.modo !== 'und') {
+        const m = ing.modo === 'kg' ? 'kg' : 'g';
+        return `${ing.cantidadIngresada} ${m} (≈${parseFloat(Number(ing.cantidad).toFixed(2))} ${u})`;
+      }
+      return `${parseFloat(ing.cantidad || 0)} ${u}`;
     }
 
     // SISTEMA DE CONTRASEÑA EN MODAL MASCARADO
@@ -1218,7 +1322,8 @@
             pvp: parseFloat(r.pvp || 0),
             esSubreceta: r.es_subreceta,
             ingredientes: typeof r.ingredientes === 'string' ? JSON.parse(r.ingredientes) : (r.ingredientes || []),
-            fecha: r.fecha
+            fecha: r.fecha,
+            mermaKg: parseFloat(r.merma_kg || 0)
           }));
         }
 
@@ -1285,6 +1390,7 @@
           pvp: receta.pvp,
           es_subreceta: receta.esSubreceta,
           ingredientes: receta.ingredientes,
+          merma_kg: receta.mermaKg || 0,
           fecha: receta.fecha
         };
 
@@ -1527,6 +1633,7 @@
       const usuarioNombre = await obtenerNombreUsuarioActual();
 
       insumo.nombre = nuevoNombre;
+      cacheBusqueda.delete(insumo); // invalida el índice de búsqueda rápida
       insumo.unidad = nuevaUnidad;
       insumo.precio = nuevoCostoVisual;
       insumo.costoVenta = nuevoCostoVenta;
@@ -1604,18 +1711,13 @@
 
     // CREADOR DE RECETAS
     function agregarFilaReceta() {
-      recetaActual.filas.push({ insumoId: '', cantidad: 0, merma: 0 });
+      recetaActual.filas.push({ insumoId: '', cantidad: 0, modo: 'und' });
       renderizarFilasCreador();
     }
 
     function eliminarFilaReceta(index) {
       recetaActual.filas.splice(index, 1);
       renderizarFilasCreador();
-      recalcularEscandallo();
-    }
-
-    function actualizarMermaFila(index, mermaVal) {
-      recetaActual.filas[index].merma = parseFloat(mermaVal) || 0;
       recalcularEscandallo();
     }
 
@@ -1628,7 +1730,8 @@
         
         const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
         const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
-        const totalFila = costoVentaUsado * (fila.cantidad || 0);
+        const totalFila = costoVentaUsado * cantidadEfectiva(fila, insumoObj);
+        const modoActual = fila.modo || 'und';
 
         const nombreInsumoMostrar = insumoObj ? `${insumoObj.tipo === 'base' ? '⭐ ' : ''}${limpiarNombreBase(insumoObj.nombre)}` : '';
 
@@ -1638,22 +1741,31 @@
               <input type="text"
                      id="input-insumo-${idx}"
                      value="${nombreInsumoMostrar}"
+                     autocomplete="off"
                      placeholder="🔍 Buscar o seleccionar insumo..."
                      onfocus="abrirDropdownInsumo(${idx})"
                      oninput="filtrarDropdownInsumo(${idx}, this.value)"
+                     onkeydown="teclaDropdownInsumo(event, ${idx})"
+                     onblur="restaurarTextoInsumo(${idx})"
                      class="w-full p-2 border border-gray-300 rounded text-xs font-bold outline-none focus:ring-2 focus:ring-[#2e7d32] bg-white">
               
               <div id="dropdown-insumo-${idx}" 
+                   onmousedown="event.preventDefault()"
                    class="hidden absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-2xl z-50 divide-y divide-gray-100">
                 <!-- Dinámico -->
               </div>
             </div>
           </td>
           <td class="p-2">
-            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="0.00" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
-          </td>
-          <td class="p-2">
-            <input type="number" step="any" min="0" value="${fila.merma || ''}" oninput="actualizarMermaFila(${idx}, this.value)" placeholder="0.00" title="Peso de merma a restar" class="w-full p-2 border border-red-200 bg-red-50/50 rounded text-xs text-center font-bold text-red-600 outline-none focus:ring-2 focus:ring-red-400">
+            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" id="input-cant-${idx}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="0.00" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
+            ${insumoAdmiteModoPeso(insumoObj) ? `
+              <select onchange="cambiarModoFila(${idx}, this.value)" class="mt-1 w-full p-1 border border-[#2e7d32]/40 rounded text-[11px] font-bold bg-white text-[#123e1b] outline-none">
+                <option value="und" ${modoActual === 'und' ? 'selected' : ''}>Por unidad</option>
+                <option value="gr" ${modoActual === 'gr' ? 'selected' : ''}>Por gramos</option>
+                <option value="kg" ${modoActual === 'kg' ? 'selected' : ''}>Por kilos</option>
+              </select>
+              <div id="equivRow-${idx}" class="text-[10px] text-gray-500 font-mono mt-0.5 text-center">${textoEquivalencia(fila, insumoObj)}</div>
+            ` : ''}
           </td>
           <td class="p-2 text-right font-bold text-gray-700 font-mono text-xs" id="costoVentaUsadoRow-${idx}">$${costoVentaUsado.toFixed(4)}</td>
           <td class="p-2 text-right font-black text-[#123e1b] font-mono text-xs" id="totalRow-${idx}">$${totalFila.toFixed(4)}</td>
@@ -1690,47 +1802,118 @@
       
       if (!texto.trim()) {
         recetaActual.filas[idx].insumoId = '';
+        recetaActual.filas[idx].modo = 'und';
         actualizarCostosFilaVisibles(idx);
         recalcularEscandallo();
       }
+    }
+
+    // ===== BÚSQUEDA RÁPIDA DE INSUMOS =====
+    const cacheBusqueda = new WeakMap();      // índice en memoria; no se guarda en localStorage ni en el respaldo
+    const MAX_RESULTADOS_DROPDOWN = 50;
+    let opcionActiva = 0;
+
+    function normalizarTexto(t) {
+      return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function claveBusqueda(ins) {
+      let k = cacheBusqueda.get(ins);
+      if (k === undefined) {
+        k = normalizarTexto(limpiarNombreBase(ins.nombre) + ' ' + (ins.codigo || ''));
+        cacheBusqueda.set(ins, k);
+      }
+      return k;
     }
 
     function renderizarOpcionesDropdown(idx, filtro) {
       const dropdown = document.getElementById(`dropdown-insumo-${idx}`);
       if (!dropdown) return;
 
-      const query = (filtro || '').toLowerCase().trim();
-      const filtrados = insumosBase.filter(ins => 
-        limpiarNombreBase(ins.nombre).toLowerCase().includes(query) || 
-        (ins.codigo && ins.codigo.toLowerCase().includes(query))
-      );
+      const terminos = normalizarTexto(filtro).split(/\s+/).filter(Boolean);
+      const resultados = [];
+      let total = 0;
 
-      if (filtrados.length === 0) {
+      for (const ins of insumosBase) {
+        const k = claveBusqueda(ins);
+        if (terminos.every(t => k.includes(t))) {
+          total++;
+          if (resultados.length < MAX_RESULTADOS_DROPDOWN) resultados.push(ins);
+        }
+      }
+
+      opcionActiva = 0;
+
+      if (resultados.length === 0) {
         dropdown.innerHTML = `<div class="p-3 text-xs text-gray-400 text-center font-medium">No se encontraron insumos</div>`;
         return;
       }
 
       let html = '';
-      filtrados.forEach(ins => {
+      resultados.forEach((ins, n) => {
         const esBase = ins.tipo === 'base';
-        const badge = esBase ? '⭐ ' : '';
         const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
-        const precioFmt = `$${parseFloat(costoVentaUsado).toFixed(4)}`;
-        const unidadFmt = (ins.unidad || 'KG').toLowerCase();
-
+        const idSeguro = String(ins.id).replace(/"/g, '&quot;');
         html += `
-          <div onmousedown="seleccionarInsumoFila(${idx}, '${ins.id}')" 
-               class="p-2.5 hover:bg-[#e8f5e9] cursor-pointer flex justify-between items-center text-xs transition-colors border-b border-gray-100 last:border-0">
+          <div data-ins-id="${idSeguro}"
+               onmousedown="event.preventDefault(); seleccionarInsumoFila(${idx}, this.dataset.insId)"
+               class="p-2.5 hover:bg-[#e8f5e9] cursor-pointer flex justify-between items-center text-xs transition-colors ${n === 0 ? 'opcion-activa' : ''}">
             <span class="font-bold text-gray-800 ${esBase ? 'text-[#123e1b]' : ''}">
-              ${badge}${limpiarNombreBase(ins.nombre)}
+              ${esBase ? '⭐ ' : ''}${limpiarNombreBase(ins.nombre)}
             </span>
             <span class="text-gray-500 font-mono text-[11px] ml-3 whitespace-nowrap">
-              (${precioFmt} / ${unidadFmt})
+              ($${parseFloat(costoVentaUsado).toFixed(4)} / ${(ins.unidad || 'KG').toLowerCase()})
             </span>
-          </div>
-        `;
+          </div>`;
       });
+
+      if (total > resultados.length) {
+        html += `<div class="p-2 text-[11px] text-center text-gray-400 font-medium">Mostrando ${resultados.length} de ${total}. Sigue escribiendo para filtrar…</div>`;
+      }
       dropdown.innerHTML = html;
+    }
+
+    function resaltarOpcion(items) {
+      items.forEach((el, n) => el.classList.toggle('opcion-activa', n === opcionActiva));
+      if (items[opcionActiva]) items[opcionActiva].scrollIntoView({ block: 'nearest' });
+    }
+
+    function teclaDropdownInsumo(e, idx) {
+      const dd = document.getElementById(`dropdown-insumo-${idx}`);
+      if (!dd) return;
+      const abierto = !dd.classList.contains('hidden');
+      const items = dd.querySelectorAll('[data-ins-id]');
+
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!abierto) { abrirDropdownInsumo(idx); return; }
+        if (!items.length) return;
+        opcionActiva = (opcionActiva + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+        resaltarOpcion(items);
+      } else if (e.key === 'Enter') {
+        if (abierto && items.length) {
+          e.preventDefault();
+          seleccionarInsumoFila(idx, items[Math.min(opcionActiva, items.length - 1)].dataset.insId);
+        }
+      } else if (e.key === 'Tab') {
+        // Si escribió algo y no eligió, toma la primera coincidencia al pasar a la cantidad
+        const txt = document.getElementById(`input-insumo-${idx}`).value.trim();
+        if (abierto && items.length && txt && !recetaActual.filas[idx].insumoId) {
+          seleccionarInsumoFila(idx, items[Math.min(opcionActiva, items.length - 1)].dataset.insId);
+        }
+      } else if (e.key === 'Escape') {
+        cerrarDropdownInsumo(idx);
+      }
+    }
+
+    // Si el usuario sale del campo sin elegir, vuelve al ingrediente realmente seleccionado
+    function restaurarTextoInsumo(idx) {
+      const fila = recetaActual.filas[idx];
+      const input = document.getElementById(`input-insumo-${idx}`);
+      if (!fila || !input) return;
+      const ins = insumosBase.find(i => String(i.id) === String(fila.insumoId));
+      input.value = ins ? `${ins.tipo === 'base' ? '⭐ ' : ''}${limpiarNombreBase(ins.nombre)}` : '';
+      cerrarDropdownInsumo(idx);
     }
 
     function seleccionarInsumoFila(idx, insumoId) {
@@ -1738,28 +1921,31 @@
       if (!insumoObj) return;
 
       recetaActual.filas[idx].insumoId = insumoObj.id;
-      
-      const esBase = insumoObj.tipo === 'base';
-      const badge = esBase ? '⭐ ' : '';
-      const inputEl = document.getElementById(`input-insumo-${idx}`);
-      if (inputEl) inputEl.value = `${badge}${limpiarNombreBase(insumoObj.nombre)}`;
+      recetaActual.filas[idx].modo = 'und';
 
-      cerrarDropdownInsumo(idx);
-      actualizarCostosFilaVisibles(idx);
+      cerrarTodosDropdowns();
+      renderizarFilasCreador();
       recalcularEscandallo();
+
+      setTimeout(() => {
+        const c = document.getElementById(`input-cant-${idx}`);
+        if (c) c.focus();
+      }, 50);
     }
 
     function actualizarCostosFilaVisibles(idx) {
       const fila = recetaActual.filas[idx];
       const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
       const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
-      const totalFila = costoVentaUsado * (fila.cantidad || 0);
+      const totalFila = costoVentaUsado * cantidadEfectiva(fila, insumoObj);
 
       const cellCosto = document.getElementById(`costoVentaUsadoRow-${idx}`);
       const cellTotal = document.getElementById(`totalRow-${idx}`);
+      const cellEquiv = document.getElementById(`equivRow-${idx}`);
 
       if (cellCosto) cellCosto.textContent = `$${costoVentaUsado.toFixed(4)}`;
       if (cellTotal) cellTotal.textContent = `$${totalFila.toFixed(4)}`;
+      if (cellEquiv) cellEquiv.textContent = textoEquivalencia(fila, insumoObj);
     }
 
     function actualizarCantidadFila(index, cant) {
@@ -1786,27 +1972,94 @@
       recalcularEscandallo();
     }
 
-    function recalcularEscandallo() {
-      let costoTotalBatch = 0;
-      let sumaCantidadBruta = 0;
-      let sumaMermas = 0;
+    // ===== MERMA ÚNICA POR RECETA =====
+    function llevaMerma() {
+      const r = document.querySelector('input[name="llevaMerma"]:checked');
+      return !!r && r.value === 'si';
+    }
 
+    // Devuelve la merma total de la receta expresada en kg
+    function obtenerMermaKg() {
+      if (!llevaMerma()) return 0;
+      const c = parseFloat(document.getElementById('mermaCant').value) || 0;
+      const u = document.getElementById('mermaUnidad').value;
+      return u === 'gr' ? c / 1000 : c;
+    }
+
+    function mostrarBloqueMerma() {
+      document.getElementById('bloqueMerma').classList.toggle('hidden', !llevaMerma());
+    }
+
+    function toggleMerma() {
+      mostrarBloqueMerma();
+      if (!llevaMerma()) document.getElementById('mermaCant').value = '';
+      recalcularEscandallo();
+    }
+
+    function resetMerma() {
+      const no = document.querySelector('input[name="llevaMerma"][value="no"]');
+      if (no) no.checked = true;
+      document.getElementById('mermaCant').value = '';
+      document.getElementById('mermaUnidad').value = 'kg';
+      mostrarBloqueMerma();
+    }
+
+    // Merma de una receta guardada (si es antigua, suma las mermas por ingrediente)
+    function mermaDeReceta(receta) {
+      const m = parseFloat(receta.mermaKg) || 0;
+      if (m > 0) return m;
+      return (receta.ingredientes || []).reduce((acc, i) => acc + (parseFloat(i.merma) || 0), 0);
+    }
+
+    // Peso bruto total de los ingredientes (en kg; si se ingresó por gramos, se convierte)
+    function calcularPesoBrutoKg() {
+      let suma = 0;
       recetaActual.filas.forEach(f => {
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
         const cant = parseFloat(f.cantidad) || 0;
-        const merma = parseFloat(f.merma) || 0;
-
-        if (ins && cant > 0) {
-          const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
-          costoTotalBatch += costoVentaUsado * cant;
+        const modo = f.modo || 'und';
+        if (ins && insumoAdmiteModoPeso(ins) && modo !== 'und') {
+          suma += (modo === 'gr' ? cant / 1000 : cant);
+        } else {
+          suma += cant;
         }
-        sumaCantidadBruta += cant;
-        sumaMermas += merma;
+      });
+      return suma;
+    }
+
+    function recalcularEscandallo() {
+      let costoTotalBatch = 0;
+
+      recetaActual.filas.forEach(f => {
+        const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
+        const cantEf = cantidadEfectiva(f, ins);
+        if (ins && cantEf > 0) {
+          const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+          costoTotalBatch += costoVentaUsado * cantEf;
+        }
       });
 
-      if (sumaCantidadBruta > 0) {
-        const pesoNeto = Math.max(0, sumaCantidadBruta - sumaMermas);
-        document.getElementById('rendimientoCant').value = parseFloat(pesoNeto.toFixed(4));
+      const pesoBruto = calcularPesoBrutoKg();
+      const mermaKg = obtenerMermaKg();
+      const resumen = document.getElementById('resumenMerma');
+      const fmt = n => parseFloat(Number(n).toFixed(4));
+
+      if (pesoBruto > 0) {
+        const pesoNeto = Math.max(0, pesoBruto - mermaKg);
+        document.getElementById('rendimientoCant').value = fmt(pesoNeto);
+      }
+
+      if (resumen) {
+        if (mermaKg > 0 && pesoBruto > 0) {
+          const excede = mermaKg >= pesoBruto;
+          resumen.classList.toggle('text-red-600', excede);
+          resumen.classList.toggle('text-[#123e1b]', !excede);
+          resumen.textContent = excede
+            ? '⚠️ La merma no puede ser igual o mayor al peso bruto.'
+            : `Peso bruto ${fmt(pesoBruto)} kg − merma ${fmt(mermaKg)} kg = peso neto ${fmt(pesoBruto - mermaKg)} kg`;
+        } else {
+          resumen.textContent = '';
+        }
       }
 
       const tipo = document.getElementById('tipoCalculo').value;
@@ -1861,15 +2114,17 @@
 
       recetaActual.filas.forEach(f => {
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
-        if (ins && f.cantidad > 0) {
+        const cantEf = cantidadEfectiva(f, ins);
+        if (ins && cantEf > 0) {
           const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
-          const total = costoVentaUsado * f.cantidad;
+          const total = costoVentaUsado * cantEf;
           costoTotalBatch += total;
           ingredientesFinales.push({
             insumoId: ins.id,
             nombre: limpiarNombreBase(ins.nombre),
-            cantidad: f.cantidad,
-            merma: f.merma || 0,
+            cantidad: cantEf,                       // en unidades del insumo
+            cantidadIngresada: f.cantidad,          // lo que escribió el usuario
+            modo: f.modo || 'und',
             unidad: ins.unidad,
             costoUnit: costoVentaUsado,
             costoTotal: total
@@ -1879,6 +2134,16 @@
 
       if (ingredientesFinales.length === 0) {
         alert("⚠️ Selecciona al menos un ingrediente válido con cantidad mayor a cero.");
+        return;
+      }
+
+      const mermaKg = obtenerMermaKg();
+      if (llevaMerma() && mermaKg <= 0) {
+        alert("⚠️ Indicaste que la receta lleva merma, pero no ingresaste la cantidad. Ingrésala o marca \"No\".");
+        return;
+      }
+      if (mermaKg > 0 && mermaKg >= calcularPesoBrutoKg()) {
+        alert("⚠️ La merma no puede ser igual o mayor al peso bruto total de los ingredientes.");
         return;
       }
 
@@ -1898,6 +2163,7 @@
         pvp: pvp,
         esSubreceta: esSub,
         ingredientes: ingredientesFinales,
+        mermaKg: mermaKg,
         fecha: obtenerFechaHoraActual()
       };
 
@@ -1957,6 +2223,7 @@
       document.getElementById('piezasCant').value = '1';
       document.getElementById('margenUtilidad').value = '1.5';
       document.getElementById('esSubreceta').checked = false;
+      resetMerma();
       document.getElementById('tituloSeccionCreador').textContent = "Datos Principales de la Preparación";
       document.getElementById('btnCancelarEdicion').classList.add('hidden');
       document.getElementById('btnGuardarReceta').innerHTML = '💾 Guardar Producto en Catálogo';
@@ -2226,6 +2493,16 @@
       document.getElementById('margenUtilidad').value = receta.factor || 1.5;
       document.getElementById('esSubreceta').checked = receta.esSubreceta || false;
 
+      const mermaKgEdit = mermaDeReceta(receta);
+      resetMerma();
+      if (mermaKgEdit > 0) {
+        const si = document.querySelector('input[name="llevaMerma"][value="si"]');
+        if (si) si.checked = true;
+        document.getElementById('mermaCant').value = parseFloat(mermaKgEdit.toFixed(4));
+        document.getElementById('mermaUnidad').value = 'kg';
+        mostrarBloqueMerma();
+      }
+
       document.getElementById('tituloSeccionCreador').textContent = `Editando Receta: ${limpiarNombreBase(receta.nombre)}`;
       document.getElementById('btnCancelarEdicion').classList.remove('hidden');
       document.getElementById('btnGuardarReceta').innerHTML = '💾 Actualizar Producto en Catálogo';
@@ -2234,13 +2511,13 @@
         let match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || limpiarNombreBase(ins.nombre) === limpiarNombreBase(i.nombre));
         return {
           insumoId: match ? match.id : i.insumoId,
-          cantidad: i.cantidad || 0,
-          merma: i.merma || 0
+          cantidad: (i.modo && i.modo !== 'und') ? (i.cantidadIngresada || 0) : (i.cantidad || 0),
+          modo: i.modo || 'und'
         };
       });
 
       if (recetaActual.filas.length === 0) {
-        recetaActual.filas = [{ insumoId: '', cantidad: 0, merma: 0 }];
+        recetaActual.filas = [{ insumoId: '', cantidad: 0, modo: 'und' }];
       }
 
       renderizarFilasCreador();
@@ -2292,6 +2569,17 @@
       document.getElementById('modalPvp').textContent = `$${parseFloat(receta.pvp || 0).toFixed(2)}`;
       document.getElementById('fichaFecha').textContent = `Fecha: ${receta.fecha || obtenerFechaHoraActual()}`;
 
+      const mermaKgFicha = mermaDeReceta(receta);
+      const infoMerma = document.getElementById('modalMermaInfo');
+      if (mermaKgFicha > 0) {
+        const neto = parseFloat(receta.rendimiento || 0);
+        const f4 = n => parseFloat(Number(n).toFixed(4));
+        infoMerma.textContent = `Merma del lote: peso bruto ${f4(neto + mermaKgFicha)} kg − merma ${f4(mermaKgFicha)} kg = peso neto ${f4(neto)} kg`;
+        infoMerma.classList.remove('hidden');
+      } else {
+        infoMerma.classList.add('hidden');
+      }
+
       const tbody = document.getElementById('modalIngredientesBody');
       tbody.innerHTML = '';
 
@@ -2299,17 +2587,10 @@
         const tr = document.createElement('tr');
         const esBase = esInsumoBase(ing.insumoId, ing.nombre);
         const prefijoStar = esBase ? '⭐ ' : '';
-        const cantBruta = parseFloat(ing.cantidad || 0);
-        const mermaVal = parseFloat(ing.merma || 0);
-        const pesoNeto = Math.max(0, cantBruta - mermaVal);
-        const mermaTexto = mermaVal > 0 ? `${mermaVal} ${ing.unidad || ''}` : '-';
-        const pesoNetoTexto = `${parseFloat(pesoNeto.toFixed(4))} ${ing.unidad || ''}`;
 
         tr.innerHTML = `
           <td class="p-3 border-b border-gray-100 font-bold text-gray-800">${prefijoStar}${limpiarNombreBase(ing.nombre)}</td>
-          <td class="p-3 border-b border-gray-100 text-center font-bold text-gray-700">${cantBruta} ${ing.unidad || ''}</td>
-          <td class="p-3 border-b border-gray-100 text-center font-bold text-red-600">${mermaTexto}</td>
-          <td class="p-3 border-b border-gray-100 text-center font-extrabold text-emerald-700 bg-emerald-50/50">${pesoNetoTexto}</td>
+          <td class="p-3 border-b border-gray-100 text-center font-bold text-gray-700">${textoCantidadIng(ing)}</td>
           <td class="p-3 border-b border-gray-100 text-right font-medium text-gray-600 font-mono">$${parseFloat(ing.costoUnit || 0).toFixed(4)}</td>
           <td class="p-3 border-b border-gray-100 text-right font-bold text-gray-800 font-mono">$${parseFloat(ing.costoTotal || 0).toFixed(4)}</td>
         `;
@@ -2333,22 +2614,22 @@
         ? `${receta.piezas || 1} Unidades`
         : `${receta.rendimiento || 1} KG/LT`;
 
+      const mermaKgFicha = mermaDeReceta(receta);
+      const f4 = n => parseFloat(Number(n).toFixed(4));
+      const netoFicha = parseFloat(receta.rendimiento || 0);
+      const mermaInfoHtml = mermaKgFicha > 0
+        ? `<div class="mt-2 text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1">Merma del lote: peso bruto ${f4(netoFicha + mermaKgFicha)} kg − merma ${f4(mermaKgFicha)} kg = peso neto ${f4(netoFicha)} kg</div>`
+        : '';
+
       let filasIngredientesHtml = '';
       (receta.ingredientes || []).forEach(ing => {
         const esIngBase = esInsumoBase(ing.insumoId, ing.nombre);
         const prefijoStar = esIngBase ? '⭐ ' : '';
-        const cantBruta = parseFloat(ing.cantidad || 0);
-        const mermaVal = parseFloat(ing.merma || 0);
-        const pesoNeto = Math.max(0, cantBruta - mermaVal);
-        const mermaTexto = mermaVal > 0 ? `${mermaVal} ${ing.unidad || ''}` : '-';
-        const pesoNetoTexto = `${parseFloat(pesoNeto.toFixed(4))} ${ing.unidad || ''}`;
 
         filasIngredientesHtml += `
           <tr class="border-b border-gray-200 text-[11px]">
             <td class="px-2 py-1 font-bold text-gray-900">${prefijoStar}${limpiarNombreBase(ing.nombre)}</td>
-            <td class="px-2 py-1 text-center font-bold text-gray-700">${cantBruta} ${ing.unidad || ''}</td>
-            <td class="px-2 py-1 text-center font-bold text-red-600">${mermaTexto}</td>
-            <td class="px-2 py-1 text-center font-extrabold text-emerald-700 bg-emerald-50/50">${pesoNetoTexto}</td>
+            <td class="px-2 py-1 text-center font-bold text-gray-700">${textoCantidadIng(ing)}</td>
             <td class="px-2 py-1 text-right font-medium text-gray-600 font-mono">$${parseFloat(ing.costoUnit || 0).toFixed(4)}</td>
             <td class="px-2 py-1 text-right font-bold text-gray-900 font-mono">$${parseFloat(ing.costoTotal || 0).toFixed(4)}</td>
           </tr>
@@ -2443,6 +2724,7 @@
                   <span class="font-extrabold text-orange-600 text-[11px]">$${parseFloat(receta.pvp || 0).toFixed(2)}</span>
                 </div>
               </div>
+              ${mermaInfoHtml}
             </div>
 
             <!-- COMPOSICIÓN DE INGREDIENTES -->
@@ -2454,8 +2736,6 @@
                     <tr>
                       <th class="px-2 py-1 w-2/5">Ingrediente / Base</th>
                       <th class="px-2 py-1 text-center">Cant. Bruta</th>
-                      <th class="px-2 py-1 text-center text-red-700">Merma</th>
-                      <th class="px-2 py-1 text-center text-emerald-700 font-extrabold">Peso Neto</th>
                       <th class="px-2 py-1 text-right">P. Venta Usado ($)</th>
                       <th class="px-2 py-1 text-right">Costo Total ($)</th>
                     </tr>
