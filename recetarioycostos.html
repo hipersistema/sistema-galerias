@@ -293,13 +293,103 @@
       background-color: #173329 !important;
     }
     body.theme-dark .opcion-activa { background-color: #173329 !important; }
+    
+    /* ===== HEADER: BOTÓN VOLVER + MENÚ DE USUARIO ===== */
+header { position: relative; z-index: 40; }
+
+.btn-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; min-width: 40px; padding: 0 14px 0 12px;
+  border-radius: 999px; border: 1px solid #d7e0da;
+  background: #fff; color: #123e1b;
+  font-size: .82rem; font-weight: 800; text-decoration: none;
+  transition: all .2s ease;
+}
+.btn-back:hover { background: #e8f5e9; border-color: #2e7d32; transform: translateX(-2px); }
+.btn-back-arrow { font-size: 1.1rem; line-height: 1; }
+@media (max-width: 640px) {
+  .btn-back { padding: 0; width: 40px; justify-content: center; }
+  .btn-back-text { display: none; }
+}
+.btn-back:focus-visible, .user-trigger:focus-visible, .user-item:focus-visible {
+  outline: 2px solid #2e7d32; outline-offset: 2px;
+}
+
+.user-menu { position: relative; }
+.user-trigger {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 44px; padding: 4px 12px 4px 4px;
+  border-radius: 999px; border: 1px solid #d7e0da; background: #fff;
+  color: #123e1b; font-size: .85rem; font-weight: 700; cursor: pointer;
+  transition: all .2s ease;
+}
+.user-trigger:hover { border-color: #2e7d32; background: #f2f7f4; }
+.user-avatar {
+  position: relative; width: 34px; height: 34px; border-radius: 50%;
+  background: #15803d; color: #fff; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.user-avatar-lg { width: 46px; height: 46px; font-size: 1.2rem; flex-shrink: 0; }
+.user-dot {
+  position: absolute; right: -1px; bottom: -1px; width: 10px; height: 10px;
+  border-radius: 50%; background: #22c55e; border: 2px solid #fff;
+}
+.user-name { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-caret { font-size: .7rem; transition: transform .2s ease; }
+.user-menu.open .user-caret { transform: rotate(180deg); }
+
+.user-panel {
+  position: absolute; right: 0; top: calc(100% + 10px);
+  width: min(280px, 90vw); padding: 8px;
+  background: #fff; border: 1px solid var(--ui-border); border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(15,23,42,.18); z-index: 60;
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(.98);
+  transform-origin: top right;
+  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+}
+.user-menu.open .user-panel { opacity: 1; visibility: visible; transform: none; }
+.user-panel-head { display: flex; align-items: center; gap: 12px; padding: 10px; }
+.user-panel-head strong { display: block; color: var(--ui-text); font-size: .95rem; }
+.user-panel-head small { display: block; color: #64748b; font-size: .75rem; word-break: break-all; }
+.user-sep { height: 1px; background: var(--ui-border); margin: 6px 4px; }
+.user-item {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 10px; border: 0; border-radius: 10px; background: transparent;
+  color: var(--ui-text); font-size: .85rem; font-weight: 700;
+  text-align: left; cursor: pointer; transition: background .15s ease;
+}
+.user-item:hover { background: #f2f7f4; }
+.user-item-icon { width: 18px; text-align: center; }
+.user-item .theme-switch { margin-left: auto; }
+.user-item-danger { color: #dc2626; }
+.user-item-danger:hover { background: #fef2f2; }
+
+/* Modo oscuro */
+body.theme-dark .btn-back { background: #13221d; border-color: #294239; color: #86efac; }
+body.theme-dark .btn-back:hover { background: #173329; border-color: #3b5b4d; }
+body.theme-dark .user-trigger { background: #13221d; border-color: #294239; color: #dbeae3; }
+body.theme-dark .user-trigger:hover { background: #172a23; border-color: #3b5b4d; }
+body.theme-dark .user-dot { border-color: #13221d; }
+body.theme-dark .user-panel { background: #101c18; border-color: #263b34; box-shadow: 0 18px 40px rgba(0,0,0,.5); }
+body.theme-dark .user-panel-head strong { color: #e7f1ec; }
+body.theme-dark .user-panel-head small { color: #9db1a8; }
+body.theme-dark .user-sep { background: #263b34; }
+body.theme-dark .user-item { color: #e7f1ec; }
+body.theme-dark .user-item:hover { background: #173329; }
+body.theme-dark .user-item-icon { color: #facc15; }
+body.theme-dark .user-item-danger { color: #ff8d8d; }
+body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
+  
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
 
-  <!-- ENCABEZADO PRINCIPAL -->
+    <!-- ENCABEZADO PRINCIPAL -->
   <header>
     <div class="header-brand-container">
+        <a href="index.html" class="btn-back" title="Volver al inicio" aria-label="Volver al inicio">
+            <span class="btn-back-arrow">←</span><span class="btn-back-text">Inicio</span>
+        </a>
         <div class="logo-container">
             <img src="logo.png" alt="Hipergalerias Logo" onerror="this.onerror=null; this.src='logo.jpeg';">
         </div>
@@ -312,17 +402,7 @@
             <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar</button>
         </div>
 
-        <button type="button" class="theme-toggle" id="themeToggle" aria-label="Activar modo oscuro" aria-pressed="false" title="Cambiar tema">
-            <span class="theme-toggle-icon" id="themeToggleIcon">☾</span>
-            <span class="theme-toggle-label" id="themeToggleLabel">Modo oscuro</span>
-            <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
-        </button>
-
-        <button type="button" class="btn-return" onclick="window.location.href='index.html'" title="Regresar al panel principal">
-            ← Regresar
-        </button>
-
-        <!-- CONTENEDOR DE SESIÓN -->
+        <!-- CONTENEDOR DE SESIÓN (avatar + menú) -->
         <div id="userAuthContainer"></div>
     </div>
   </header>
@@ -1137,6 +1217,11 @@
       }
     }
 
+    
+      function escaparHtml(t) {
+      return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
     function gestionarEstadoSesion(session) {
       const authContainer = document.getElementById('userAuthContainer');
 
@@ -1144,15 +1229,38 @@
         cerrarModalLogin();
         const metadata = session.user.user_metadata || {};
         const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
-        const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+        const nombreFormateado = escaparHtml(nombre.charAt(0).toUpperCase() + nombre.slice(1));
+        const email = escaparHtml(session.user.email || '');
+        const inicial = nombreFormateado.charAt(0);
 
         if (authContainer) {
           authContainer.innerHTML = `
-            <div class="user-profile-badge">
-              <span>Bienvenid@, <strong>${nombreFormateado}</strong></span>
-              <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
+            <div class="user-menu" id="userMenu">
+              <button type="button" class="user-trigger" onclick="toggleMenuUsuario()" aria-haspopup="true" aria-expanded="false">
+                <span class="user-avatar">${inicial}<i class="user-dot"></i></span>
+                <span class="user-name">${nombreFormateado}</span>
+                <span class="user-caret">▾</span>
+              </button>
+              <div class="user-panel" role="menu">
+                <div class="user-panel-head">
+                  <span class="user-avatar user-avatar-lg">${inicial}<i class="user-dot"></i></span>
+                  <div>
+                    <strong>${nombreFormateado}</strong>
+                    <small>${email}</small>
+                  </div>
+                </div>
+                <div class="user-sep"></div>
+                <button type="button" class="user-item" id="themeToggle" role="switch" aria-checked="false" onclick="toggleTheme()">
+                  <span class="user-item-icon" id="themeToggleIcon">☾</span>
+                  <span id="themeToggleLabel">Modo oscuro</span>
+                  <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
+                </button>
+                <div class="user-sep"></div>
+                <button type="button" class="user-item user-item-danger" onclick="ejecutarLogout()">⏻ Cerrar sesión</button>
+              </div>
             </div>
           `;
+          syncThemeUI();
         }
       } else {
         if (authContainer) {
@@ -1164,23 +1272,46 @@
       }
     }
 
-    // MODO OSCURO
+    // MENÚ DE USUARIO: abrir/cerrar
+    function toggleMenuUsuario(forzar) {
+      const menu = document.getElementById('userMenu');
+      if (!menu) return;
+      const abrir = typeof forzar === 'boolean' ? forzar : !menu.classList.contains('open');
+      menu.classList.toggle('open', abrir);
+      menu.querySelector('.user-trigger').setAttribute('aria-expanded', String(abrir));
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#userMenu')) toggleMenuUsuario(false);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') toggleMenuUsuario(false);
+    });
+
+    // MODO OSCURO (el interruptor vive dentro del menú)
+    function syncThemeUI() {
+      const isDark = document.body.classList.contains('theme-dark');
+      const t = document.getElementById('themeToggle');
+      const l = document.getElementById('themeToggleLabel');
+      const i = document.getElementById('themeToggleIcon');
+      if (t) t.setAttribute('aria-checked', String(isDark));
+      if (l) l.textContent = isDark ? 'Modo claro' : 'Modo oscuro';
+      if (i) i.textContent = isDark ? '☀' : '☾';
+    }
+
     function initTheme() {
-      const isDark = localStorage.getItem('theme_recetario') === 'dark';
-      if (isDark) {
+      if (localStorage.getItem('theme_recetario') === 'dark') {
         document.body.classList.add('theme-dark');
-        document.getElementById('themeToggleLabel').textContent = 'Modo claro';
-        document.getElementById('themeToggleIcon').textContent = '☀';
       }
-      document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+      syncThemeUI();
     }
 
     function toggleTheme() {
       const isDark = document.body.classList.toggle('theme-dark');
       localStorage.setItem('theme_recetario', isDark ? 'dark' : 'light');
-      document.getElementById('themeToggleLabel').textContent = isDark ? 'Modo claro' : 'Modo oscuro';
-      document.getElementById('themeToggleIcon').textContent = isDark ? '☀' : '☾';
+      syncThemeUI();
     }
+
+    
 
     // NORMALIZACIÓN DE CÓDIGOS Y CREACIÓN DE INSUMOS
     function normalizarCodigoJava(codigo) {
