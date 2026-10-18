@@ -155,6 +155,50 @@ body *{visibility:hidden!important}
 .pf{display:flex;justify-content:space-around;text-align:center;font-size:8.5pt;font-weight:bold;padding-top:15px;page-break-inside:avoid}
 .sig{border-top:1px solid #000;width:280px;padding-top:4px}
 }
+
+/* ===== LOGIN MEJORADO ===== */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes floaty{50%{transform:translateY(-4px)}}
+
+.login-card{position:relative;width:420px;max-width:100%;max-height:92vh;overflow-x:hidden;overflow-y:auto;padding:36px 34px 24px;background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 60px -15px rgba(0,0,0,.5);animation:pop .3s var(--ease)}
+.modal.closing .login-card{animation:popOut .2s forwards}
+.login-card:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--g),var(--y),var(--g));z-index:2}
+.login-card:after{content:"";position:absolute;left:50%;top:-130px;width:280px;height:280px;transform:translateX(-50%);background:radial-gradient(circle,rgba(46,125,50,.28),transparent 70%);pointer-events:none;z-index:0}
+.login-card > *{position:relative;z-index:1}
+
+.login-logo{width:86px;height:86px;margin:0 auto 16px;display:grid;place-items:center;border-radius:50%;background:#fff;border:3px solid var(--y);box-shadow:0 12px 26px -10px rgba(0,0,0,.45),0 0 0 7px rgba(46,125,50,.16);animation:floaty 4s ease-in-out infinite}
+.login-logo img{width:64px;height:64px;object-fit:contain}
+.login-card h3{margin:0 0 6px;text-align:center;font-size:1.4rem;font-weight:800;letter-spacing:-.02em;color:var(--text)}
+.login-card .login-sub{margin:0 0 26px;text-align:center;font-size:.88rem;color:var(--muted)}
+
+.login-card .field{position:relative}
+.login-card .field .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;transition:color .2s}
+.login-card .field:focus-within .ico{color:var(--g)}
+.login-card .field input{padding:14px 14px 14px 44px;border-radius:12px}
+.login-card .field.pw input{padding-right:48px}
+.login-card .pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;display:grid;place-items:center;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:8px;transition:background .2s,color .2s}
+.login-card .pw-toggle:hover{background:var(--line);color:var(--text)}
+.login-card input.invalid{border-color:var(--red);box-shadow:0 0 0 4px rgba(229,57,53,.15)}
+
+.login-card .caps-hint{display:none;font-size:.76rem;font-weight:600;color:#b45309}
+.login-card .caps-hint.show{display:block}
+[data-theme=dark] .login-card .caps-hint{color:#fbbf24}
+.login-card .remember{margin:2px 0 16px}
+
+.login-error{display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;padding:10px 12px;font-size:.82rem;font-weight:600;line-height:1.35;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;animation:rise .3s var(--ease)}
+.login-error[hidden]{display:none}
+[data-theme=dark] .login-error{background:#7f1d1d;color:#fecaca;border-color:#b91c1c}
+
+.login-card .btn-login{width:100%;justify-content:center;padding:14px;border-radius:12px;font-size:.95rem;color:#fff;background:linear-gradient(135deg,#22a04c,var(--gd));box-shadow:0 12px 24px -12px rgba(18,62,27,.8)}
+.login-card .btn-login:hover{background:linear-gradient(135deg,#22a04c,var(--g))}
+.login-card .btn-login.loading:disabled{opacity:.9}
+.btn-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.login-card .login-foot{margin:18px 0 0;text-align:center;font-size:.72rem;font-weight:600;color:var(--muted);opacity:.8}
+
+/* Entrada escalonada al abrir */
+.modal.open .login-card .stagger{animation:rise .5s var(--ease) both;animation-delay:calc(var(--k) * 70ms + 120ms)}
+
+
 </style>
 </head>
 <body>
@@ -338,15 +382,47 @@ body *{visibility:hidden!important}
 
 <!-- MODAL DE SESIÓN (Supabase) -->
 <div id="loginModal" class="modal" style="z-index:9999;background:rgba(15,23,42,.75);backdrop-filter:blur(10px)">
-  <div class="mcard" style="width:400px">
-    <h3>Acceso al Sistema</h3>
-    <div class="sub">Ingresa tus credenciales corporativas para continuar.</div>
+  <div class="login-card" id="loginCard" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+
+    <div class="stagger" style="--k:0">
+      <div class="login-logo">
+        <img src="logo solo g.png" alt="" onerror="this.onerror=null;this.src='logo.png'">
+      </div>
+      <h3 id="loginTitle">Acceso al Sistema</h3>
+      <p class="login-sub">Ingresa tus credenciales corporativas para continuar.</p>
+    </div>
+
     <form id="loginForm" onsubmit="ejecutarLogin(event)">
-      <div class="f" style="margin-bottom:14px"><label for="loginEmail">Correo electrónico</label><input type="email" id="loginEmail" placeholder="usuario@hipergalerias.com" autocomplete="username" required></div>
-      <div class="f" style="margin-bottom:14px"><label for="loginPassword">Contraseña</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required></div>
-      <div id="loginError" class="login-error" hidden></div>
-      <button type="submit" class="btn btn-dark" id="btnSubmitLogin" style="width:100%;justify-content:center">Ingresar</button>
+      <div class="f stagger" style="--k:1;margin-bottom:16px">
+        <label for="loginEmail">Correo electrónico</label>
+        <div class="field">
+          <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <input type="email" id="loginEmail" placeholder="usuario@hipermarket.com" autocomplete="username" required>
+        </div>
+      </div>
+
+      <div class="f stagger" style="--k:2;margin-bottom:16px">
+        <label for="loginPassword">Contraseña</label>
+        <div class="field pw">
+          <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-label="Mostrar contraseña" title="Mostrar u ocultar contraseña" onclick="alternarPassword()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="caps-hint" id="capsHint">⚠️ Bloq Mayús está activado</div>
+      </div>
+
+      <label class="remember stagger" style="--k:3">
+        <input type="checkbox" id="loginRemember"> Recordar mi correo
+      </label>
+
+      <div id="loginError" class="login-error" role="alert" hidden></div>
+
+      <button type="submit" class="btn btn-login stagger" style="--k:4" id="btnSubmitLogin">Ingresar</button>
     </form>
+
+    <p class="login-foot stagger" style="--k:5">🔒 Acceso restringido · Hipergalerias C.A.</p>
   </div>
 </div>
 
@@ -1074,6 +1150,114 @@ async function iniciarSesion(){
 $('fechaSalida').value = today();
 $('manualFechaIngreso').value = today();
 window.onload = () => { actualizarContadoresYTablas(); iniciarSesion(); };
+
+// ===== LOGIN MEJORADO =====
+(function () {
+  const KEY_MAIL = 'hipergalerias_login_email';
+  const SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+  const EYE = SVG + '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+  const EYE_OFF = SVG + '<path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-5.06M9.9 4.24A10.9 10.9 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg>';
+
+  function limpiarError() {
+    $('loginError').hidden = true;
+    $('loginEmail').classList.remove('invalid');
+    $('loginPassword').classList.remove('invalid');
+  }
+
+  function mostrarError(msg, sacudir) {
+    const er = $('loginError');
+    er.innerHTML = '<span aria-hidden="true">⚠️</span><span>' + esc(msg) + '</span>';
+    er.hidden = false;
+    $('loginEmail').classList.add('invalid');
+    $('loginPassword').classList.add('invalid');
+    if (sacudir !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Web Animations API: no interfiere con la animación de apertura del modal
+      $('loginCard').animate([
+        { transform: 'translateX(0)' }, { transform: 'translateX(-9px)' }, { transform: 'translateX(8px)' },
+        { transform: 'translateX(-6px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }
+      ], { duration: 420, easing: 'ease-in-out' });
+    }
+  }
+
+  function restaurarBoton() {
+    const b = $('btnSubmitLogin');
+    b.disabled = false;
+    b.classList.remove('loading');
+    b.textContent = 'Ingresar';
+  }
+
+  window.alternarPassword = function () {
+    const input = $('loginPassword'), btn = $('pwToggle');
+    const oculto = input.type === 'password';
+    input.type = oculto ? 'text' : 'password';
+    btn.innerHTML = oculto ? EYE_OFF : EYE;
+    btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  };
+
+  window.abrirModalLogin = function (msg) {
+    limpiarError();
+    if (msg) mostrarError(msg, false);
+    openM('loginModal');
+    document.body.style.overflow = 'hidden';
+    const em = $('loginEmail');
+    try {
+      const guardado = localStorage.getItem(KEY_MAIL);
+      if (guardado && !em.value) { em.value = guardado; $('loginRemember').checked = true; }
+    } catch (e) {}
+    setTimeout(() => (em.value ? $('loginPassword') : em).focus(), 350);
+  };
+
+  window.ejecutarLogin = async function (e) {
+    e.preventDefault();
+    const email = $('loginEmail').value.trim();
+    const password = $('loginPassword').value;
+    const btn = $('btnSubmitLogin');
+
+    limpiarError();
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.innerHTML = '<span class="btn-spin"></span>Verificando…';
+
+    if (!hayDB()) {
+      restaurarBoton();
+      mostrarError("No se encontró la configuración de Supabase en 'conexion.js'.");
+      return;
+    }
+
+    let error = null;
+    try {
+      const r = await supabaseClient.auth.signInWithPassword({ email, password });
+      error = r.error;
+    } catch (err) {
+      error = err;
+    }
+    restaurarBoton();
+
+    if (error) {
+      mostrarError(error.message === 'Invalid login credentials'
+        ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.'
+        : (error.message || 'No se pudo iniciar sesión. Revisa tu conexión.'));
+      $('loginPassword').focus();
+      $('loginPassword').select();
+    } else {
+      try {
+        if ($('loginRemember').checked) localStorage.setItem(KEY_MAIL, email);
+        else localStorage.removeItem(KEY_MAIL);
+      } catch (err) {}
+      $('loginForm').reset();
+      if ($('loginPassword').type === 'text') alternarPassword();
+      cerrarModalLogin();
+    }
+  };
+
+  // Aviso de Bloq Mayús y limpieza del borde rojo al escribir
+  const pass = $('loginPassword');
+  const caps = e => $('capsHint').classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock')));
+  pass.addEventListener('keydown', caps);
+  pass.addEventListener('keyup', caps);
+  pass.addEventListener('blur', () => $('capsHint').classList.remove('show'));
+  ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
+})();
 </script>
 </body>
 </html>

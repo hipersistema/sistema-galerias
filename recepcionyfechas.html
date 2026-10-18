@@ -530,9 +530,34 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
     .modal-info-item[style] { grid-column: auto !important; }
     #toastHost { right: 16px; left: 16px; bottom: 16px; width: auto; }
 }
-    </style>
+/* ===== COMPUERTA DE SESIÓN ===== */
+#authGate {
+    position: fixed; inset: 0; z-index: 5000;
+    display: grid; place-items: center; align-content: center; gap: 14px;
+    background: var(--bg);
+    transition: opacity .35s ease, visibility 0s linear .35s;
+}
+#authGate.done { opacity: 0; visibility: hidden; pointer-events: none; }
+#authGate .gate-logo {
+    width: 84px; height: 84px; display: grid; place-items: center; border-radius: 50%;
+    background: #fff; border: 3px solid var(--yellow-brand);
+    box-shadow: 0 12px 26px -10px rgba(0,0,0,.4), 0 0 0 7px color-mix(in srgb, var(--leaf) 16%, transparent);
+    animation: gatePulse 1.6s ease-in-out infinite;
+}
+#authGate .gate-logo img { width: 62px; height: 62px; object-fit: contain; }
+#authGate p { margin: 0; font-size: .85rem; font-weight: 600; color: var(--muted); }
+@keyframes gatePulse { 50% { transform: scale(1.06); } }
+
+</style>
 </head>
 <body>
+
+    <script>try{if(localStorage.getItem('hipergalerias_theme')==='dark')document.body.classList.add('theme-dark')}catch(e){}</script>
+    <div id="authGate" role="status" aria-live="polite">
+    <div class="gate-logo"><img src="logo solo g.png" alt="" onerror="this.onerror=null;this.src='logo.png'"></div>
+    <p>Verificando sesión…</p>
+    </div>
+
     <div id="progressBar" role="progressbar" aria-label="Cargando"></div>
 
     <header>
@@ -1981,6 +2006,23 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
                 window.location.href = 'index.html';
             }
         });
+
+        /* ===== COMPUERTA DE SESIÓN ===== */
+    (function () {
+    const gate = $('authGate');
+    const abrir = () => { if (gate) gate.classList.add('done'); };
+    const original = gestionarEstadoSesion;
+
+    // Con sesión: se abre la compuerta con fade. Sin sesión: la función original
+    // redirige a index.html y la compuerta se queda visible, sin mostrar el módulo.
+    window.gestionarEstadoSesion = function (session) {
+        original(session);
+        if (session && session.user) abrir();
+    };
+
+    // Seguridad: si algo falla, no dejar la pantalla bloqueada
+    setTimeout(abrir, 6000);
+    })();
     </script>
 </body>
 </html>
