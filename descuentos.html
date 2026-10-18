@@ -228,7 +228,7 @@ body *{visibility:hidden!important}
         </form>
       </div>
       <input type="text" id="filtroEmp" placeholder="🔍 Buscar empleado..." oninput="pagEmp=1;renderBases()" style="margin-bottom:14px">
-      <div class="tw"><table><thead><tr><th>Cédula</th><th>Nombre completo</th><th>Cargo / puesto</th><th>Fecha ingreso</th><th>Acción</th></tr></thead><tbody id="tablaEmpleados"></tbody></table></div>
+      <div class="tw"><table><thead><tr><th>Nro</th><th>Cédula</th><th>Nombre completo</th><th>Cargo / puesto</th><th>Fecha ingreso</th><th>Acción</th></tr></thead><tbody id="tablaEmpleados"></tbody></table></div>
       <div class="pager" id="pagerEmp"></div>
     </div>
   </div>
@@ -620,7 +620,7 @@ function renderBases(){
   const le = window.empleados.filter(e => (e.cedula + ' ' + e.nombre).toLowerCase().includes(fe));
   pagEmp = Math.min(Math.max(pagEmp, 1), Math.ceil(le.length / POR_PAG) || 1);
   const ve = le.slice((pagEmp - 1) * POR_PAG, pagEmp * POR_PAG);
-  $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(e.fechaIngreso || 'N/A') + '</td><td><button class="btn btn-out btn-sm" data-del-emp="' + esc(e.cedula) + '">🗑️</button></td></tr>').join('') : '<tr><td colspan="5" class="empty">Aún no hay empleados registrados.</td></tr>';
+  $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td>' + ((pagEmp - 1) * POR_PAG + i + 1) + '</td><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(e.fechaIngreso || 'N/A') + '</td><td><button class="btn btn-out btn-sm" data-del-emp="' + esc(e.cedula) + '">🗑️</button></td></tr>').join('') : '<tr><td colspan="6" class="empty">Aún no hay empleados registrados.</td></tr>';
   pager('pagerEmp', le.length, pagEmp, 'irPagEmp');
 }
 $('tablaEmpleados').addEventListener('click', e => { const b = e.target.closest('button[data-del-emp]'); if (b) eliminarEmpleadoManual(b.dataset.delEmp); });
