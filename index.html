@@ -18,6 +18,7 @@ body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
 body.leaving{opacity:0}
 @keyframes pageIn{from{opacity:0}to{opacity:1}}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
 @keyframes shimmer{to{background-position:-200% 0}}
 :focus-visible{outline:3px solid var(--g4);outline-offset:2px;border-radius:8px}
 .skip{position:absolute;left:12px;top:-60px;background:var(--g7);color:#fff;padding:10px 14px;border-radius:8px;z-index:10000;text-decoration:none;font-weight:600;transition:top .2s}
@@ -33,9 +34,8 @@ body.dark-mode .logo-container img{mix-blend-mode:normal;filter:drop-shadow(0 2p
 body.dark-mode .titles .eyebrow{color:var(--g4)}
 .header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 
-.theme-switch-wrapper{display:flex;align-items:center;gap:10px;padding:6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--soft);transition:background .3s,border-color .3s}
 .theme-label{font-size:.8rem;font-weight:600;user-select:none;white-space:nowrap}
-.theme-switch{position:relative;display:inline-block;width:42px;height:22px}
+.theme-switch{position:relative;display:inline-block;width:42px;height:22px;flex:none}
 .theme-switch input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:2}
 .slider{position:absolute;inset:0;background:#c3cfc8;border-radius:22px;transition:background .3s}
 .slider:before{content:"";position:absolute;left:3px;bottom:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .3s var(--ease)}
@@ -43,12 +43,37 @@ body.dark-mode .titles .eyebrow{color:var(--g4)}
 .theme-switch input:checked+.slider:before{transform:translateX(20px)}
 .theme-switch input:focus-visible+.slider{outline:3px solid var(--g4);outline-offset:2px}
 
-.user-profile-badge{display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border-radius:999px;border:1px solid var(--line);background:var(--soft);font-size:.82rem;font-weight:500;white-space:nowrap;animation:rise .4s var(--ease) both}
-.btn-login-trigger,.btn-logout{font-family:inherit;border:0;cursor:pointer;font-weight:700;transition:background .2s,transform .15s}
+.btn-login-trigger{font-family:inherit;border:0;cursor:pointer;font-weight:700;transition:background .2s,transform .15s}
 .btn-login-trigger{background:var(--g7);color:#fff;padding:9px 18px;border-radius:999px;font-size:.82rem}
 .btn-login-trigger:hover{background:var(--g5);transform:translateY(-1px)}
-.btn-logout{background:#ef4444;color:#fff;padding:6px 12px;border-radius:999px;font-size:.75rem}
-.btn-logout:hover{background:#dc2626}
+
+/* ===== Menú de usuario ===== */
+.user{position:relative}
+.utrigger{display:flex;align-items:center;gap:10px;padding:5px 14px 5px 5px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--tx);font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;animation:rise .4s var(--ease) both;transition:border-color .2s,box-shadow .2s,transform .2s var(--ease)}
+.utrigger:hover,.utrigger.open{border-color:var(--g4);box-shadow:0 0 0 3px color-mix(in srgb,var(--g4) 18%,transparent)}
+.utrigger:active{transform:scale(.97)}
+.av{position:relative;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--g5),var(--g9));color:#fff;display:grid;place-items:center;font-weight:800;font-size:.95rem;flex:none}
+.av.lg{width:46px;height:46px;font-size:1.2rem}
+.av .on{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid var(--surface)}
+.chev{font-size:.8rem;color:var(--mu);transition:transform .25s var(--ease)}
+.utrigger.open .chev{transform:rotate(180deg)}
+.umenu{position:absolute;right:0;top:calc(100% + 12px);width:290px;max-width:calc(100vw - 28px);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.28);padding:8px;z-index:60;transform-origin:top right;animation:pop .22s var(--ease)}
+.umenu[hidden]{display:none}
+.uhead{display:flex;align-items:center;gap:12px;padding:10px 10px 12px}
+.uhead strong{display:block;font-size:.98rem;color:var(--tx)}
+.uhead small{display:block;color:var(--mu);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
+.usep{height:1px;background:var(--line);margin:6px 4px}
+.urow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px}
+.uitem{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:0;background:transparent;border-radius:10px;color:var(--tx);font-weight:600;font-size:.88rem;text-align:left;text-decoration:none;cursor:pointer;font-family:inherit;transition:background .15s}
+.uitem:hover{background:color-mix(in srgb,var(--g4) 12%,var(--surface))}
+.uitem.danger{color:#ef4444}
+.uitem.danger:hover{background:rgba(239,68,68,.12)}
+
+/* ===== Aviso de bienvenida ===== */
+.welcome-toast{position:fixed;top:0;left:50%;z-index:10001;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 28px);padding:12px 24px;border-radius:999px;background:var(--surface);color:var(--tx);border:1px solid var(--line);box-shadow:0 14px 36px -10px rgba(0,0,0,.35);font-weight:600;font-size:.92rem;white-space:nowrap;opacity:0;pointer-events:none;transform:translate(-50%,-130%);transition:opacity .35s ease,transform .45s var(--ease)}
+.welcome-toast.show{opacity:1;transform:translate(-50%,18px)}
+.welcome-toast strong{color:var(--g5)}
+body.dark-mode .welcome-toast strong{color:var(--g4)}
 
 .container{max-width:1280px;margin:28px auto 48px;padding:0 24px}
 .welcome-card{position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:#fff;padding:30px 34px;border-radius:20px;margin-bottom:26px;background:linear-gradient(120deg,#0b2e14,#1b7a3a 60%,#14532d);background-size:160% 160%;animation:rise .6s var(--ease) both,flow 14s ease-in-out infinite;box-shadow:var(--shadow)}
@@ -120,7 +145,7 @@ body.dark-mode .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b
 .btn-submit-login:active{transform:scale(.98)}
 .btn-submit-login:disabled{opacity:.65;cursor:wait}
 
-@media(max-width:700px){header{padding:10px 16px}.container{padding:0 14px}.welcome-card{padding:22px}.welcome-card-watermark{display:none}.theme-label{display:none}}
+@media(max-width:700px){header{padding:10px 16px}.container{padding:0 14px}.welcome-card{padding:22px}.welcome-card-watermark{display:none}.uname{display:none}.utrigger{padding-right:10px}}
 @media(prefers-reduced-motion:reduce){*,*:before{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -133,14 +158,25 @@ body.dark-mode .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b
     <div class="titles"><span class="eyebrow">HIPERGALERIAS</span><h1>Sistema Centralizado de Gestión</h1></div>
   </div>
   <div class="header-actions">
-    <div class="theme-switch-wrapper">
-      <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
-      <label class="theme-switch" for="checkboxTheme" title="Cambiar entre modo claro y oscuro">
-        <input type="checkbox" id="checkboxTheme" aria-label="Activar modo oscuro" onchange="toggleDarkTheme(this.checked)">
-        <div class="slider"></div>
-      </label>
+    <div class="user" id="userMenu">
+      <div id="userAuthContainer"></div>
+      <div class="umenu" id="userDropdown" role="menu" hidden>
+        <div class="uhead">
+          <div class="av lg"><span id="umAvatar">U</span><i class="on"></i></div>
+          <div><strong id="umNombre">Usuario</strong><small id="umEmail"></small></div>
+        </div>
+        <div class="usep"></div>
+        <div class="urow">
+          <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
+          <label class="theme-switch" for="checkboxTheme" title="Cambiar entre modo claro y oscuro">
+            <input type="checkbox" id="checkboxTheme" aria-label="Activar modo oscuro" onchange="toggleDarkTheme(this.checked)">
+            <div class="slider"></div>
+          </label>
+        </div>
+        <div class="usep"></div>
+        <button type="button" class="uitem danger" onclick="ejecutarLogout()" role="menuitem">⎋ Cerrar sesión</button>
+      </div>
     </div>
-    <div id="userAuthContainer"></div>
   </div>
 </header>
 
@@ -254,6 +290,8 @@ body.dark-mode .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b
   </div>
 </div>
 
+<div class="welcome-toast" id="welcomeToast" role="status" aria-live="polite"></div>
+
 <script>
 // --- MANEJO DE MODO OSCURO ---
 function toggleDarkTheme(isDark) {
@@ -292,6 +330,50 @@ function alternarPassword() {
 function irAModulo(url) {
     document.body.classList.add('leaving');
     setTimeout(() => { window.location.href = url; }, 220);
+}
+
+// --- MENÚ DE USUARIO (avatar + desplegable) ---
+function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    const abrir = m.hidden;
+    m.hidden = !abrir;
+    const t = document.getElementById('userTrigger');
+    if (t) { t.classList.toggle('open', abrir); t.setAttribute('aria-expanded', abrir); }
+}
+
+function cerrarUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if (!m || m.hidden) return;
+    m.hidden = true;
+    const t = document.getElementById('userTrigger');
+    if (t) { t.classList.remove('open'); t.setAttribute('aria-expanded', 'false'); }
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('#userMenu')) cerrarUserMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarUserMenu(); });
+
+// --- AVISO DE BIENVENIDA (1.5 s, una vez por sesión del navegador) ---
+let bienvenidaTimer;
+function mostrarBienvenida(nombre, uid) {
+    const clave = 'hipergalerias_bienvenida_' + uid;
+    try {
+        if (sessionStorage.getItem(clave)) return;
+        sessionStorage.setItem(clave, '1');
+    } catch (e) {}
+    const t = document.getElementById('welcomeToast');
+    t.innerHTML = '<span aria-hidden="true">👋</span><span>Bienvenido, <strong>' + esc(nombre) + '</strong></span>';
+    clearTimeout(bienvenidaTimer);
+    void t.offsetWidth; // fuerza el reflow para que la animación de entrada se ejecute
+    t.classList.add('show');
+    bienvenidaTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+function limpiarBienvenida() {
+    try {
+        Object.keys(sessionStorage)
+            .filter(k => k.startsWith('hipergalerias_bienvenida_'))
+            .forEach(k => sessionStorage.removeItem(k));
+    } catch (e) {}
 }
 
 // --- ICONOS LOTTIE (solo se animan al pasar el cursor sobre el módulo) ---
@@ -366,6 +448,7 @@ async function ejecutarLogin(e) {
 }
 
 async function ejecutarLogout() {
+    cerrarUserMenu();
     if (typeof supabaseClient !== 'undefined') {
         await supabaseClient.auth.signOut();
     }
@@ -380,16 +463,25 @@ function gestionarEstadoSesion(session) {
         const metadata = session.user.user_metadata || {};
         const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
         const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+        const inicial = nombreFormateado.charAt(0);
+        const abierto = !document.getElementById('userDropdown').hidden;
 
         if (authContainer) {
             authContainer.innerHTML = `
-                <div class="user-profile-badge">
-                    <span>Bienvenid@, <strong>${esc(nombreFormateado)}</strong></span>
-                    <button class="btn-logout" onclick="ejecutarLogout()">Salir</button>
-                </div>
+                <button type="button" class="utrigger${abierto ? ' open' : ''}" id="userTrigger" aria-haspopup="true" aria-expanded="${abierto}" onclick="toggleUserMenu()">
+                    <span class="av">${esc(inicial)}<i class="on"></i></span>
+                    <span class="uname">${esc(nombreFormateado)}</span>
+                    <span class="chev">▾</span>
+                </button>
             `;
         }
+        document.getElementById('umAvatar').textContent = inicial;
+        document.getElementById('umNombre').textContent = nombreFormateado;
+        document.getElementById('umEmail').textContent = session.user.email || '';
+        mostrarBienvenida(nombreFormateado, session.user.id);
     } else {
+        cerrarUserMenu();
+        limpiarBienvenida();
         abrirModalLogin();
         if (authContainer) {
             authContainer.innerHTML = `

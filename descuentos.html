@@ -44,6 +44,32 @@ header{background:var(--card);border-bottom:3px solid var(--y);padding:12px 32px
 .btn-blue{background:#0284c7;color:#fff}.btn-excel{background:#10b981;color:#fff}
 .btn-sm{padding:6px 12px;font-size:.78rem}
 .salir{background:var(--red);color:#fff;border:0;border-radius:6px;padding:3px 10px;font-size:.8rem;text-decoration:none;font-weight:700;cursor:pointer;font-family:inherit;transition:background .2s}.salir:hover{background:#c62828}
+/* ===== Menú de usuario ===== */
+.user{position:relative}
+.utrigger{display:flex;align-items:center;gap:10px;padding:5px 14px 5px 5px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--text);font-weight:700;font-size:.9rem;cursor:pointer;font-family:inherit;transition:border-color .2s,box-shadow .2s,transform .2s var(--ease)}
+.utrigger:hover,.utrigger.open{border-color:var(--g);box-shadow:0 0 0 3px rgba(46,125,50,.15)}
+.utrigger:active{transform:scale(.97)}
+.av{position:relative;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gd));color:#fff;display:grid;place-items:center;font-weight:800;font-size:.95rem;flex:none}
+.av.lg{width:46px;height:46px;font-size:1.2rem}
+.av .on{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid var(--card)}
+.chev{font-size:.8rem;color:var(--muted);transition:transform .25s var(--ease)}
+.utrigger.open .chev{transform:rotate(180deg)}
+.umenu{position:absolute;right:0;top:calc(100% + 12px);width:290px;max-width:calc(100vw - 28px);background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.28);padding:8px;z-index:60;transform-origin:top right;animation:pop .22s var(--ease)}
+.umenu[hidden]{display:none}
+.uhead{display:flex;align-items:center;gap:12px;padding:10px 10px 12px}
+.uhead strong{display:block;font-size:.98rem;color:var(--title)}
+.uhead small{display:block;color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
+.usep{height:1px;background:var(--line);margin:6px 4px}
+.urow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;font-weight:600;font-size:.88rem;border-radius:10px}
+.uitem{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:0;background:transparent;border-radius:10px;color:var(--text);font-weight:600;font-size:.88rem;text-align:left;text-decoration:none;cursor:pointer;font-family:inherit;transition:background .15s}
+.uitem:hover{background:var(--gbg)}
+.uitem.danger{color:var(--red)}
+.uitem.danger:hover{background:rgba(229,57,53,.1)}
+.back{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;min-width:40px;padding:0 16px 0 13px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--title);font-weight:700;font-size:.86rem;text-decoration:none;flex:none;transition:border-color .2s,background .2s,transform .2s var(--ease),box-shadow .2s}
+.back span{font-size:1.2rem;line-height:1}
+.back:hover{border-color:var(--g);background:var(--gbg);transform:translateX(-2px);box-shadow:0 4px 10px rgba(18,62,27,.15)}
+.back:active{transform:scale(.95)}
+@media(max-width:760px){.uname{display:none}.utrigger{padding-right:10px}.back{width:40px;padding:0}.back b{display:none}}
 main{max-width:1400px;margin:0 auto;padding:24px 32px 60px}
 .hero{background:linear-gradient(120deg,#0f3517,#1b5e20 70%,#2e7d32);color:#fff;border-radius:16px;padding:18px 32px;min-height:0;position:relative;overflow:hidden;animation:rise .6s var(--ease) both}
 .hero-logo{position:absolute;right:28px;top:50%;height:230%;width:auto;transform:translateY(-50%) rotate(8deg);opacity:.14;pointer-events:none;user-select:none}
@@ -134,13 +160,24 @@ body *{visibility:hidden!important}
 <body>
 <header>
   <div class="brand">
+    <a class="back" href="index.html" title="Volver al inicio" aria-label="Volver al inicio"><span>←</span><b>Inicio</b></a>
     <img src="logo.png" alt="Galería Hipermarket" onerror="this.onerror=null;this.src='logo.jpeg'">
     <h1>Descuentos a Empleados</h1>
   </div>
   <div class="hright">
-    <div class="pill"><span id="themeLabel">🌙 Modo oscuro</span> <button class="switch" id="themeSwitch" aria-label="Cambiar modo oscuro" aria-pressed="false"></button></div>
-    <a class="btn btn-out" href="index.html">← Regresar</a>
-    <div id="userAuthContainer"></div>
+    <div class="user" id="userMenu">
+      <div id="userAuthContainer"></div>
+      <div class="umenu" id="userDropdown" role="menu" hidden>
+        <div class="uhead">
+          <div class="av lg"><span id="umAvatar">U</span><i class="on"></i></div>
+          <div><strong id="umNombre">Usuario</strong><small id="umEmail"></small></div>
+        </div>
+        <div class="usep"></div>
+        <div class="urow"><span id="themeLabel">🌙 Modo oscuro</span> <button class="switch" id="themeSwitch" aria-label="Cambiar modo oscuro" aria-pressed="false"></button></div>
+        <div class="usep"></div>
+        <button type="button" class="uitem danger" onclick="ejecutarLogout()" role="menuitem">⎋ Cerrar sesión</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -515,7 +552,7 @@ function closeM(id){
   if (id === 'modalClave') accionPendiente = null;
 }
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeM('modalClave'); closeM('modalDescuento'); }
+  if (e.key === 'Escape') { closeM('modalClave'); closeM('modalDescuento'); cerrarUserMenu(); }
   if (e.key === 'Enter' && $('modalClave').classList.contains('open')) verificarClaveYContinuar();
 });
 
@@ -981,6 +1018,20 @@ async function ejecutarLogin(e){
   if (error) { er.textContent = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message); er.hidden = false; }
   else { $('loginForm').reset(); cerrarModalLogin(); }
 }
+function toggleUserMenu(){
+  const m = $('userDropdown'), abrir = m.hidden;
+  m.hidden = !abrir;
+  const t = $('userTrigger');
+  if (t) { t.classList.toggle('open', abrir); t.setAttribute('aria-expanded', abrir); }
+}
+function cerrarUserMenu(){
+  const m = $('userDropdown'); if (!m || m.hidden) return;
+  m.hidden = true;
+  const t = $('userTrigger');
+  if (t) { t.classList.remove('open'); t.setAttribute('aria-expanded', 'false'); }
+}
+document.addEventListener('click', e => { if (!e.target.closest('#userMenu')) cerrarUserMenu(); });
+
 async function ejecutarLogout(){
   claveRecordada = false;
   if (hayDB()) await supabaseClient.auth.signOut();
@@ -992,7 +1043,11 @@ async function gestionarEstadoSesion(session, eventName){
     cerrarModalLogin();
     const m = session.user.user_metadata || {};
     const nombre = m.display_name || m.full_name || session.user.email.split('@')[0];
-    box.innerHTML = '<div class="pill">Bienvenid@,<strong>' + esc(nombre.charAt(0).toUpperCase() + nombre.slice(1)) + '</strong> <button class="salir" onclick="ejecutarLogout()">Salir</button></div>';
+    const nombreC = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+    box.innerHTML = '<button type="button" class="utrigger" id="userTrigger" aria-haspopup="true" aria-expanded="false" onclick="toggleUserMenu()"><span class="av">' + esc(nombreC.charAt(0)) + '<i class="on"></i></span><span class="uname">' + esc(nombreC) + '</span><span class="chev">▾</span></button>';
+    $('umAvatar').textContent = nombreC.charAt(0);
+    $('umNombre').textContent = nombreC;
+    $('umEmail').textContent = session.user.email || '';
 
     // Se reintenta mientras la carga no haya sido exitosa
     if (!datosCargados || eventName === 'SIGNED_IN') {
@@ -1000,6 +1055,7 @@ async function gestionarEstadoSesion(session, eventName){
     }
   } else {
     claveRecordada = false;
+    cerrarUserMenu();
     box.innerHTML = '<button class="btn btn-dark" onclick="abrirModalLogin()">🔑 Iniciar sesión</button>';
     abrirModalLogin();
   }
