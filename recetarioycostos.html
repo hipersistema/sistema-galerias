@@ -664,16 +664,16 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           <table class="w-full text-left text-sm text-gray-700">
             <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold border-b border-[#2e7d32]/20">
               <tr>
-                <th class="p-3 text-center w-10">
+                <th class="px-3 py-2 leading-tight text-center w-10">
                   <input type="checkbox" id="checkSeleccionarTodasCat" onchange="toggleSeleccionarTodasCat(this.checked)" title="Seleccionar todas" class="w-4 h-4 text-[#2e7d32] rounded cursor-pointer">
                 </th>
-                <th class="p-3">Producto / Receta</th>
-                <th class="p-3">Categoría</th>
-                <th class="p-3 text-center">Tipo / Rendimiento</th>
-                <th class="p-3 text-right">Costo Unitario ($)</th>
-                <th class="p-3 text-center">Utilidad</th>
-                <th class="p-3 text-right">PVP Sugerido ($)</th>
-                <th class="p-3 text-center">Acciones</th>
+                <th class="px-3 py-2 leading-tight">Producto / Receta</th>
+                <th class="px-3 py-2 leading-tight">Categoría</th>
+                <th class="px-3 py-2 leading-tight text-center">Tipo / Rendimiento</th>
+                <th class="px-3 py-2 leading-tight text-right">Costo Unitario ($)</th>
+                <th class="px-3 py-2 leading-tight text-center">Utilidad</th>
+                <th class="px-3 py-2 leading-tight text-right">PVP Sugerido ($)</th>
+                <th class="px-3 py-2 leading-tight text-center">Acciones</th>
               </tr>
             </thead>
             <tbody id="tablaCatalogoBody" class="divide-y divide-gray-200">
@@ -1008,66 +1008,27 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       return match ? match.tipo === 'base' : false;
     }
 
-    // ===== CONVERSIÓN UNIDAD <-> PESO (ej. HUEVO = 60 g) =====
-    function obtenerPesosUnitarios() {
-      try { return JSON.parse(localStorage.getItem('pesos_unitarios_insumos') || '{}'); }
-      catch (e) { return {}; }
+    // ===== HUEVO: la cantidad se escribe en GRAMOS (1 huevo = 60 g) =====
+    const PESO_HUEVO_G = 60;
+
+    function esHuevo(ins) {
+      if (!ins) return false;
+      const n = limpiarNombreBase(ins.nombre).trim().toUpperCase();
+      return n === 'HUEVO' || n === 'HUEVOS';
     }
 
-    function obtenerPesoUnitarioG(ins) {
-      if (!ins) return 0;
-      const guardado = parseFloat(obtenerPesosUnitarios()[ins.id]);
-      if (guardado > 0) return guardado;
-      if (/HUEVO/i.test(ins.nombre || '')) return 60;
-      return 0;
-    }
-
-    function guardarPesoUnitarioG(ins, gramos) {
-      const m = obtenerPesosUnitarios();
-      m[ins.id] = gramos;
-      localStorage.setItem('pesos_unitarios_insumos', JSON.stringify(m));
-    }
-
-    function insumoAdmiteModoPeso(ins) {
-      return !!ins && String(ins.unidad || '').toUpperCase() === 'UND';
-    }
-
-    // Devuelve la cantidad expresada en la unidad del insumo (para multiplicar por el precio)
+    // Cantidad expresada en la unidad del insumo (para multiplicar por el precio)
     function cantidadEfectiva(fila, ins) {
       const c = parseFloat(fila.cantidad) || 0;
-      const modo = fila.modo || 'und';
-      if (!ins || !insumoAdmiteModoPeso(ins) || modo === 'und') return c;
-      const p = obtenerPesoUnitarioG(ins);
-      if (!p) return 0;
-      const gramos = modo === 'kg' ? c * 1000 : c;
-      return gramos / p;
+      return esHuevo(ins) ? c / PESO_HUEVO_G : c;
     }
 
     function textoEquivalencia(fila, ins) {
-      if (!ins || !insumoAdmiteModoPeso(ins) || (fila.modo || 'und') === 'und') return '';
-      const p = obtenerPesoUnitarioG(ins);
-      if (!p) return '';
-      return `≈ ${parseFloat(cantidadEfectiva(fila, ins).toFixed(2))} und (${p} g c/u)`;
-    }
-
-    function cambiarModoFila(idx, modo) {
-      const fila = recetaActual.filas[idx];
-      const ins = insumosBase.find(i => String(i.id) === String(fila.insumoId));
-      if (!ins) return;
-
-      if (modo !== 'und' && !obtenerPesoUnitarioG(ins)) {
-        const resp = prompt(`¿Cuántos gramos pesa 1 unidad de "${limpiarNombreBase(ins.nombre)}"?`);
-        const g = parseFloat(String(resp || '').replace(',', '.'));
-        if (!(g > 0)) {
-          fila.modo = 'und';
-          renderizarFilasCreador();
-          return;
-        }
-        guardarPesoUnitarioG(ins, g);
-      }
-      fila.modo = modo;
-      actualizarCostosFilaVisibles(idx);
-      recalcularEscandallo();
+      if (!esHuevo(ins)) return '';
+      const c = parseFloat(fila.cantidad) || 0;
+      return c > 0
+        ? `≈ ${parseFloat((c / PESO_HUEVO_G).toFixed(2))} huevos (${PESO_HUEVO_G} g c/u)`
+        : `gramos · 1 huevo = ${PESO_HUEVO_G} g`;
     }
 
     // Texto de cantidad para fichas (muestra lo ingresado + equivalencia)
@@ -1862,12 +1823,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
         const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
         const totalFila = costoVentaUsado * cantidadEfectiva(fila, insumoObj);
-        const modoActual = fila.modo || 'und';
 
         const nombreInsumoMostrar = insumoObj ? `${insumoObj.tipo === 'base' ? '⭐ ' : ''}${limpiarNombreBase(insumoObj.nombre)}` : '';
 
         tr.innerHTML = `
-          <td class="p-2 overflow-visible">
+          <td class="p-2 overflow-visible align-top">
             <div class="relative w-full contenedor-insumo-dropdown">
               <input type="text"
                      id="input-insumo-${idx}"
@@ -1887,20 +1847,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
               </div>
             </div>
           </td>
-          <td class="p-2">
-            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" id="input-cant-${idx}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="0.00" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
-            ${insumoAdmiteModoPeso(insumoObj) ? `
-              <select onchange="cambiarModoFila(${idx}, this.value)" class="mt-1 w-full p-1 border border-[#2e7d32]/40 rounded text-[11px] font-bold bg-white text-[#123e1b] outline-none">
-                <option value="und" ${modoActual === 'und' ? 'selected' : ''}>Por unidad</option>
-                <option value="gr" ${modoActual === 'gr' ? 'selected' : ''}>Por gramos</option>
-                <option value="kg" ${modoActual === 'kg' ? 'selected' : ''}>Por kilos</option>
-              </select>
-              <div id="equivRow-${idx}" class="text-[10px] text-gray-500 font-mono mt-0.5 text-center">${textoEquivalencia(fila, insumoObj)}</div>
-            ` : ''}
+          <td class="p-2 align-top">
+            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" id="input-cant-${idx}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="${esHuevo(insumoObj) ? 'gramos' : '0.00'}" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
+            ${esHuevo(insumoObj) ? `<div id="equivRow-${idx}" class="text-[10px] text-gray-500 font-mono mt-0.5 text-center">${textoEquivalencia(fila, insumoObj)}</div>` : ''}
           </td>
-          <td class="p-2 text-right font-bold text-gray-700 font-mono text-xs" id="costoVentaUsadoRow-${idx}">$${costoVentaUsado.toFixed(4)}</td>
-          <td class="p-2 text-right font-black text-[#123e1b] font-mono text-xs" id="totalRow-${idx}">$${totalFila.toFixed(4)}</td>
-          <td class="p-2 text-center">
+          <td class="p-2 pt-[18px] align-top text-right font-bold text-gray-700 font-mono text-xs" id="costoVentaUsadoRow-${idx}">$${costoVentaUsado.toFixed(4)}</td>
+          <td class="p-2 pt-[18px] align-top text-right font-black text-[#123e1b] font-mono text-xs" id="totalRow-${idx}">$${totalFila.toFixed(4)}</td>
+          <td class="p-2 pt-3 align-top text-center">
             <button onclick="eliminarFilaReceta(${idx})" class="text-red-500 hover:text-red-700 font-bold text-lg">&times;</button>
           </td>
         `;
@@ -2142,18 +2095,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       return (receta.ingredientes || []).reduce((acc, i) => acc + (parseFloat(i.merma) || 0), 0);
     }
 
-    // Peso bruto total de los ingredientes (en kg; si se ingresó por gramos, se convierte)
+    // Peso bruto total de los ingredientes en kg (el huevo se escribe en gramos, se convierte)
     function calcularPesoBrutoKg() {
       let suma = 0;
       recetaActual.filas.forEach(f => {
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
         const cant = parseFloat(f.cantidad) || 0;
-        const modo = f.modo || 'und';
-        if (ins && insumoAdmiteModoPeso(ins) && modo !== 'und') {
-          suma += (modo === 'gr' ? cant / 1000 : cant);
-        } else {
-          suma += cant;
-        }
+        suma += esHuevo(ins) ? cant / 1000 : cant;
       });
       return suma;
     }
@@ -2255,7 +2203,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
             nombre: limpiarNombreBase(ins.nombre),
             cantidad: cantEf,                       // en unidades del insumo
             cantidadIngresada: f.cantidad,          // lo que escribió el usuario
-            modo: f.modo || 'und',
+            modo: esHuevo(ins) ? 'gr' : 'und',
             unidad: ins.unidad,
             costoUnit: costoVentaUsado,
             costoTotal: total
@@ -2400,32 +2348,32 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         tr.className = `transition-colors hover:bg-gray-50/80 ${esSubreceta ? 'row-subreceta font-medium' : ''}`;
 
         const badgeCategoria = esSubreceta
-          ? `<span class="px-3 py-1 rounded-full bg-emerald-100 text-[#123e1b] font-extrabold text-xs">⭐ Sub-Receta</span>`
-          : `<span class="px-3 py-1 rounded-full bg-blue-50 text-blue-600 font-bold text-xs">${receta.categoria}</span>`;
+          ? `<span class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#123e1b] font-extrabold text-[11px] leading-5">⭐ Sub-Receta</span>`
+          : `<span class="inline-flex items-center whitespace-nowrap px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 font-bold text-[11px] leading-5">${receta.categoria}</span>`;
 
         const rendimientoStr = receta.tipo === 'und'
           ? `UND (${receta.piezas || 1}p)`
           : `KG (${receta.rendimiento || 1}kg)`;
 
         tr.innerHTML = `
-          <td class="p-3 text-center">
+          <td class="px-3 py-1.5 text-center">
             <input type="checkbox" class="check-receta-item w-4 h-4 text-[#2e7d32] rounded cursor-pointer" value="${receta.id}">
           </td>
-          <td class="p-3 font-bold text-gray-800">${limpiarNombreBase(receta.nombre)}</td>
-          <td class="p-3">${badgeCategoria}</td>
-          <td class="p-3 text-center text-xs font-semibold text-gray-600">${rendimientoStr}</td>
-          <td class="p-3 text-right font-bold text-gray-800">$${parseFloat(receta.costoUnitario || 0).toFixed(4)}</td>
-          <td class="p-3 text-center font-bold text-blue-600">${parseFloat(receta.factor || 1.5).toFixed(2)}x</td>
-          <td class="p-3 text-right font-black text-emerald-600">$${parseFloat(receta.pvp || 0).toFixed(2)}</td>
-          <td class="p-3 text-center">
+          <td class="px-3 py-1.5 font-bold text-gray-800 text-[13px] leading-tight">${limpiarNombreBase(receta.nombre)}</td>
+          <td class="px-3 py-1.5 whitespace-nowrap">${badgeCategoria}</td>
+          <td class="px-3 py-1.5 text-center text-xs font-semibold text-gray-600 whitespace-nowrap">${rendimientoStr}</td>
+          <td class="px-3 py-1.5 text-right font-bold text-gray-800 text-[13px] whitespace-nowrap">$${parseFloat(receta.costoUnitario || 0).toFixed(4)}</td>
+          <td class="px-3 py-1.5 text-center font-bold text-blue-600 text-[13px] whitespace-nowrap">${parseFloat(receta.factor || 1.5).toFixed(2)}x</td>
+          <td class="px-3 py-1.5 text-right font-black text-emerald-600 text-[13px] whitespace-nowrap">$${parseFloat(receta.pvp || 0).toFixed(2)}</td>
+          <td class="px-3 py-1.5 text-center whitespace-nowrap">
             <div class="inline-flex items-center justify-center gap-1.5">
-              <button onclick="verFichaTecnica('${receta.id}')" class="bg-[#1b4d3e] hover:bg-[#123e1b] text-white px-3 py-1.5 rounded-md font-bold text-xs transition-all shadow-xs">
+              <button onclick="verFichaTecnica('${receta.id}')" class="bg-[#1b4d3e] hover:bg-[#123e1b] text-white px-2.5 py-1 rounded-md font-bold text-xs whitespace-nowrap transition-all shadow-xs">
                 Ver Ficha
               </button>
-              <button onclick="cargarRecetaParaEditar('${receta.id}')" class="bg-[#2563eb] hover:bg-blue-700 text-white px-3 py-1.5 rounded-md font-bold text-xs transition-all shadow-xs">
+              <button onclick="cargarRecetaParaEditar('${receta.id}')" class="bg-[#2563eb] hover:bg-blue-700 text-white px-2.5 py-1 rounded-md font-bold text-xs whitespace-nowrap transition-all shadow-xs">
                 Editar
               </button>
-              <button onclick="eliminarReceta('${receta.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1.5 rounded-md font-bold text-xs transition-all">
+              <button onclick="eliminarReceta('${receta.id}')" class="bg-red-100 hover:bg-red-200 text-red-600 px-2.5 py-1 rounded-md font-bold text-xs whitespace-nowrap transition-all">
                 Eliminar
               </button>
             </div>
@@ -2639,11 +2587,17 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       document.getElementById('btnGuardarReceta').innerHTML = '💾 Actualizar Producto en Catálogo';
 
       recetaActual.filas = (receta.ingredientes || []).map(i => {
-        let match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || limpiarNombreBase(ins.nombre) === limpiarNombreBase(i.nombre));
+        const match = insumosBase.find(ins => String(ins.id) === String(i.insumoId) || limpiarNombreBase(ins.nombre) === limpiarNombreBase(i.nombre));
+        let cant = i.cantidad || 0;
+        if (esHuevo(match)) {
+          if (i.modo === 'gr') cant = i.cantidadIngresada || 0;
+          else if (i.modo === 'kg') cant = (i.cantidadIngresada || 0) * 1000;
+          else cant = (i.cantidad || 0) * PESO_HUEVO_G;   // receta antigua: el huevo venía en unidades
+        }
         return {
           insumoId: match ? match.id : i.insumoId,
-          cantidad: (i.modo && i.modo !== 'und') ? (i.cantidadIngresada || 0) : (i.cantidad || 0),
-          modo: i.modo || 'und'
+          cantidad: parseFloat(Number(cant).toFixed(4)),
+          modo: 'und'
         };
       });
 
