@@ -9,6 +9,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
+        darkMode: ['selector', '.theme-dark'],
         theme: {
             extend: {
                 colors: {
@@ -171,71 +172,51 @@
 
     .btn-logout:hover { background-color: #dc2626; }
 
-    /* MODAL LOGIN */
-    .modal-overlay-login {
-        position: fixed;
-        top: 0; left: 0; width: 100vw; height: 100vh;
-        background-color: rgba(15, 23, 42, 0.75);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        display: flex; align-items: center; justify-content: center;
-        z-index: 9999; opacity: 0; pointer-events: none;
-        transition: opacity 0.3s ease;
-    }
-
-    .modal-overlay-login.active {
-        opacity: 1; pointer-events: auto;
-    }
-
-    .login-card {
-        background-color: #ffffff;
-        border: 1px solid #e2e8f0;
-        width: 100%; max-width: 400px; padding: 32px;
-        border-radius: 20px;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
-    }
-
-    body.theme-dark .login-card {
-        background-color: #101c18;
-        border-color: #263b34;
-        color: #e7f1ec;
-    }
-
-    .login-card h3 {
-        margin: 0 0 8px 0; color: #123e1b; font-size: 1.3rem; font-weight: 700;
-    }
-
-    body.theme-dark .login-card h3 { color: #86efac; }
-
-    .login-card p {
-        margin: 0 0 20px 0; color: #64748b; font-size: 0.88rem;
-    }
-
-    .form-group-login { margin-bottom: 16px; text-align: left; }
-    .form-group-login label {
-        display: block; font-size: 0.75rem; font-weight: 700;
-        margin-bottom: 6px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-
-    .form-control-login {
-        width: 100%; padding: 11px 14px; border-radius: 10px;
-        border: 1px solid #cbd5e1; background-color: #f8fafc; color: #0f172a; font-size: 0.9rem; box-sizing: border-box;
-    }
-
-    body.theme-dark .form-control-login {
-        background-color: #14231f; border-color: #2b453b; color: #e8f3ed;
-    }
-
-    .login-error-msg {
-        color: #ef4444; font-size: 0.82rem; margin-bottom: 14px; display: none; font-weight: 600;
-    }
-
-    .btn-submit-login {
-        width: 100%; background-color: #2e7d32; color: #ffffff; border: none;
-        padding: 12px; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: background-color 0.2s;
-    }
-
-    .btn-submit-login:hover { background-color: #123e1b; }
+    /* ===== LOGIN (clonado de index.html) ===== */
+:root{--g9:#0b2e14;--g7:#14532d;--g5:#1b7a3a;--g4:#22a04c;--gold:#f5b000;--surface:#fff;--soft:#f6f9f7;--line:#e1e8e3;--tx:#10201a;--mu:#5b6d64;--ease:cubic-bezier(.22,.8,.3,1)}
+body.theme-dark{--surface:#111e19;--soft:#0e1914;--line:#223a30;--tx:#eaf4ee;--mu:#93aa9f}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes floaty{50%{transform:translateY(-4px)}}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.modal-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,14,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease,visibility 0s linear .3s}
+.modal-overlay.active{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s ease,visibility 0s}
+.login-card{position:relative;overflow:hidden;width:100%;max-width:420px;padding:36px 34px 24px;background:var(--surface);color:var(--tx);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 60px -15px rgba(0,0,0,.45);transform:translateY(18px) scale(.97);transition:transform .35s var(--ease)}
+.modal-overlay.active .login-card{transform:none}
+.login-card:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--g5),var(--gold),var(--g5));z-index:2}
+.login-card:after{content:"";position:absolute;left:50%;top:-130px;width:280px;height:280px;transform:translateX(-50%);background:radial-gradient(circle,color-mix(in srgb,var(--g4) 28%,transparent),transparent 70%);pointer-events:none}
+.login-card>*{position:relative;z-index:1}
+.login-card.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
+.login-logo{width:86px;height:86px;margin:0 auto 16px;display:grid;place-items:center;border-radius:50%;background:#fff;border:3px solid var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.45),0 0 0 7px color-mix(in srgb,var(--g4) 16%,transparent);animation:floaty 4s ease-in-out infinite}
+.login-logo img{width:64px;height:64px;object-fit:contain}
+.login-head h3{margin:0 0 6px;text-align:center;font-size:1.4rem;font-weight:800;color:var(--tx)}
+.login-head p{margin:0 0 26px;text-align:center;font-size:.88rem;color:var(--mu)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:6px;font-size:.82rem;font-weight:600;color:var(--tx);opacity:.85}
+.field{position:relative}
+.field .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mu);pointer-events:none;transition:color .2s}
+.field:focus-within .ico{color:var(--g4)}
+.form-control{width:100%;padding:14px 14px 14px 44px;font:inherit;font-size:.92rem;color:var(--tx);background:var(--soft);border:1px solid var(--line);border-radius:12px;transition:border-color .2s,box-shadow .2s}
+.form-control:focus{outline:none;border-color:var(--g4);box-shadow:0 0 0 4px color-mix(in srgb,var(--g4) 22%,transparent)}
+.pw-wrap .form-control{padding-right:48px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;display:grid;place-items:center;border:0;background:none;cursor:pointer;color:var(--mu);border-radius:8px}
+.pw-toggle:hover{color:var(--tx);background:var(--line)}
+.form-control.invalid{border-color:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.15)}
+body.theme-dark .form-control.invalid{border-color:#ef4444!important}
+.caps-hint{display:none;margin-top:6px;font-size:.76rem;font-weight:600;color:#b45309}
+.caps-hint.show{display:block}
+body.theme-dark .caps-hint{color:#fbbf24}
+.remember{display:flex;align-items:center;gap:8px;margin:2px 0 16px;font-size:.82rem;font-weight:600;color:var(--mu);cursor:pointer;user-select:none}
+.remember input{width:16px;height:16px;accent-color:var(--g5)}
+body.theme-dark .remember input{background-color:initial!important}
+.login-error-msg{display:none;gap:8px;align-items:flex-start;line-height:1.35;margin-bottom:14px;padding:10px 12px;font-size:.82rem;font-weight:600;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;animation:rise .3s var(--ease)}
+body.theme-dark .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b91c1c}
+.btn-submit-login{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;font:inherit;font-weight:700;font-size:.95rem;color:#fff;border:0;border-radius:12px;cursor:pointer;background:linear-gradient(135deg,var(--g4),var(--g7));box-shadow:0 12px 24px -12px rgba(20,83,45,.75);transition:transform .15s,box-shadow .2s}
+.btn-submit-login:hover{transform:translateY(-1px)}
+.btn-submit-login:disabled{opacity:.85;cursor:wait}
+.btn-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.login-foot{margin:18px 0 0;text-align:center;font-size:.72rem;font-weight:600;color:var(--mu);opacity:.8}
+.modal-overlay.active .login-card .stagger{animation:rise .5s var(--ease) both;animation-delay:calc(var(--k)*70ms + 150ms)}
 
     /* ESTILOS DE TABLAS Y FILAS BASE */
     .row-subreceta { background-color: #f2f9f4 !important; }
@@ -383,6 +364,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
   </style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
+<script>try{if(localStorage.getItem('hipergalerias_theme')==='dark')document.body.classList.add('theme-dark')}catch(e){}</script>
 
     <!-- ENCABEZADO PRINCIPAL -->
   <header>
@@ -418,6 +400,9 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       </button>
       <button id="btn-tab-catalogo" onclick="cambiarPestana('catalogo')" class="py-4 focus:outline-none flex items-center gap-2">
         <span>📊 COSTOS Y CATALOGO</span> <span id="count-catalogo" class="px-2 py-0.5 rounded-md bg-[#e8f5e9] text-[#123e1b] border border-[#2e7d32]/30 text-xs font-bold">0</span>
+      </button>
+    <button id="btn-tab-revision" onclick="cambiarPestana('revision')" class="py-4 focus:outline-none flex items-center gap-2">
+        <span>📥 IMPORTAR / REVISIÓN</span> <span id="count-revision" class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold">0</span>
       </button>
     </div>
   </div>
@@ -698,6 +683,42 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       </div>
     </section>
 
+  <!-- PESTAÑA 4: IMPORTAR / REVISIÓN -->
+    <section id="tab-revision" class="hidden space-y-4">
+      <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-200 space-y-3">
+        <div class="flex flex-wrap items-center gap-3 justify-between">
+          <div>
+            <h2 class="text-base font-bold text-[#123e1b]">Recetas pendientes de revisión</h2>
+            <p class="text-xs text-gray-500">Carga <b>recetas_importacion.json</b> (generado del Excel). Revisa, corrige y aprueba: solo las aprobadas entran al catálogo.</p>
+          </div>
+          <label class="bg-[#1b4d3e] hover:bg-[#123e1b] text-white text-xs px-4 py-2 rounded-md font-bold cursor-pointer">
+            📂 Cargar JSON <input type="file" accept=".json" class="hidden" onchange="importarJsonRecetas(this)">
+          </label>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <input id="buscarPend" oninput="renderPend()" placeholder="🔍 Buscar..." class="p-2 border border-gray-300 rounded-md text-xs w-52 outline-none">
+          <select id="filtroPend" onchange="renderPend()" class="p-2 border border-gray-300 rounded-md text-xs bg-white">
+            <option value="todas">Todas</option><option value="listas">✅ Listas</option>
+            <option value="revisar">⚠️ Con avisos</option><option value="bloq">❌ Con ingredientes sin resolver</option>
+          </select>
+          <button onclick="aprobarVarias(false)" class="bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs px-3 py-2 rounded-md font-bold">✔ Aprobar seleccionadas</button>
+          <button onclick="aprobarVarias(true)" class="bg-[#15803d] hover:bg-[#166534] text-white text-xs px-3 py-2 rounded-md font-bold">✔✔ Aprobar todas las ✅ listas</button>
+          <button onclick="descartarSeleccionadas()" class="bg-red-100 hover:bg-red-200 text-red-600 text-xs px-3 py-2 rounded-md font-bold">Descartar seleccionadas</button>
+          <span id="resumenPend" class="text-xs font-bold text-gray-600 ml-auto"></span>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
+        <table class="w-full text-left text-xs text-gray-700">
+          <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold border-b border-[#2e7d32]/20"><tr>
+            <th class="p-2 w-8 text-center"><input type="checkbox" onchange="document.querySelectorAll('.chk-pend').forEach(c=>c.checked=this.checked)"></th>
+            <th class="p-2">Receta</th><th class="p-2">Categoría / Hoja</th><th class="p-2 text-center">Ingred.</th>
+            <th class="p-2 text-right">Costo Excel</th><th class="p-2 text-right">Costo sistema</th><th class="p-2">Estado</th><th class="p-2 text-center">Acciones</th>
+          </tr></thead>
+          <tbody id="listaPend" class="divide-y divide-gray-200"></tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 
   <!-- MODAL DE CONTRASEÑA MASCARADA (ASTERISCOS) -->
@@ -720,7 +741,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
   <!-- MODAL PROTEGIDO: ACCIONES COMBINADAS -->
   <div id="modalAccionesProtegidas" class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 relative overflow-hidden border border-gray-200">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 relative overflow-hidden border border-gray-200">
       
       <div class="flex justify-between items-start border-b border-gray-100 pb-3 mb-4">
         <div>
@@ -786,8 +807,9 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
               <tr>
                 <th class="p-2.5">Fecha y Hora</th>
                 <th class="p-2.5">Usuario</th>
-                <th class="p-2.5 text-right">Precio Costo ($)</th>
-                <th class="p-2.5 text-right">Precio Venta ($)</th>
+                <th class="p-2.5 text-right">Costo: anterior → nuevo</th>
+                <th class="p-2.5 text-right">Venta: anterior → nuevo</th>
+                <th class="p-2.5 text-center">Motivo</th>
               </tr>
             </thead>
             <tbody id="tablaHistoricoProtegidoBody" class="divide-y divide-gray-100 font-mono">
@@ -881,29 +903,52 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     </div>
   </div>
 
-  <!-- MODAL DE LOGIN BLOQUEANTE -->
-  <div class="modal-overlay-login" id="loginModal">
-    <div class="login-card">
-        <h3>Acceso al Sistema</h3>
+  <!-- MODAL DE LOGIN BLOQUEANTE (clonado de index.html) -->
+  <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <div class="login-card" id="loginCard">
+      <div class="login-head stagger" style="--k:0">
+        <div class="login-logo"><img src="logo solo g.png" alt="" onerror="this.onerror=null; this.src='logo.png';"></div>
+        <h3 id="loginTitle">Iniciar sesión</h3>
         <p>Ingresa tus credenciales corporativas para continuar.</p>
-        
-        <form id="loginForm" onsubmit="ejecutarLogin(event)">
-            <div class="form-group-login">
-                <label for="loginEmail">Correo Electrónico</label>
-                <input type="email" id="loginEmail" class="form-control-login" placeholder="usuario@hipergalerias.com" required>
-            </div>
-            
-            <div class="form-group-login">
-                <label for="loginPassword">Contraseña</label>
-                <input type="password" id="loginPassword" class="form-control-login" placeholder="••••••••" required>
-            </div>
+      </div>
+      <form id="loginForm" onsubmit="ejecutarLogin(event)">
+        <div class="form-group stagger" style="--k:1">
+          <label for="loginEmail">Correo electrónico</label>
+          <div class="field">
+            <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            <input type="email" id="loginEmail" class="form-control" placeholder="usuario@hipergalerias.com" autocomplete="username" required>
+          </div>
+        </div>
+        <div class="form-group stagger" style="--k:2">
+          <label for="loginPassword">Contraseña</label>
+          <div class="field pw-wrap">
+            <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-label="Mostrar contraseña" onclick="alternarPassword()">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="caps-hint" id="capsHint">⚠️ Bloq Mayús está activado</div>
+        </div>
+        <label class="remember stagger" style="--k:3"><input type="checkbox" id="loginRemember"> Recordar mi correo</label>
+        <div id="loginError" class="login-error-msg" role="alert"></div>
+        <button type="submit" class="btn-submit-login stagger" style="--k:4" id="btnSubmitLogin">Ingresar</button>
+      </form>
+      <p class="login-foot stagger" style="--k:5">🔒 Acceso restringido · Hipergalerias C.A.</p>
+    </div>
+  </div>
 
-            <div id="loginError" class="login-error-msg"></div>
-
-            <div class="login-actions">
-                <button type="submit" class="btn-submit-login" id="btnSubmitLogin">Ingresar</button>
-            </div>
-        </form>
+  <!-- MODAL: MOTIVO DEL CAMBIO DE PRECIO -->
+  <div id="modalMotivo" class="fixed inset-0 bg-black/60 hidden flex items-center justify-center p-4 z-[60]">
+    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-5 border border-gray-200">
+      <h3 class="text-sm font-bold text-gray-800 mb-1">📝 Motivo del cambio de precio</h3>
+      <p id="motivoResumen" class="text-xs text-gray-500 font-mono mb-3"></p>
+      <textarea id="motivoTexto" rows="3" maxlength="300" placeholder="Ej. Aumento del proveedor, nueva factura, corrección de error…" class="w-full p-2.5 border border-gray-300 rounded-lg text-xs outline-none focus:ring-2 focus:ring-[#2e7d32]"></textarea>
+      <div id="motivoError" class="hidden text-xs text-red-600 font-bold mt-1">Escribe el motivo (mínimo 3 caracteres) para continuar.</div>
+      <div class="flex gap-2 mt-3">
+        <button type="button" onclick="cerrarMotivo(null)" class="w-1/2 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg">Cancelar</button>
+        <button type="button" onclick="confirmarMotivo()" class="w-1/2 py-2 bg-[#2e7d32] hover:bg-[#123e1b] text-white text-xs font-bold rounded-lg">Guardar cambio</button>
+      </div>
     </div>
   </div>
 
@@ -963,6 +1008,318 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
   </div>
 
   <script>
+    // ===== HELPERS (rendimiento y robustez) =====
+    function debounce(fn, ms) {
+      let t;
+      return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+    }
+    // Precio con el que se calculan las recetas (costo de venta; si no existe, el de costo)
+    function precioUsado(ins) {
+      const v = ins.costoVenta;
+      return (v !== undefined && v !== null) ? v : ins.precio;
+    }
+    // Una sola copia local, sin historial (el historial vive en Supabase)
+    function persistirLocal() {
+      try {
+        localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase.map(({ historial, ...r }) => r)));
+        localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
+        localStorage.removeItem('insumos_recetario');
+        localStorage.removeItem('catalogo_recetario');
+      } catch (e) { console.warn('No se pudo guardar la copia local:', e); }
+    }
+    function avisarSiFalla(res, que) {
+      if (res && !res.success) {
+        alert('⚠️ La receta se guardó, pero falló el guardado de ' + que + ': ' + (res.error?.message || 'error de permisos o de red') + '\nRevisa el insumo e inténtalo de nuevo.');
+      }
+    }
+    // Guarda muchos insumos en pocas peticiones (úsalo p. ej. para el recálculo en cascada)
+    async function guardarInsumosLoteSupabase(lista) {
+      try {
+        for (let i = 0; i < lista.length; i += 500) {
+          const payload = lista.slice(i, i + 500).map(ins => ({
+            id: String(ins.id), codigo: ins.codigo, tipo: ins.tipo, nombre: limpiarNombreBase(ins.nombre),
+            precio: ins.precio, costo_venta: ins.costoVenta, unidad: ins.unidad, historial: ins.historial || []
+          }));
+          const { error } = await supabaseClient.from('insumos').upsert(payload, { onConflict: 'id' });
+          if (error) throw error;
+        }
+        return { success: true };
+      } catch (err) { return { success: false, error: err }; }
+    }
+    // Aviso al cerrar la pestaña con una receta a medias
+    function hayCambiosSinGuardar() {
+      const n = document.getElementById('nombreReceta');
+      return !!((n && n.value.trim()) || recetaActual.filas.some(f => f.insumoId));
+    }
+    window.addEventListener('beforeunload', e => {
+      if (hayCambiosSinGuardar()) { e.preventDefault(); e.returnValue = ''; }
+    });
+
+    // ===== HISTORIAL DE PRECIOS: anterior → nuevo + motivo =====
+    function celdaPrecio(ant, nuevo) {
+      const n = parseFloat(nuevo) || 0;
+      const a = parseFloat(ant);
+      if (ant === undefined || ant === null || isNaN(a)) return `<span class="font-bold text-gray-700">$${n.toFixed(4)}</span>`;
+      const d = n - a;
+      if (Math.abs(d) < 1e-6) return `<span class="text-gray-400">$${n.toFixed(4)} <span class="text-[10px]">(sin cambio)</span></span>`;
+      const sube = d > 0;
+      return `<span class="text-gray-400 line-through">$${a.toFixed(4)}</span> <span class="text-gray-400">→</span> ` +
+             `<span class="font-black ${sube ? 'text-red-600' : 'text-green-600'}">$${n.toFixed(4)} ${sube ? '▲' : '▼'}</span>`;
+    }
+
+    function filaHistorial(h, insumo) {
+      const frag = document.createDocumentFragment();
+      const costoNuevo = h.costoNuevo !== undefined ? h.costoNuevo : (h.costoAnt !== undefined ? h.costoAnt : insumo.precio);
+      const ventaNuevo = h.costoVentaNuevo !== undefined ? h.costoVentaNuevo : (h.costoVentaAnt !== undefined ? h.costoVentaAnt : costoNuevo);
+      const motivo = String(h.motivo || '').trim();
+
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-gray-50/80 whitespace-nowrap';
+      tr.innerHTML = `
+        <td class="p-2.5 text-gray-600 font-medium">${escaparHtml(h.fecha || 'Sin fecha')}</td>
+        <td class="p-2.5 text-gray-800 font-bold font-sans">${escaparHtml(h.usuario || 'Sistema')}</td>
+        <td class="p-2.5 text-right">${celdaPrecio(h.costoAnt, costoNuevo)}</td>
+        <td class="p-2.5 text-right">${celdaPrecio(h.costoVentaAnt, ventaNuevo)}</td>
+        <td class="p-2.5 text-center">${motivo
+          ? '<button type="button" class="btn-motivo text-base leading-none hover:scale-110 transition-transform" title="Ver motivo" aria-label="Ver motivo del cambio">👁</button>'
+          : '<span class="text-gray-300" title="Sin motivo registrado">—</span>'}</td>`;
+      frag.appendChild(tr);
+
+      if (motivo) {
+        const det = document.createElement('tr');
+        det.className = 'hidden bg-gray-50';
+        det.innerHTML = `<td colspan="5" class="p-2.5 text-xs font-sans text-gray-700 whitespace-normal"><strong>Motivo:</strong> ${escaparHtml(motivo)}</td>`;
+        frag.appendChild(det);
+        tr.querySelector('.btn-motivo').addEventListener('click', () => det.classList.toggle('hidden'));
+      }
+      return frag;
+    }
+
+    let resolverMotivo = null;
+    function pedirMotivo(resumen) {
+      return new Promise(resolve => {
+        resolverMotivo = resolve;
+        document.getElementById('motivoResumen').textContent = resumen || '';
+        document.getElementById('motivoTexto').value = '';
+        document.getElementById('motivoError').classList.add('hidden');
+        document.getElementById('modalMotivo').classList.remove('hidden');
+        setTimeout(() => document.getElementById('motivoTexto').focus(), 80);
+      });
+    }
+    function cerrarMotivo(valor) {
+      document.getElementById('modalMotivo').classList.add('hidden');
+      const r = resolverMotivo; resolverMotivo = null;
+      if (r) r(valor);
+    }
+    function confirmarMotivo() {
+      const t = document.getElementById('motivoTexto').value.trim();
+      if (t.length < 3) { document.getElementById('motivoError').classList.remove('hidden'); return; }
+      cerrarMotivo(t);
+    }
+    document.getElementById('motivoTexto').addEventListener('keydown', e => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); confirmarMotivo(); }
+      else if (e.key === 'Escape') cerrarMotivo(null);
+    });
+
+    // ===== IMPORTADOR DE RECETAS DESDE EXCEL (con revisión previa) =====
+    const KEY_PEND = 'hipergalerias_recetas_pendientes';
+    let pendientes = [], IDX = null;
+    try { pendientes = JSON.parse(localStorage.getItem(KEY_PEND)) || []; } catch (e) {}
+    const guardarPend = () => { try { localStorage.setItem(KEY_PEND, JSON.stringify(pendientes)); } catch (e) {} };
+    const precioIns = i => (i.costoVenta !== undefined && i.costoVenta !== null) ? i.costoVenta : i.precio;
+    const nomN = n => limpiarNombreBase(n).toUpperCase();
+
+    function construirIndice() {
+      IDX = { cod: new Map(), base: new Map(), rec: new Map() };
+      insumosBase.forEach(i => {
+        if (i.codigo) IDX.cod.set(String(i.codigo), i);
+        if (i.tipo === 'base') IDX.base.set(nomN(i.nombre), i);
+      });
+      recetasCatalogo.forEach(r => IDX.rec.set(nomN(r.nombre) + '|' + r.categoria, r));
+    }
+    function resolverIng(g) {
+      if (g.codigo) return IDX.cod.get(normalizarCodigoJava(g.codigo)) || null;
+      if (g.sub) return IDX.base.get(nomN(g.sub)) || null;
+      return null;
+    }
+    function evaluar(r) {
+      if (!IDX) construirIndice();
+      const bloqueos = [], avisos = [];
+      let costo = 0;
+      const filas = r.ingredientes.map(g => {
+        const ins = resolverIng(g);
+        let cant = g.cantidad || 0;
+        if (!ins) {
+          if (g.estado !== 'sin_precio') bloqueos.push(g.nombre + ': ' + (g.sub ? 'sub-receta "' + g.sub + '" aún no está aprobada'
+            : g.codigo ? 'el código ' + g.codigo + ' no existe en el sistema' : 'sin referencia al catálogo (' + g.estado + ')'));
+          return { g, ins: null, cant };
+        }
+        if (esHuevo(ins)) cant = cant * PESO_HUEVO_G;
+        costo += precioIns(ins) * cantidadEfectiva({ cantidad: cant }, ins);
+        return { g, ins, cant };
+      });
+      if (r.costo_excel && Math.abs(costo - r.costo_excel) / r.costo_excel > 0.03 && !bloqueos.length)
+        avisos.push('El costo difiere del Excel (precios del sistema distintos a los del Excel)');
+      if (IDX.rec.has(nomN(r.nombre) + '|' + r.categoria)) avisos.push('Ya existe en el catálogo: al aprobar se reemplaza');
+      (r.avisos || []).forEach(a => avisos.push(a));
+      return { filas, costo, bloqueos, avisos };
+    }
+
+    function importarJsonRecetas(inp) {
+      const f = inp.files[0]; if (!f) return;
+      if (pendientes.length && !confirm('Ya hay ' + pendientes.length + ' recetas pendientes. ¿Reemplazarlas por las del archivo?')) { inp.value = ''; return; }
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          pendientes = (JSON.parse(rd.result).recetas || []).map((r, n) => ({ ...r, pid: 'p' + n }));
+          guardarPend(); renderPend();
+        } catch (e) { alert('Archivo inválido: ' + e.message); }
+        inp.value = '';
+      };
+      rd.readAsText(f);
+    }
+
+    function renderPend() {
+      const tb = document.getElementById('listaPend'); if (!tb) return;
+      construirIndice();
+      const q = (document.getElementById('buscarPend').value || '').toLowerCase();
+      const fl = document.getElementById('filtroPend').value;
+      let listas = 0, rev = 0, bloq = 0, html = '';
+      pendientes.forEach(r => {
+        const ev = evaluar(r);
+        const est = ev.bloqueos.length ? 'bloq' : (ev.avisos.length ? 'revisar' : 'listas');
+        if (est === 'listas') listas++; else if (est === 'revisar') rev++; else bloq++;
+        if (fl !== 'todas' && fl !== est) return;
+        if (q && !(r.nombre + ' ' + r.hoja + ' ' + r.categoria).toLowerCase().includes(q)) return;
+        const badge = est === 'bloq' ? '<span class="text-red-600 font-bold">❌ ' + ev.bloqueos.length + ' sin resolver</span>'
+          : est === 'revisar' ? '<span class="text-amber-600 font-bold">⚠️ Revisar</span>' : '<span class="text-green-600 font-bold">✅ Lista</span>';
+        const det = ev.filas.map(f => '<li>' + (f.ins ? '✅' : (f.g.estado === 'sin_precio' ? '➖' : '❌')) + ' ' + escaparHtml(f.g.nombre) +
+          ' <span class="text-gray-500">→ ' + (f.ins ? escaparHtml(limpiarNombreBase(f.ins.nombre)) + ' · ' + f.cant + ' ' + (f.ins.unidad || '') : 'sin vincular') + '</span></li>').join('');
+        const msgs = ev.bloqueos.concat(ev.avisos).map(m => '<li class="text-amber-700">• ' + escaparHtml(m) + '</li>').join('');
+        html += `<tr class="hover:bg-gray-50">
+          <td class="p-2 text-center"><input type="checkbox" class="chk-pend" value="${r.pid}"></td>
+          <td class="p-2 font-bold text-gray-800">${escaparHtml(r.nombre)}${r.esSubreceta ? ' <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 rounded font-extrabold">⭐ BASE</span>' : ''}</td>
+          <td class="p-2">${escaparHtml(r.categoria)} <span class="text-gray-400">· ${escaparHtml(r.hoja)} ${escaparHtml(r.celda || '')}</span></td>
+          <td class="p-2 text-center">${r.ingredientes.length}</td>
+          <td class="p-2 text-right font-mono">${r.costo_excel ? '$' + r.costo_excel.toFixed(2) : '—'}</td>
+          <td class="p-2 text-right font-mono">$${ev.costo.toFixed(2)}</td>
+          <td class="p-2">${badge}</td>
+          <td class="p-2 text-center whitespace-nowrap">
+            <button onclick="document.getElementById('det-${r.pid}').classList.toggle('hidden')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded font-bold">Ver</button>
+            <button onclick="abrirPendEnCreador('${r.pid}')" class="px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded font-bold">Corregir</button>
+            <button onclick="aprobarUna('${r.pid}')" ${ev.bloqueos.length ? 'disabled' : ''} class="px-2 py-1 bg-[#2e7d32] text-white rounded font-bold disabled:opacity-30 disabled:cursor-not-allowed">Aprobar</button>
+            <button onclick="descartarPend('${r.pid}')" class="px-2 py-1 text-red-500 hover:text-red-700 font-bold">✕</button>
+          </td></tr>
+          <tr id="det-${r.pid}" class="hidden bg-gray-50"><td colspan="8" class="p-3"><ul class="grid sm:grid-cols-2 gap-x-6 gap-y-0.5 mb-2">${det}</ul>${msgs ? '<ul class="font-semibold">' + msgs + '</ul>' : ''}</td></tr>`;
+      });
+      tb.innerHTML = html || '<tr><td colspan="8" class="p-6 text-center text-gray-400">No hay recetas para mostrar. Carga el JSON generado del Excel.</td></tr>';
+      document.getElementById('count-revision').textContent = pendientes.length;
+      document.getElementById('resumenPend').textContent = `✅ ${listas} listas · ⚠️ ${rev} con avisos · ❌ ${bloq} bloqueadas`;
+    }
+
+    async function haySesion() {
+      if (typeof supabaseClient === 'undefined') return true;
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) { alert('⚠️ Debes iniciar sesión para aprobar recetas.'); abrirModalLogin(); return false; }
+      return true;
+    }
+
+    async function asegurarInsumoBase(nombre, costo, unidad) {
+      const usuario = await obtenerNombreUsuarioActual();
+      let ins = IDX.base.get(nombre) || insumosBase.find(i => nomN(i.nombre) === nombre);
+      const h = { fecha: obtenerFechaHoraActual(), usuario, costoNuevo: costo, costoVentaNuevo: costo, motivo: 'Importado desde Excel' };
+      if (!ins) {
+        ins = { id: 'sub_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), codigo: 'BAS-' + String(insumosBase.length + 1).padStart(3, '0'),
+                tipo: 'base', nombre, precio: costo, costoVenta: costo, unidad, historial: [h] };
+        insumosBase.unshift(ins);
+      } else {
+        h.costoAnt = ins.precio; h.costoVentaAnt = precioIns(ins);
+        ins.tipo = 'base'; ins.precio = costo; ins.costoVenta = costo; (ins.historial = ins.historial || []).push(h);
+      }
+      return guardarInsumoSupabase(ins);
+    }
+
+    async function aprobarPend(pid) {
+      const r = pendientes.find(p => p.pid === pid); if (!r) return false;
+      construirIndice();
+      const ev = evaluar(r); if (ev.bloqueos.length) return false;
+      const ings = ev.filas.filter(f => f.ins && f.cant > 0).map(f => {
+        const c = cantidadEfectiva({ cantidad: f.cant }, f.ins), pu = precioIns(f.ins);
+        return { insumoId: f.ins.id, nombre: limpiarNombreBase(f.ins.nombre), cantidad: c, cantidadIngresada: f.cant,
+                 modo: esHuevo(f.ins) ? 'gr' : 'und', unidad: f.ins.unidad, costoUnit: pu, costoTotal: pu * c };
+      });
+      if (!ings.length) return false;
+      const costoBatch = ings.reduce((a, i) => a + i.costoTotal, 0);
+      const costoUnitario = r.tipo === 'und' ? costoBatch / (r.piezas || 1) : costoBatch / (r.rendimiento || 1);
+      const nombre = nomN(r.nombre), factor = r.factor || 1.5;
+      const previo = IDX.rec.get(nombre + '|' + r.categoria);
+      const receta = { id: previo ? previo.id : 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), nombre, categoria: r.categoria,
+        tipo: r.tipo, rendimiento: r.rendimiento || 1, piezas: r.piezas || 1, factor, costoBatch, costoUnitario, pvp: costoUnitario * factor,
+        esSubreceta: !!r.esSubreceta, ingredientes: ings, mermaKg: 0, fecha: obtenerFechaHoraActual() };
+      const res = await guardarRecetaSupabase(receta);
+      if (!res.success) { alert('⚠️ No se pudo guardar "' + nombre + '": ' + (res.error?.message || 'error de red o permisos')); return false; }
+      if (previo) recetasCatalogo[recetasCatalogo.indexOf(previo)] = receta; else recetasCatalogo.unshift(receta);
+      if (receta.esSubreceta) avisarSiFallaImp(await asegurarInsumoBase(nombre, costoUnitario, r.tipo === 'und' ? 'UND' : 'KG'), nombre);
+      pendientes = pendientes.filter(p => p.pid !== pid);
+      return true;
+    }
+    const avisarSiFallaImp = (res, n) => { if (res && !res.success) console.warn('Insumo base no guardado:', n, res.error); };
+
+    function terminarLote() {
+      if (typeof persistirLocal === 'function') persistirLocal();
+      else { try { localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo)); } catch (e) {} }
+      guardarPend(); renderizarCatalogo(); renderizarTablaInsumos(); renderPend();
+    }
+    async function aprobarUna(pid) {
+      if (!(await haySesion())) return;
+      const ok = await aprobarPend(pid); terminarLote();
+      if (ok) alert('✅ Receta aprobada y guardada en el catálogo.');
+    }
+    async function aprobarVarias(soloListas) {
+      if (!(await haySesion())) return;
+      let ids = soloListas ? null : Array.from(document.querySelectorAll('.chk-pend:checked')).map(c => c.value);
+      if (!soloListas && !ids.length) { alert('Marca al menos una receta.'); return; }
+      construirIndice();
+      let cola = pendientes.filter(p => (ids ? ids.includes(p.pid) : !evaluar(p).bloqueos.length && !evaluar(p).avisos.length))
+                           .sort((a, b) => (b.esSubreceta ? 1 : 0) - (a.esSubreceta ? 1 : 0));
+      if (!confirm('¿Aprobar ' + cola.length + ' receta(s)? Las que tengan ingredientes sin resolver se omitirán.')) return;
+      let ok = 0, progreso = true;
+      while (cola.length && progreso) {            // varias pasadas: una sub-receta puede depender de otra
+        progreso = false;
+        for (const r of [...cola]) {
+          if (await aprobarPend(r.pid)) { ok++; progreso = true; cola = cola.filter(x => x.pid !== r.pid); }
+        }
+      }
+      terminarLote();
+      alert('✅ Aprobadas: ' + ok + (cola.length ? '\n⚠️ Quedaron ' + cola.length + ' sin aprobar (ingredientes sin resolver).' : ''));
+    }
+    function descartarPend(pid) { pendientes = pendientes.filter(p => p.pid !== pid); guardarPend(); renderPend(); }
+    function descartarSeleccionadas() {
+      const ids = Array.from(document.querySelectorAll('.chk-pend:checked')).map(c => c.value);
+      if (!ids.length || !confirm('¿Descartar ' + ids.length + ' receta(s) pendientes?')) return;
+      pendientes = pendientes.filter(p => !ids.includes(p.pid)); guardarPend(); renderPend();
+    }
+
+    // Abre la receta pendiente en el Creador para corregirla a mano; al guardarla sale de la bandeja
+    let pendienteActual = null;
+    function descartarPendienteActual() { if (pendienteActual) { descartarPend(pendienteActual); pendienteActual = null; } }
+    function abrirPendEnCreador(pid) {
+      const r = pendientes.find(p => p.pid === pid); if (!r) return;
+      construirIndice();
+      const ev = evaluar(r);
+      idRecetaEditando = null; pendienteActual = pid;
+      document.getElementById('nombreReceta').value = limpiarNombreBase(r.nombre);
+      document.getElementById('categoriaReceta').value = r.categoria;
+      document.getElementById('tipoCalculo').value = r.tipo;
+      document.getElementById('piezasCant').value = r.piezas || 1;
+      document.getElementById('margenUtilidad').value = r.factor || 1.5;
+      document.getElementById('esSubreceta').checked = !!r.esSubreceta;
+      recetaActual.filas = ev.filas.filter(f => f.ins).map(f => ({ insumoId: f.ins.id, cantidad: f.cant, modo: 'und' }));
+      if (!recetaActual.filas.length) recetaActual.filas = [{ insumoId: '', cantidad: 0, modo: 'und' }];
+      renderizarFilasCreador(); actualizarEtiquetaRendimiento(); cambiarPestana('creador');
+      if (ev.bloqueos.length) alert('Faltan por agregar manualmente:\n\n• ' + ev.bloqueos.join('\n• '));
+    }
+
     let insumosBase = [];
     let recetasCatalogo = [];
     let recetaActual = { filas: [] };
@@ -1102,24 +1459,30 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
+    let datosCargadosPara = null;
+    async function cargarSiHaySesion(session) {
+      if (!session || datosCargadosPara === session.user.id) return;
+      datosCargadosPara = session.user.id;
+      await cargarDeSupabase();
+      renderizarFilasCreador();
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       initTheme();
-      await cargarDeSupabase();
       comprobarCategoriaSubreceta();
       agregarFilaReceta();
-
       if (typeof supabaseClient !== 'undefined') {
         const { data: { session } } = await supabaseClient.auth.getSession();
         gestionarEstadoSesion(session);
-
-        supabaseClient.auth.onAuthStateChange((_event, session) => {
-          gestionarEstadoSesion(session);
-        });
+        await cargarSiHaySesion(session);
+        supabaseClient.auth.onAuthStateChange((_e, s) => { gestionarEstadoSesion(s); cargarSiHaySesion(s); });
+      } else {
+        await cargarDeSupabase();
       }
     });
 
     // AUTENTICACIÓN
-    function abrirModalLogin() {
+    function _abrirModalLoginViejo() {
       const modal = document.getElementById('loginModal');
       if (modal) {
         modal.classList.add('active');
@@ -1136,7 +1499,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
-    async function ejecutarLogin(e) {
+    async function _ejecutarLoginViejo(e) {
       e.preventDefault();
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
@@ -1259,18 +1622,23 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       if (i) i.textContent = isDark ? '☀' : '☾';
     }
 
-    function initTheme() {
-      if (localStorage.getItem('theme_recetario') === 'dark') {
-        document.body.classList.add('theme-dark');
-      }
-      syncThemeUI();
-    }
+    const CLAVE_TEMA = 'hipergalerias_theme';
 
-    function toggleTheme() {
-      const isDark = document.body.classList.toggle('theme-dark');
-      localStorage.setItem('theme_recetario', isDark ? 'dark' : 'light');
+    function aplicarTema(oscuro) {
+      document.body.classList.toggle('theme-dark', oscuro);
       syncThemeUI();
     }
+    function initTheme() {
+      let t = null;
+      try { t = localStorage.getItem(CLAVE_TEMA) || localStorage.getItem('theme_recetario'); } catch (e) {}
+      aplicarTema(t === 'dark');
+    }
+    function toggleTheme() {
+      const oscuro = !document.body.classList.contains('theme-dark');
+      try { localStorage.setItem(CLAVE_TEMA, oscuro ? 'dark' : 'light'); } catch (e) {}
+      aplicarTema(oscuro);
+    }
+    window.addEventListener('storage', e => { if (e.key === CLAVE_TEMA) aplicarTema(e.newValue === 'dark'); });
 
     
 
@@ -1323,6 +1691,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         const costoUnit = parseFloat(document.getElementById('crearCostoUnitario').value) || 0;
         const costoVentaVal = parseFloat(document.getElementById('crearPrecioVenta').value) || 0;
         const nombreIngresado = limpiarNombreBase(document.getElementById('crearNombreInsumo').value.trim().toUpperCase());
+        if (insumosBase.some(i => String(i.codigo) === String(codigoFormateado))) {
+            alert("⚠️ Ya existe un insumo con el código " + codigoFormateado + ".");
+            return;
+        }
+        if (insumosBase.some(i => limpiarNombreBase(i.nombre).toUpperCase() === nombreIngresado)) {
+            if (!confirm("Ya existe un insumo llamado \"" + nombreIngresado + "\". ¿Crear otro igualmente?")) return;
+        }
         const usuarioNombre = await obtenerNombreUsuarioActual();
 
         const nuevoInsumo = {
@@ -1337,7 +1712,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
               fecha: obtenerFechaHoraActual(),
               usuario: usuarioNombre,
               costoNuevo: costoUnit,
-              costoVentaNuevo: costoVentaVal
+              costoVentaNuevo: costoVentaVal,
+              motivo: 'Alta del insumo'
             }]
         };
 
@@ -1348,9 +1724,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         }
 
         insumosBase.unshift(nuevoInsumo);
-        localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-        localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-
+        persistirLocal();
         cerrarModalCrearInsumo();
         renderizarTablaInsumos();
         renderizarFilasCreador();
@@ -1419,14 +1793,10 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           }));
         }
 
-        localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-        localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-        localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
-        localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
-
-      } catch (error) {
+        persistirLocal();
+        } catch (error) {
         console.warn("⚠️ Error conectando con Supabase. Cargando respaldo local:", error);
-        const storedInsumos = localStorage.getItem('insumos_recetario') || localStorage.getItem('hipergalerias_insumos_db');
+        const storedInsumos = localStorage.getItem('hipergalerias_insumos_db') || localStorage.getItem('insumos_recetario');
         insumosBase = storedInsumos ? JSON.parse(storedInsumos) : [];
 
         insumosBase = insumosBase.map(i => ({
@@ -1434,12 +1804,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           nombre: limpiarNombreBase(i.nombre)
         }));
 
-        const storedCatalogo = localStorage.getItem('catalogo_recetario') || localStorage.getItem('hipergalerias_recetas_db');
+        const storedCatalogo = localStorage.getItem('hipergalerias_recetas_db') || localStorage.getItem('catalogo_recetario');
         recetasCatalogo = storedCatalogo ? JSON.parse(storedCatalogo) : [];
       }
 
       renderizarTablaInsumos();
       renderizarCatalogo();
+      if (typeof renderPend === "function") renderPend();
     }
 
     async function guardarInsumoSupabase(insumo) {
@@ -1528,20 +1899,18 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     }
 
     function cambiarPestana(pestana) {
-      ['insumos', 'creador', 'catalogo'].forEach(p => {
+      ['insumos', 'creador', 'catalogo', 'revision'].forEach(p => {
         document.getElementById(`tab-${p}`).classList.add('hidden');
         document.getElementById(`btn-tab-${p}`).classList.remove('tab-active');
       });
 
       document.getElementById(`tab-${pestana}`).classList.remove('hidden');
+      if (pestana === 'revision') renderPend();
       document.getElementById(`btn-tab-${pestana}`).classList.add('tab-active');
     }
 
     // TABLA INSUMOS Y PAGINACIÓN
-    function buscarInsumoInput() {
-      paginaActualInsumos = 1;
-      renderizarTablaInsumos();
-    }
+    const buscarInsumoInput = debounce(() => { paginaActualInsumos = 1; renderizarTablaInsumos(); }, 200);
 
     function renderizarTablaInsumos() {
       const busqueda = (document.getElementById('buscarInsumo').value || '').toLowerCase();
@@ -1570,7 +1939,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
       paginaItems.forEach(insumo => {
         const esBaseSubreceta = insumo.tipo === 'base';
-        const costoVentaVal = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+        const costoVentaVal = precioUsado(insumo);
         const nombreLimpio = limpiarNombreBase(insumo.nombre);
         
         const tr = document.createElement('tr');
@@ -1649,7 +2018,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
 
       document.getElementById('costoVisualInput').value = parseFloat(insumo.precio || 0).toFixed(4);
-      const costoVentaActual = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+      const costoVentaActual = precioUsado(insumo);
       document.getElementById('costoVentaCalculoInput').value = parseFloat(costoVentaActual).toFixed(4);
 
       const tbody = document.getElementById('tablaHistoricoProtegidoBody');
@@ -1658,25 +2027,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       const historialList = insumo.historial || [];
 
       if (historialList.length > 0) {
-        historialList.slice().reverse().forEach(h => {
-          const tr = document.createElement('tr');
-          tr.className = "hover:bg-gray-50/80";
-          const costoC = h.costoNuevo !== undefined ? h.costoNuevo : (h.costoAnt || insumo.precio);
-          const costoV = h.costoVentaNuevo !== undefined ? h.costoVentaNuevo : (h.costoVentaAnt || costoC);
-          const usuarioFmt = h.usuario || 'Sistema';
-
-          tr.innerHTML = `
-            <td class="p-2.5 text-gray-600 font-medium">${h.fecha || 'Sin fecha'}</td>
-            <td class="p-2.5 text-gray-800 font-bold font-sans">${usuarioFmt}</td>
-            <td class="p-2.5 text-right font-bold text-gray-500">$${parseFloat(costoC).toFixed(4)}</td>
-            <td class="p-2.5 text-right font-black text-[#15803d]">$${parseFloat(costoV).toFixed(4)}</td>
-          `;
-          tbody.appendChild(tr);
-        });
+        historialList.slice().reverse().forEach(h => tbody.appendChild(filaHistorial(h, insumo)));
       } else {
         tbody.innerHTML = `
           <tr>
-            <td colspan="4" class="p-4 text-center text-gray-400 font-sans text-xs">No hay registros de cambios históricos anteriores.</td>
+            <td colspan="5" class="p-4 text-center text-gray-400 font-sans text-xs">No hay registros de cambios históricos anteriores.</td>
           </tr>
         `;
       }
@@ -1719,9 +2074,16 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
 
       const costoAnt = insumo.precio;
-      const costoVentaAnt = insumo.costoVenta !== undefined ? insumo.costoVenta : insumo.precio;
+      const costoVentaAnt = precioUsado(insumo);
 
-      const huboCambioPrecio = (costoAnt !== nuevoCostoVisual) || (costoVentaAnt !== nuevoCostoVenta);
+      const huboCambioPrecio = Math.abs(costoAnt - nuevoCostoVisual) > 1e-6 || Math.abs(costoVentaAnt - nuevoCostoVenta) > 1e-6;
+
+      let motivo = '';
+      if (huboCambioPrecio) {
+        const f = n => '$' + (Number(n) || 0).toFixed(4);
+        motivo = await pedirMotivo(`Costo ${f(costoAnt)} → ${f(nuevoCostoVisual)}  ·  Venta ${f(costoVentaAnt)} → ${f(nuevoCostoVenta)}`);
+        if (motivo === null) return; // canceló: no se cambia nada
+      }
       const usuarioNombre = await obtenerNombreUsuarioActual();
 
       insumo.nombre = nuevoNombre;
@@ -1738,7 +2100,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           costoAnt: costoAnt,
           costoNuevo: nuevoCostoVisual,
           costoVentaAnt: costoVentaAnt,
-          costoVentaNuevo: nuevoCostoVenta
+          costoVentaNuevo: nuevoCostoVenta,
+          motivo: motivo
         });
       }
 
@@ -1748,10 +2111,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         return;
       }
 
-      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-
-      renderizarTablaInsumos();
+      persistirLocal();
+        renderizarTablaInsumos();
       renderizarFilasCreador();
       if (typeof recalcularEscandallo === 'function') recalcularEscandallo();
 
@@ -1791,10 +2152,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
       insumosBase = insumosBase.filter(i => String(i.id) !== String(id));
 
-      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-
-      cerrarModalAccionesProtegidas();
+      persistirLocal();
+        cerrarModalAccionesProtegidas();
       renderizarTablaInsumos();
       renderizarFilasCreador();
 
@@ -1821,7 +2180,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         const tr = document.createElement('tr');
         
         const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
-        const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
+        const costoVentaUsado = insumoObj ? (precioUsado(insumoObj)) : 0;
         const totalFila = costoVentaUsado * cantidadEfectiva(fila, insumoObj);
 
         const nombreInsumoMostrar = insumoObj ? `${insumoObj.tipo === 'base' ? '⭐ ' : ''}${limpiarNombreBase(insumoObj.nombre)}` : '';
@@ -1936,7 +2295,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       let html = '';
       resultados.forEach((ins, n) => {
         const esBase = ins.tipo === 'base';
-        const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+        const costoVentaUsado = precioUsado(ins);
         const idSeguro = String(ins.id).replace(/"/g, '&quot;');
         html += `
           <div data-ins-id="${idSeguro}"
@@ -2020,7 +2379,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     function actualizarCostosFilaVisibles(idx) {
       const fila = recetaActual.filas[idx];
       const insumoObj = insumosBase.find(i => String(i.id) === String(fila.insumoId));
-      const costoVentaUsado = insumoObj ? (insumoObj.costoVenta !== undefined ? insumoObj.costoVenta : insumoObj.precio) : 0;
+      const costoVentaUsado = insumoObj ? (precioUsado(insumoObj)) : 0;
       const totalFila = costoVentaUsado * cantidadEfectiva(fila, insumoObj);
 
       const cellCosto = document.getElementById(`costoVentaUsadoRow-${idx}`);
@@ -2113,7 +2472,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
         const cantEf = cantidadEfectiva(f, ins);
         if (ins && cantEf > 0) {
-          const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+          const costoVentaUsado = precioUsado(ins);
           costoTotalBatch += costoVentaUsado * cantEf;
         }
       });
@@ -2195,7 +2554,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         const ins = insumosBase.find(i => String(i.id) === String(f.insumoId));
         const cantEf = cantidadEfectiva(f, ins);
         if (ins && cantEf > 0) {
-          const costoVentaUsado = ins.costoVenta !== undefined ? ins.costoVenta : ins.precio;
+          const costoVentaUsado = precioUsado(ins);
           const total = costoVentaUsado * cantEf;
           costoTotalBatch += total;
           ingredientesFinales.push({
@@ -2274,24 +2633,21 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
             historial: [{ fecha: obtenerFechaHoraActual(), usuario: usuarioNombre, costoNuevo: costoUnitario, costoVentaNuevo: costoUnitario }]
           };
           insumosBase.unshift(insumoSub);
-          await guardarInsumoSupabase(insumoSub);
+          avisarSiFalla(await guardarInsumoSupabase(insumoSub), 'el insumo base de la sub-receta');
         } else {
           existeBase.tipo = 'base';
           existeBase.precio = costoUnitario;
           existeBase.costoVenta = costoUnitario;
-          await guardarInsumoSupabase(existeBase);
+          avisarSiFalla(await guardarInsumoSupabase(existeBase), 'el insumo base de la sub-receta');
         }
       }
 
-      localStorage.setItem('insumos_recetario', JSON.stringify(insumosBase));
-      localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase));
-      localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
-      localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
-
-      renderizarCatalogo();
+      persistirLocal();
+        renderizarCatalogo();
       renderizarTablaInsumos();
       cancelarEdicionReceta();
       cambiarPestana('catalogo');
+      if (typeof descartarPendienteActual === "function") descartarPendienteActual();
       alert("✅ Receta guardada exitosamente en el catálogo.");
     }
 
@@ -2314,10 +2670,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     }
 
     // CATÁLOGO Y PAGINACIÓN
-    function buscarCatalogoInput() {
-      paginaActualCatalogo = 1;
-      renderizarCatalogo();
-    }
+    const buscarCatalogoInput = debounce(() => { paginaActualCatalogo = 1; renderizarCatalogo(); }, 200);
 
     function renderizarCatalogo() {
       const busqueda = (document.getElementById('buscarCatalogo').value || '').toLowerCase();
@@ -2629,10 +2982,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
 
       recetasCatalogo = recetasCatalogo.filter(r => String(r.id) !== String(id));
-      localStorage.setItem('catalogo_recetario', JSON.stringify(recetasCatalogo));
-      localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo));
-      
-      renderizarCatalogo();
+      persistirLocal();
+        renderizarCatalogo();
       alert("✅ Receta eliminada del catálogo.");
     }
 
@@ -2847,6 +3198,93 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       ventana.document.write(htmlContenido);
       ventana.document.close();
     }
+  
+  // ===== LOGIN CLONADO DE index.html =====
+  (function () {
+    const KEY_MAIL = 'hipergalerias_login_email';
+    const SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    const EYE = SVG + '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const EYE_OFF = SVG + '<path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-5.06M9.9 4.24A10.9 10.9 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg>';
+    const $ = id => document.getElementById(id);
+
+    function limpiarError() {
+      $('loginError').style.display = 'none';
+      $('loginEmail').classList.remove('invalid');
+      $('loginPassword').classList.remove('invalid');
+    }
+    function mostrarError(msg) {
+      const box = $('loginError');
+      box.innerHTML = '<span aria-hidden="true">⚠️</span><span>' + escaparHtml(msg) + '</span>';
+      box.style.display = 'flex';
+      $('loginEmail').classList.add('invalid');
+      $('loginPassword').classList.add('invalid');
+      const card = $('loginCard');
+      card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+      card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+    }
+    function restaurarBoton() {
+      const b = $('btnSubmitLogin');
+      b.disabled = false; b.textContent = 'Ingresar';
+    }
+
+    window.alternarPassword = function () {
+      const input = $('loginPassword'), btn = $('pwToggle');
+      const oculto = input.type === 'password';
+      input.type = oculto ? 'text' : 'password';
+      btn.innerHTML = oculto ? EYE_OFF : EYE;
+      btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    };
+
+    window.abrirModalLogin = function () {
+      $('loginModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      limpiarError();
+      const em = $('loginEmail');
+      try {
+        const g = localStorage.getItem(KEY_MAIL);
+        if (g && !em.value) { em.value = g; $('loginRemember').checked = true; }
+      } catch (e) {}
+      setTimeout(() => (em.value ? $('loginPassword') : em).focus(), 350);
+    };
+
+    window.ejecutarLogin = async function (e) {
+      e.preventDefault();
+      const email = $('loginEmail').value.trim();
+      const password = $('loginPassword').value;
+      const btn = $('btnSubmitLogin');
+      limpiarError();
+      btn.disabled = true;
+      btn.innerHTML = '<span class="btn-spin"></span>Verificando…';
+
+      if (typeof supabaseClient === 'undefined') {
+        restaurarBoton();
+        mostrarError("No se encontró la configuración de Supabase en 'conexion.js'.");
+        return;
+      }
+      let error = null;
+      try { error = (await supabaseClient.auth.signInWithPassword({ email, password })).error; }
+      catch (err) { error = err; }
+      restaurarBoton();
+
+      if (error) {
+        mostrarError(error.message === 'Invalid login credentials'
+          ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.'
+          : (error.message || 'No se pudo iniciar sesión. Revisa tu conexión.'));
+        $('loginPassword').focus(); $('loginPassword').select();
+      } else {
+        try { if ($('loginRemember').checked) localStorage.setItem(KEY_MAIL, email); else localStorage.removeItem(KEY_MAIL); } catch (err) {}
+        cerrarModalLogin();
+        $('loginForm').reset();
+        if ($('loginPassword').type === 'text') alternarPassword();
+      }
+    };
+
+    const pass = $('loginPassword');
+    const caps = e => $('capsHint').classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock')));
+    pass.addEventListener('keydown', caps); pass.addEventListener('keyup', caps);
+    pass.addEventListener('blur', () => $('capsHint').classList.remove('show'));
+    ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
+  })();
   </script>
 </body>
 </html>

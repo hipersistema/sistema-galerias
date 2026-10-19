@@ -752,6 +752,14 @@ window.addEventListener('storage', function() {
     sincronizarDashboard();
 });
 
+window.addEventListener('storage', e => {
+  if (e.key === 'hipergalerias_theme') {
+    const d = e.newValue === 'dark';
+    document.getElementById('checkboxTheme').checked = d;
+    toggleDarkTheme(d);
+  }
+});
+
 // ===== LOGIN MEJORADO =====
 (function () {
     const KEY_MAIL = 'hipergalerias_login_email';
