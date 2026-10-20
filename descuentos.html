@@ -197,8 +197,6 @@ body *{visibility:hidden!important}
 
 /* Entrada escalonada al abrir */
 .modal.open .login-card .stagger{animation:rise .5s var(--ease) both;animation-delay:calc(var(--k) * 70ms + 120ms)}
-
-
 </style>
 </head>
 <body>
@@ -346,7 +344,7 @@ body *{visibility:hidden!important}
     <input type="password" id="inputClaveSeguridad" placeholder="••••••••" style="margin-top:6px">
     <div class="acts">
       <button class="btn btn-gray" onclick="closeM('modalClave')">Cancelar</button>
-      <button class="btn btn-dark" onclick="verificarClaveYContinuar()">🔓 Verificar y continuar</button>
+      <button class="btn btn-dark" id="btnVerificarClave" onclick="verificarClaveYContinuar()">🔓 Verificar y continuar</button>
     </div>
     <label class="remember"><input type="checkbox" id="chkRecordarClave"> Recordar clave de autorización (solo por esta sesión)</label>
   </div>
@@ -453,7 +451,6 @@ const today = () => new Date().toISOString().substring(0,10);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const load = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
 const num = v => parseFloat(v) || 0;
-const CLAVE_GERENCIAL_SECRETA = "1234";
 const hayDB = () => typeof supabaseClient !== 'undefined' && !!supabaseClient;
 
 window.empleados = load('hipergalerias_empleados_db');
@@ -668,9 +665,6 @@ function obtenerCuentasConsolidadas(lista){
 }
 
 function sincronizarDashboardGlobal(){
-  // Solo se guardan copias locales y el resumen del index cuando son confiables:
-  // datos leídos de Supabase, o datos locales que no están vacíos.
-  // Así una carga fallida o previa a iniciar sesión no pisa el resumen con ceros.
   const confiable = datosCargados || window.descuentos.length > 0;
 
   try { localStorage.setItem('hipergalerias_empleados_db', JSON.stringify(window.empleados)); } catch(e){}
@@ -726,7 +720,7 @@ async function cargarArticulosPagina(){
   if (t) q = q.or(filtroArtOr(t));
   const from = (pagArt - 1) * POR_PAG;
   const { data, count, error } = await q.order('descripcion').range(from, from + POR_PAG - 1);
-  if (mine !== artPagSeq) return;   // llegó una consulta más nueva
+  if (mine !== artPagSeq) return;
   if (error) { console.error(error); toast('No se pudieron cargar los artículos: ' + error.message, true); return; }
   totalArt = count || 0;
   $('countArticulos').textContent = fmtN(totalArt);
@@ -786,7 +780,6 @@ function filtrarEmpleadosAsignacion(val){
     e => { $('inputBuscadorEmpleado').value = e.cedula + ' - ' + e.nombre; $('selectedCedula').value = e.cedula; $('selectedNombreEmpleado').value = e.nombre; });
 }
 
-// Autocompletado de artículos: consulta a Supabase con debounce
 let artSeq = 0, artTimer;
 function filtrarArticulos(val){
   clearTimeout(artTimer);
@@ -795,7 +788,7 @@ function filtrarArticulos(val){
   const mine = ++artSeq;
   artTimer = setTimeout(async () => {
     const res = await buscarArticulosDB(v);
-    if (mine !== artSeq) return;   // llegó una búsqueda más nueva
+    if (mine !== artSeq) return;
     sugerir('listaSugerenciasArticulos', res,
       a => '<strong>' + esc(a.descripcion) + '</strong> <small style="color:var(--muted)">(Cód: ' + esc(codigoDe(a)) + ')</small>',
       a => {
@@ -933,27 +926,80 @@ async function registrarDescuento(e){
   }
 }
 
-// Pide la clave gerencial (o la omite si fue recordada) y luego ejecuta la acción indicada
+/* ===== FASE 1: VALIDACIÓN SEGURA DE AUTORIZACIÓN POR RPC EN SUPABASE ===== */
+async function validarPinConSupabase(pinIngresado) {
+  if (!pinIngresado) return false;
+  if (!hayDB()) {
+    console.warn("Sin conexión activa a Supabase para verificar autorización RPC.");
+    return false;
+  }
+
+  try {
+    const { data: esValido, error } = await supabaseClient.rpc('verificar_pin_autorizacion', {
+      p_pin: pinIngresado.trim()
+    });
+
+    if (error) {
+      console.error("Error al verificar PIN en base de datos:", error);
+      return false;
+    }
+
+    return Boolean(esValido);
+  } catch (err) {
+    console.error("Error de red al validar PIN:", err);
+    return false;
+  }
+}
+
 function pedirClaveGerencial(accion){
   if (claveRecordada) { accion(); return; }
   accionPendiente = accion;
   $('inputClaveSeguridad').value = ''; $('chkRecordarClave').checked = false; openM('modalClave');
   setTimeout(() => $('inputClaveSeguridad').focus(), 60);
 }
+
 function solicitarClaveParaDescontar(ced){
   currentCedula = ced;
   pedirClaveGerencial(() => abrirModalDescuento(ced));
 }
+
 function solicitarClaveParaEliminarEmpleado(cedula){
   pedirClaveGerencial(() => eliminarEmpleadoManual(cedula));
 }
-function verificarClaveYContinuar(){
-  if ($('inputClaveSeguridad').value.trim() !== CLAVE_GERENCIAL_SECRETA) { toast('Clave inválida, acceso denegado', true); $('inputClaveSeguridad').select(); return; }
+
+async function verificarClaveYContinuar(){
+  const pinInput = $('inputClaveSeguridad').value.trim();
+  if (!pinInput) {
+    toast('Por favor ingresa la clave de autorización', true);
+    return;
+  }
+
+  const btnVerificar = $('btnVerificarClave');
+  if (btnVerificar) {
+    btnVerificar.disabled = true;
+    btnVerificar.textContent = 'Verificando...';
+  }
+
+  const esValido = await validarPinConSupabase(pinInput);
+
+  if (btnVerificar) {
+    btnVerificar.disabled = false;
+    btnVerificar.textContent = '🔓 Verificar y continuar';
+  }
+
+  if (!esValido) {
+    toast('Clave de autorización incorrecta o no válida', true);
+    $('inputClaveSeguridad').select();
+    return;
+  }
+
   if ($('chkRecordarClave').checked) claveRecordada = true;
-  const accion = accionPendiente; accionPendiente = null;
+  const accion = accionPendiente;
+  accionPendiente = null;
   closeM('modalClave');
   if (accion) setTimeout(accion, 220);
 }
+
 function abrirModalDescuento(ced){
   const cuenta = obtenerCuentasConsolidadas(window.descuentos).find(c => String(c.cedula) === String(ced));
   if (!cuenta) return;
@@ -1002,6 +1048,7 @@ function cambiarEsquemaModal(){
   if (e === '1') $('modalMontoPersonalizado').value = s.toFixed(2);
   if (e === '2') $('modalMontoPersonalizado').value = (s / 2).toFixed(2);
 }
+
 async function procesarAbonoModal(){
   if (!currentCedula || procesando) return;
   const ced = currentCedula;
@@ -1029,7 +1076,6 @@ async function procesarAbonoModal(){
       if (d.id) updates.push({ id: d.id, ab: nuevoAb, saldo: nuevoSaldo });
     }
 
-    // Primero se guarda en Supabase; si algo falla se avisa y se vuelve a leer la base (no se muestra un éxito falso)
     if (hayDB()) {
       for (const u of updates) {
         const { error } = await supabaseClient.from('descuento_empleados')
@@ -1054,7 +1100,6 @@ async function procesarAbonoModal(){
 }
 
 async function imprimirPlanillaHorizontal(){
-  // Trae solo los códigos de los artículos que realmente están en las deudas
   await resolverCodigos(window.descuentos.map(it => parseProducto(it.descripcionArticulo || it.producto).desc));
 
   const fv = $('fechaSalida').value, p = fv.split('-');
@@ -1094,12 +1139,14 @@ async function ejecutarLogin(e){
   if (error) { er.textContent = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message); er.hidden = false; }
   else { $('loginForm').reset(); cerrarModalLogin(); }
 }
+
 function toggleUserMenu(){
   const m = $('userDropdown'), abrir = m.hidden;
   m.hidden = !abrir;
   const t = $('userTrigger');
   if (t) { t.classList.toggle('open', abrir); t.setAttribute('aria-expanded', abrir); }
 }
+
 function cerrarUserMenu(){
   const m = $('userDropdown'); if (!m || m.hidden) return;
   m.hidden = true;
@@ -1113,6 +1160,7 @@ async function ejecutarLogout(){
   if (hayDB()) await supabaseClient.auth.signOut();
   window.location.href = 'index.html';
 }
+
 async function gestionarEstadoSesion(session, eventName){
   const box = $('userAuthContainer');
   if (session && session.user) {
@@ -1125,7 +1173,6 @@ async function gestionarEstadoSesion(session, eventName){
     $('umNombre').textContent = nombreC;
     $('umEmail').textContent = session.user.email || '';
 
-    // Se reintenta mientras la carga no haya sido exitosa
     if (!datosCargados || eventName === 'SIGNED_IN') {
       await cargarTodoDesdeSupabase(true);
     }
@@ -1136,6 +1183,7 @@ async function gestionarEstadoSesion(session, eventName){
     abrirModalLogin();
   }
 }
+
 async function iniciarSesion(){
   if (!hayDB()) { gestionarEstadoSesion(null); abrirModalLogin("No se encontró la configuración de Supabase en 'conexion.js'."); return; }
   const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1171,7 +1219,6 @@ window.onload = () => { actualizarContadoresYTablas(); iniciarSesion(); };
     $('loginEmail').classList.add('invalid');
     $('loginPassword').classList.add('invalid');
     if (sacudir !== false && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // Web Animations API: no interfiere con la animación de apertura del modal
       $('loginCard').animate([
         { transform: 'translateX(0)' }, { transform: 'translateX(-9px)' }, { transform: 'translateX(8px)' },
         { transform: 'translateX(-6px)' }, { transform: 'translateX(4px)' }, { transform: 'translateX(0)' }
@@ -1250,7 +1297,6 @@ window.onload = () => { actualizarContadoresYTablas(); iniciarSesion(); };
     }
   };
 
-  // Aviso de Bloq Mayús y limpieza del borde rojo al escribir
   const pass = $('loginPassword');
   const caps = e => $('capsHint').classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock')));
   pass.addEventListener('keydown', caps);

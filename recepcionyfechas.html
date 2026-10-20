@@ -802,7 +802,7 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
                 </div>
                 <div class="modal-actions">
                     <button class="btn btn-ghost" onclick="cerrarModalClave(false)">Cancelar</button>
-                    <button class="btn btn-delete" onclick="confirmarClaveAdmin()">Confirmar</button>
+                    <button class="btn btn-delete" id="btnConfirmarClave" onclick="confirmarClaveAdmin()">Confirmar</button>
                 </div>
             </div>
         </div>
@@ -822,7 +822,6 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
         let paginaActual = 1;
         const registrosPorPagina = 100;
 
-        const CLAVE_ELIMINACION = "1234";
         let callbackClaveExito = null;
 
         const $ = id => document.getElementById(id);
@@ -1059,7 +1058,31 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
             hint.classList.toggle('show', !!anterior);
         }
 
-        /* ============ CLAVE DE SEGURIDAD ============ */
+        /* ============ CLAVE DE SEGURIDAD SEGURA (RPC SUPABASE) ============ */
+        async function validarPinConSupabase(pinIngresado) {
+            if (!pinIngresado) return false;
+            if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+                console.warn("Sin conexión activa a Supabase para verificar autorización RPC.");
+                return false;
+            }
+
+            try {
+                const { data: esValido, error } = await supabaseClient.rpc('verificar_pin_autorizacion', {
+                    p_pin: pinIngresado.trim()
+                });
+
+                if (error) {
+                    console.error("Error al verificar PIN en base de datos:", error);
+                    return false;
+                }
+
+                return Boolean(esValido);
+            } catch (err) {
+                console.error("Error de red al validar PIN:", err);
+                return false;
+            }
+        }
+
         function verificarClaveAdmin(callback) {
             callbackClaveExito = callback;
             const inputClave = $('inputClaveAdmin');
@@ -1073,10 +1096,28 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
             if (!exito && callbackClaveExito) callbackClaveExito = null;
         }
 
-        function confirmarClaveAdmin() {
-            const claveIngresada = $('inputClaveAdmin').value;
-            if (claveIngresada.trim() !== CLAVE_ELIMINACION) {
-                toast('Clave incorrecta. Revisa e intenta de nuevo; el registro no fue eliminado.', { type: 'error' });
+        async function confirmarClaveAdmin() {
+            const claveIngresada = $('inputClaveAdmin').value.trim();
+            if (!claveIngresada) {
+                toast('Por favor ingresa la clave de seguridad.', { type: 'warn' });
+                return;
+            }
+
+            const btnConfirmar = $('btnConfirmarClave');
+            if (btnConfirmar) {
+                btnConfirmar.disabled = true;
+                btnConfirmar.textContent = 'Verificando...';
+            }
+
+            const esValido = await validarPinConSupabase(claveIngresada);
+
+            if (btnConfirmar) {
+                btnConfirmar.disabled = false;
+                btnConfirmar.textContent = 'Confirmar';
+            }
+
+            if (!esValido) {
+                toast('Clave incorrecta o no válida. Revisa e intenta de nuevo.', { type: 'error' });
                 const card = $('modalClaveSeguridad').querySelector('.modal-card');
                 card.classList.remove('shake');
                 void card.offsetWidth;
@@ -1106,7 +1147,6 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
 
             const val = valorBuscado.trim();
             if (!val || val.length < 2) return;
-            // No pisar lo que la persona ya escribió
             if ($('producto').value.trim()) return;
 
             const existente = registros.find(r =>
@@ -1292,7 +1332,7 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
                 if (editId) itemData.id = editId;
 
                 const ok = await guardarDatosDB([itemData]);
-                if (!ok) return; // el formulario conserva lo escrito para reintentar
+                if (!ok) return;
 
                 cancelarEdicionForm();
                 toast(editId ? 'Registro actualizado.' : `Registro guardado: ${itemData.producto}.`);
@@ -1399,7 +1439,6 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
         }
 
         function filtrarDesdeDash(estado) {
-            // Clic de nuevo sobre la tarjeta activa quita el filtro
             filtrarEstado(filtroEstadoActual === estado ? 'todos' : estado);
         }
 
@@ -1941,7 +1980,6 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
 
         function inicializarTema() {
             const guardada = localStorage.getItem('hipergalerias_theme');
-            // Sin preferencia guardada, se respeta la del sistema operativo
             const esOscuro = guardada ? guardada === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
             aplicarTema(esOscuro);
 
@@ -1984,7 +2022,6 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
         window.addEventListener('DOMContentLoaded', async () => {
             inicializarTema();
 
-            // Esqueleto de carga
             $('tablaRegistros').innerHTML = Array.from({ length: 8 }, () =>
                 `<tr>${Array.from({ length: 9 }, (_, i) => `<td><span class="skel" style="width:${i === 2 ? 180 : 60}px"></span></td>`).join('')}</tr>`
             ).join('');
@@ -2013,14 +2050,11 @@ body.theme-dark .skel::after { background: linear-gradient(90deg, transparent, r
     const abrir = () => { if (gate) gate.classList.add('done'); };
     const original = gestionarEstadoSesion;
 
-    // Con sesión: se abre la compuerta con fade. Sin sesión: la función original
-    // redirige a index.html y la compuerta se queda visible, sin mostrar el módulo.
     window.gestionarEstadoSesion = function (session) {
         original(session);
         if (session && session.user) abrir();
     };
 
-    // Seguridad: si algo falla, no dejar la pantalla bloqueada
     setTimeout(abrir, 6000);
     })();
     </script>

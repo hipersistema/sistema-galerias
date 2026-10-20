@@ -172,7 +172,7 @@
 
     .btn-logout:hover { background-color: #dc2626; }
 
-    /* ===== LOGIN (clonado de index.html) ===== */
+    /* ===== LOGIN ===== */
 :root{--g9:#0b2e14;--g7:#14532d;--g5:#1b7a3a;--g4:#22a04c;--gold:#f5b000;--surface:#fff;--soft:#f6f9f7;--line:#e1e8e3;--tx:#10201a;--mu:#5b6d64;--ease:cubic-bezier(.22,.8,.3,1)}
 body.theme-dark{--surface:#111e19;--soft:#0e1914;--line:#223a30;--tx:#eaf4ee;--mu:#93aa9f}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -445,8 +445,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                 <th class="p-3">Código Interno</th>
                 <th class="p-3">Descripción del Producto</th>
                 <th class="p-3 text-center">Unidad</th>
-                <th class="p-3 text-right">Precio de Costo ($)</th>
-                <th class="p-3 text-center bg-[#e8f5e9] text-[#123e1b] font-bold whitespace-nowrap border-l border-r border-[#2e7d32]/20">Precio de Venta ($)</th>
+                <th class="p-3 text-right">Precio de Costo (\$)</th>
+                <th class="p-3 text-center bg-[#e8f5e9] text-[#123e1b] font-bold whitespace-nowrap border-l border-r border-[#2e7d32]/20">Precio de Venta (\$)</th>
                 <th class="p-3 text-center">Acciones Protegidas</th>
               </tr>
             </thead>
@@ -577,8 +577,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                 <tr>
                   <th class="p-3 w-1/3">Ingrediente / Base</th>
                   <th class="p-3 w-24 text-center">Cant. Bruta</th>
-                  <th class="p-3 w-28 text-right">P. Venta Usado ($)</th>
-                  <th class="p-3 w-28 text-right">Total ($)</th>
+                  <th class="p-3 w-28 text-right">P. Venta Usado (\$)</th>
+                  <th class="p-3 w-28 text-right">Total (\$)</th>
                   <th class="p-3 w-10"></th>
                 </tr>
               </thead>
@@ -655,9 +655,9 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                 <th class="px-3 py-2 leading-tight">Producto / Receta</th>
                 <th class="px-3 py-2 leading-tight">Categoría</th>
                 <th class="px-3 py-2 leading-tight text-center">Tipo / Rendimiento</th>
-                <th class="px-3 py-2 leading-tight text-right">Costo Unitario ($)</th>
+                <th class="px-3 py-2 leading-tight text-right">Costo Unitario (\$)</th>
                 <th class="px-3 py-2 leading-tight text-center">Utilidad</th>
-                <th class="px-3 py-2 leading-tight text-right">PVP Sugerido ($)</th>
+                <th class="px-3 py-2 leading-tight text-right">PVP Sugerido (\$)</th>
                 <th class="px-3 py-2 leading-tight text-center">Acciones</th>
               </tr>
             </thead>
@@ -721,7 +721,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
   </main>
 
-  <!-- MODAL DE CONTRASEÑA MASCARADA (ASTERISCOS) -->
+  <!-- MODAL DE CONTRASEÑA MASCARADA (AUTORIZACIÓN RPC FASE 1) -->
   <div id="modalPassword" class="fixed inset-0 bg-black/60 hidden backdrop-blur-xs flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-xl shadow-2xl max-w-xs w-full p-5 text-center border border-gray-200">
       <div class="text-2xl mb-2">🔐</div>
@@ -782,11 +782,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio de Costo Visual ($)</label>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio de Costo Visual (\$)</label>
             <input type="number" id="costoVisualInput" step="0.0001" min="0" placeholder="0.0000" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold bg-white focus:ring-2 focus:ring-[#2e7d32] outline-none">
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio Venta (Usado para Cálculos) ($)</label>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio Venta (Usado para Cálculos) (\$)</label>
             <input type="number" id="costoVentaCalculoInput" step="0.0001" min="0" placeholder="0.0000" class="w-full p-2.5 border border-[#bbf7d0] bg-[#f0fdf4] rounded-lg text-sm font-extrabold text-[#166534] focus:ring-2 focus:ring-[#2e7d32] outline-none">
           </div>
         </div>
@@ -881,8 +881,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                       <tr>
                           <th class="p-3">Ingrediente / Base</th>
                           <th class="p-3 text-center">Cant. Bruta</th>
-                          <th class="p-3 text-right">P. Venta Usado ($)</th>
-                          <th class="p-3 text-right">Costo Total ($)</th>
+                          <th class="p-3 text-right">P. Venta Usado (\$)</th>
+                          <th class="p-3 text-right">Costo Total (\$)</th>
                       </tr>
                   </thead>
                   <tbody id="modalIngredientesBody" class="divide-y divide-gray-100 font-medium">
@@ -903,7 +903,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     </div>
   </div>
 
-  <!-- MODAL DE LOGIN BLOQUEANTE (clonado de index.html) -->
+  <!-- MODAL DE LOGIN BLOQUEANTE -->
   <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <div class="login-card" id="loginCard">
       <div class="login-head stagger" style="--k:0">
@@ -988,12 +988,12 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
                   <div class="grid grid-cols-2 gap-3">
                       <div>
-                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Unitario ($)</label>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Unitario (\$)</label>
                           <input type="number" id="crearCostoUnitario" step="0.0001" min="0" placeholder="0.0000" required class="w-full p-2 border border-gray-300 rounded-md text-xs font-bold">
                       </div>
 
                       <div>
-                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Venta ($)</label>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Venta (\$)</label>
                           <input type="number" id="crearPrecioVenta" step="0.0001" min="0" placeholder="0.0000" required class="w-full p-2 border border-gray-300 rounded-md text-xs font-bold text-[#123e1b]">
                       </div>
                   </div>
@@ -1008,17 +1008,46 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
   </div>
 
   <script>
-    // ===== HELPERS (rendimiento y robustez) =====
+    // ===== FASE 1: VALIDACIÓN ASÍNCRONA VÍA RPC EN SUPABASE =====
+    async function validarPinConSupabase(pinIngresado) {
+        if (!pinIngresado) return false;
+        try {
+            const client = typeof supabaseClient !== 'undefined' ? supabaseClient : (typeof supabase !== 'undefined' ? supabase : null);
+            if (!client) {
+                console.error("⚠️ Cliente de Supabase no inicializado.");
+                return false;
+            }
+            const { data: esValido, error } = await client.rpc('verificar_pin_autorizacion', {
+                p_pin: pinIngresado.trim()
+            });
+
+            if (error) {
+                console.error("Error al verificar PIN en base de datos:", error);
+                return false;
+            }
+
+            return Boolean(esValido);
+        } catch (err) {
+            console.error("Error de conexión al validar PIN:", err);
+            return false;
+        }
+    }
+
+    // ===== HELPERS GENERALES Y NORMALIZADORES =====
+    function nomN(n) {
+      return limpiarNombreBase(n).toUpperCase();
+    }
+
     function debounce(fn, ms) {
       let t;
       return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
     }
-    // Precio con el que se calculan las recetas (costo de venta; si no existe, el de costo)
+
     function precioUsado(ins) {
       const v = ins.costoVenta;
       return (v !== undefined && v !== null) ? v : ins.precio;
     }
-    // Una sola copia local, sin historial (el historial vive en Supabase)
+
     function persistirLocal() {
       try {
         localStorage.setItem('hipergalerias_insumos_db', JSON.stringify(insumosBase.map(({ historial, ...r }) => r)));
@@ -1027,12 +1056,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         localStorage.removeItem('catalogo_recetario');
       } catch (e) { console.warn('No se pudo guardar la copia local:', e); }
     }
+
     function avisarSiFalla(res, que) {
       if (res && !res.success) {
         alert('⚠️ La receta se guardó, pero falló el guardado de ' + que + ': ' + (res.error?.message || 'error de permisos o de red') + '\nRevisa el insumo e inténtalo de nuevo.');
       }
     }
-    // Guarda muchos insumos en pocas peticiones (úsalo p. ej. para el recálculo en cascada)
+
     async function guardarInsumosLoteSupabase(lista) {
       try {
         for (let i = 0; i < lista.length; i += 500) {
@@ -1046,7 +1076,95 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         return { success: true };
       } catch (err) { return { success: false, error: err }; }
     }
-    // Aviso al cerrar la pestaña con una receta a medias
+
+    async function guardarRecetasLoteSupabase(lista) {
+      try {
+        for (let i = 0; i < lista.length; i += 500) {
+          const payload = lista.slice(i, i + 500).map(r => ({
+            id: String(r.id), nombre: r.nombre, categoria: r.categoria, tipo: r.tipo,
+            rendimiento: r.rendimiento, piezas: r.piezas, factor: r.factor,
+            costo_batch: r.costoBatch, costo_unitario: r.costoUnitario, pvp: r.pvp,
+            es_subreceta: r.esSubreceta, ingredientes: r.ingredientes, merma_kg: r.mermaKg || 0, fecha: r.fecha
+          }));
+          const { error } = await supabaseClient.from('recetas').upsert(payload, { onConflict: 'id' });
+          if (error) throw error;
+        }
+        return { success: true };
+      } catch (err) { return { success: false, error: err }; }
+    }
+
+    // ===== RECALCULO AUTOMÁTICO EN CASCADA =====
+    async function recalcularTodasLasRecetasEnCascada() {
+      let cambioSucedido = true;
+      let pasadas = 0;
+      const recetasModificadas = new Set();
+      const insumosModificados = new Set();
+
+      while (cambioSucedido && pasadas < 10) {
+        cambioSucedido = false;
+        pasadas++;
+
+        for (const receta of recetasCatalogo) {
+          let costoBatchNuevo = 0;
+          let cambioEnIngredientes = false;
+
+          const ingredientesActualizados = (receta.ingredientes || []).map(ing => {
+            const matchIns = insumosBase.find(i => String(i.id) === String(ing.insumoId) || nomN(i.nombre) === nomN(ing.nombre));
+            if (!matchIns) return ing;
+
+            const pu = precioUsado(matchIns);
+            const cantEfectiva = ing.cantidad || 0;
+            const nuevoTotalFila = pu * cantEfectiva;
+
+            if (Math.abs((ing.costoUnit || 0) - pu) > 1e-6 || Math.abs((ing.costoTotal || 0) - nuevoTotalFila) > 1e-6) {
+              cambioEnIngredientes = true;
+            }
+
+            costoBatchNuevo += nuevoTotalFila;
+            return {
+              ...ing,
+              insumoId: matchIns.id,
+              costoUnit: pu,
+              costoTotal: nuevoTotalFila
+            };
+          });
+
+          const piezas = receta.piezas || 1;
+          const rendimiento = receta.rendimiento || 1;
+          const costoUnitarioNuevo = receta.tipo === 'und' ? (costoBatchNuevo / piezas) : (costoBatchNuevo / rendimiento);
+          const pvpNuevo = costoUnitarioNuevo * (receta.factor || 1.5);
+
+          if (cambioEnIngredientes || Math.abs((receta.costoUnitario || 0) - costoUnitarioNuevo) > 1e-6) {
+            receta.ingredientes = ingredientesActualizados;
+            receta.costoBatch = costoBatchNuevo;
+            receta.costoUnitario = costoUnitarioNuevo;
+            receta.pvp = pvpNuevo;
+
+            recetasModificadas.add(receta);
+            cambioSucedido = true;
+
+            if (receta.esSubreceta || receta.categoria === 'MASAS' || receta.categoria === 'GUISOS') {
+              const baseMatch = insumosBase.find(i => nomN(i.nombre) === nomN(receta.nombre));
+              if (baseMatch) {
+                if (Math.abs(baseMatch.precio - costoUnitarioNuevo) > 1e-6 || Math.abs(precioUsado(baseMatch) - costoUnitarioNuevo) > 1e-6) {
+                  baseMatch.precio = costoUnitarioNuevo;
+                  baseMatch.costoVenta = costoUnitarioNuevo;
+                  cacheBusqueda.delete(baseMatch);
+                  insumosModificados.add(baseMatch);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      if (recetasModificadas.size > 0 || insumosModificados.size > 0) {
+        persistirLocal();
+        if (insumosModificados.size > 0) await guardarInsumosLoteSupabase(Array.from(insumosModificados));
+        if (recetasModificadas.size > 0) await guardarRecetasLoteSupabase(Array.from(recetasModificadas));
+      }
+    }
+
     function hayCambiosSinGuardar() {
       const n = document.getElementById('nombreReceta');
       return !!((n && n.value.trim()) || recetaActual.filas.some(f => f.insumoId));
@@ -1121,13 +1239,12 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       else if (e.key === 'Escape') cerrarMotivo(null);
     });
 
-    // ===== IMPORTADOR DE RECETAS DESDE EXCEL (con revisión previa) =====
+    // ===== IMPORTADOR DE RECETAS DESDE EXCEL =====
     const KEY_PEND = 'hipergalerias_recetas_pendientes';
     let pendientes = [], IDX = null;
     try { pendientes = JSON.parse(localStorage.getItem(KEY_PEND)) || []; } catch (e) {}
     const guardarPend = () => { try { localStorage.setItem(KEY_PEND, JSON.stringify(pendientes)); } catch (e) {} };
     const precioIns = i => (i.costoVenta !== undefined && i.costoVenta !== null) ? i.costoVenta : i.precio;
-    const nomN = n => limpiarNombreBase(n).toUpperCase();
 
     function construirIndice() {
       IDX = { cod: new Map(), base: new Map(), rec: new Map() };
@@ -1137,11 +1254,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       });
       recetasCatalogo.forEach(r => IDX.rec.set(nomN(r.nombre) + '|' + r.categoria, r));
     }
+
     function resolverIng(g) {
       if (g.codigo) return IDX.cod.get(normalizarCodigoJava(g.codigo)) || null;
       if (g.sub) return IDX.base.get(nomN(g.sub)) || null;
       return null;
     }
+
     function evaluar(r) {
       if (!IDX) construirIndice();
       const bloqueos = [], avisos = [];
@@ -1265,14 +1384,15 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     }
     const avisarSiFallaImp = (res, n) => { if (res && !res.success) console.warn('Insumo base no guardado:', n, res.error); };
 
-    function terminarLote() {
+    async function terminarLote() {
+      await recalcularTodasLasRecetasEnCascada();
       if (typeof persistirLocal === 'function') persistirLocal();
       else { try { localStorage.setItem('hipergalerias_recetas_db', JSON.stringify(recetasCatalogo)); } catch (e) {} }
       guardarPend(); renderizarCatalogo(); renderizarTablaInsumos(); renderPend();
     }
     async function aprobarUna(pid) {
       if (!(await haySesion())) return;
-      const ok = await aprobarPend(pid); terminarLote();
+      const ok = await aprobarPend(pid); await terminarLote();
       if (ok) alert('✅ Receta aprobada y guardada en el catálogo.');
     }
     async function aprobarVarias(soloListas) {
@@ -1284,13 +1404,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                            .sort((a, b) => (b.esSubreceta ? 1 : 0) - (a.esSubreceta ? 1 : 0));
       if (!confirm('¿Aprobar ' + cola.length + ' receta(s)? Las que tengan ingredientes sin resolver se omitirán.')) return;
       let ok = 0, progreso = true;
-      while (cola.length && progreso) {            // varias pasadas: una sub-receta puede depender de otra
+      while (cola.length && progreso) {
         progreso = false;
         for (const r of [...cola]) {
           if (await aprobarPend(r.pid)) { ok++; progreso = true; cola = cola.filter(x => x.pid !== r.pid); }
         }
       }
-      terminarLote();
+      await terminarLote();
       alert('✅ Aprobadas: ' + ok + (cola.length ? '\n⚠️ Quedaron ' + cola.length + ' sin aprobar (ingredientes sin resolver).' : ''));
     }
     function descartarPend(pid) { pendientes = pendientes.filter(p => p.pid !== pid); guardarPend(); renderPend(); }
@@ -1300,7 +1420,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       pendientes = pendientes.filter(p => !ids.includes(p.pid)); guardarPend(); renderPend();
     }
 
-    // Abre la receta pendiente en el Creador para corregirla a mano; al guardarla sale de la bandeja
     let pendienteActual = null;
     function descartarPendienteActual() { if (pendienteActual) { descartarPend(pendienteActual); pendienteActual = null; } }
     function abrirPendEnCreador(pid) {
@@ -1334,10 +1453,9 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     let paginaActualCatalogo = 1;
     const itemsPorPaginaCatalogo = 25;
 
-    const CLAVE_SEGURIDAD = "1234";
+    // CALLBACK DE SEGURIDAD
     let funcionCallbackClave = null;
 
-    // OBTENER NOMBRE DEL USUARIO ACTUAL AUTENTICADO
     async function obtenerNombreUsuarioActual() {
       if (typeof supabaseClient !== 'undefined') {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1350,13 +1468,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       return 'Sistema';
     }
 
-    // LIMPIAR NOMBRE DE ETIQUETA REDUNDANTE [BASE]
     function limpiarNombreBase(nombre) {
       if (!nombre) return '';
       return String(nombre).replace(/^\[BASE\]\s*/i, '').trim();
     }
 
-    // VERIFICAR SI UN INSUMO ES CONSIDERADO BASE
     function esInsumoBase(insumoId, nombreInsumo) {
       const match = insumosBase.find(i => 
         String(i.id) === String(insumoId) || 
@@ -1365,7 +1481,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       return match ? match.tipo === 'base' : false;
     }
 
-    // ===== HUEVO: la cantidad se escribe en GRAMOS (1 huevo = 60 g) =====
     const PESO_HUEVO_G = 60;
 
     function esHuevo(ins) {
@@ -1374,7 +1489,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       return n === 'HUEVO' || n === 'HUEVOS';
     }
 
-    // Cantidad expresada en la unidad del insumo (para multiplicar por el precio)
     function cantidadEfectiva(fila, ins) {
       const c = parseFloat(fila.cantidad) || 0;
       return esHuevo(ins) ? c / PESO_HUEVO_G : c;
@@ -1388,7 +1502,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         : `gramos · 1 huevo = ${PESO_HUEVO_G} g`;
     }
 
-    // Texto de cantidad para fichas (muestra lo ingresado + equivalencia)
     function textoCantidadIng(ing) {
       const u = ing.unidad || '';
       if (ing.modo && ing.modo !== 'und') {
@@ -1398,7 +1511,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       return `${parseFloat(ing.cantidad || 0)} ${u}`;
     }
 
-    // SISTEMA DE CONTRASEÑA EN MODAL MASCARADO
+    // FASE 1: APERTURA Y CONFIRMACIÓN CON RPC
     function solicitarClaveAcceso(callback) {
       funcionCallbackClave = callback;
       document.getElementById('inputClaveSeguridad').value = '';
@@ -1415,9 +1528,16 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       funcionCallbackClave = null;
     }
 
-    function verificarClaveModal() {
+    async function verificarClaveModal() {
       const input = document.getElementById('inputClaveSeguridad').value;
-      if (input === CLAVE_SEGURIDAD) {
+      if (!input) return;
+
+      const errorEl = document.getElementById('errorClaveSeguridad');
+      errorEl.classList.add('hidden');
+
+      const autorizado = await validarPinConSupabase(input);
+
+      if (autorizado) {
         document.getElementById('modalPassword').classList.add('hidden');
         if (typeof funcionCallbackClave === 'function') {
           const cb = funcionCallbackClave;
@@ -1425,7 +1545,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           cb();
         }
       } else {
-        document.getElementById('errorClaveSeguridad').classList.remove('hidden');
+        errorEl.classList.remove('hidden');
         document.getElementById('inputClaveSeguridad').value = '';
         document.getElementById('inputClaveSeguridad').focus();
       }
@@ -1481,56 +1601,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     });
 
-    // AUTENTICACIÓN
-    function _abrirModalLoginViejo() {
-      const modal = document.getElementById('loginModal');
-      if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        document.getElementById('loginError').style.display = 'none';
-      }
-    }
-
     function cerrarModalLogin() {
       const modal = document.getElementById('loginModal');
       if (modal) {
         modal.classList.remove('active');
         document.body.style.overflow = 'auto';
-      }
-    }
-
-    async function _ejecutarLoginViejo(e) {
-      e.preventDefault();
-      const email = document.getElementById('loginEmail').value.trim();
-      const password = document.getElementById('loginPassword').value;
-      const errorDiv = document.getElementById('loginError');
-      const btnSubmit = document.getElementById('btnSubmitLogin');
-
-      errorDiv.style.display = 'none';
-      btnSubmit.innerText = 'Verificando...';
-      btnSubmit.disabled = true;
-
-      if (typeof supabaseClient === 'undefined') {
-        alert("Error: No se encontró la configuración de Supabase.");
-        btnSubmit.innerText = 'Ingresar';
-        btnSubmit.disabled = false;
-        return;
-      }
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
-
-      btnSubmit.innerText = 'Ingresar';
-      btnSubmit.disabled = false;
-
-      if (error) {
-        errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas.' : error.message);
-        errorDiv.style.display = 'block';
-      } else {
-        cerrarModalLogin();
-        document.getElementById('loginForm').reset();
       }
     }
 
@@ -1541,8 +1616,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
-    
-      function escaparHtml(t) {
+    function escaparHtml(t) {
       return String(t ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
 
@@ -1596,7 +1670,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
-    // MENÚ DE USUARIO: abrir/cerrar
     function toggleMenuUsuario(forzar) {
       const menu = document.getElementById('userMenu');
       if (!menu) return;
@@ -1611,7 +1684,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       if (e.key === 'Escape') toggleMenuUsuario(false);
     });
 
-    // MODO OSCURO (el interruptor vive dentro del menú)
     function syncThemeUI() {
       const isDark = document.body.classList.contains('theme-dark');
       const t = document.getElementById('themeToggle');
@@ -1640,9 +1712,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     }
     window.addEventListener('storage', e => { if (e.key === CLAVE_TEMA) aplicarTema(e.newValue === 'dark'); });
 
-    
-
-    // NORMALIZACIÓN DE CÓDIGOS Y CREACIÓN DE INSUMOS
     function normalizarCodigoJava(codigo) {
         if (!codigo) return '';
         let str = String(codigo).trim();
@@ -1732,7 +1801,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         alert("✅ Insumo guardado correctamente.");
     }
 
-    // CARGA Y SINCRONIZACIÓN CON SUPABASE
     async function cargarDeSupabase() {
       try {
         const { data: insumosData, error: errInsumos } = await supabaseClient
@@ -1884,7 +1952,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
-    // RESPALDAR SISTEMA
     function respaldarSistema() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
         insumos: insumosBase,
@@ -1909,7 +1976,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       document.getElementById(`btn-tab-${pestana}`).classList.add('tab-active');
     }
 
-    // TABLA INSUMOS Y PAGINACIÓN
     const buscarInsumoInput = debounce(() => { paginaActualInsumos = 1; renderizarTablaInsumos(); }, 200);
 
     function renderizarTablaInsumos() {
@@ -1990,7 +2056,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       renderizarTablaInsumos();
     }
 
-    // LÓGICA DEL MODAL COMBINADO (ACCIONES PROTEGIDAS)
     function solicitarAccesoAcciones(id) {
       solicitarClaveAcceso(() => {
         abrirModalAccionesProtegidas(id);
@@ -2082,12 +2147,12 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       if (huboCambioPrecio) {
         const f = n => '$' + (Number(n) || 0).toFixed(4);
         motivo = await pedirMotivo(`Costo ${f(costoAnt)} → ${f(nuevoCostoVisual)}  ·  Venta ${f(costoVentaAnt)} → ${f(nuevoCostoVenta)}`);
-        if (motivo === null) return; // canceló: no se cambia nada
+        if (motivo === null) return;
       }
       const usuarioNombre = await obtenerNombreUsuarioActual();
 
       insumo.nombre = nuevoNombre;
-      cacheBusqueda.delete(insumo); // invalida el índice de búsqueda rápida
+      cacheBusqueda.delete(insumo);
       insumo.unidad = nuevaUnidad;
       insumo.precio = nuevoCostoVisual;
       insumo.costoVenta = nuevoCostoVenta;
@@ -2111,12 +2176,14 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         return;
       }
 
+      await recalcularTodasLasRecetasEnCascada();
       persistirLocal();
-        renderizarTablaInsumos();
+      renderizarTablaInsumos();
+      renderizarCatalogo();
       renderizarFilasCreador();
       if (typeof recalcularEscandallo === 'function') recalcularEscandallo();
 
-      alert("✅ Insumo e información actualizados exitosamente.");
+      alert("✅ Insumo y recetas dependientes actualizadas exitosamente.");
       cerrarModalAccionesProtegidas();
     }
 
@@ -2153,14 +2220,13 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       insumosBase = insumosBase.filter(i => String(i.id) !== String(id));
 
       persistirLocal();
-        cerrarModalAccionesProtegidas();
+      cerrarModalAccionesProtegidas();
       renderizarTablaInsumos();
       renderizarFilasCreador();
 
       alert(`✅ Insumo "${nombre}" eliminado del sistema.`);
     }
 
-    // CREADOR DE RECETAS
     function agregarFilaReceta() {
       recetaActual.filas.push({ insumoId: '', cantidad: 0, modo: 'und' });
       renderizarFilasCreador();
@@ -2202,7 +2268,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
               <div id="dropdown-insumo-${idx}" 
                    onmousedown="event.preventDefault()"
                    class="hidden absolute left-0 right-0 top-full mt-1 max-h-56 overflow-y-auto bg-white border border-gray-300 rounded-lg shadow-2xl z-50 divide-y divide-gray-100">
-                <!-- Dinámico -->
               </div>
             </div>
           </td>
@@ -2251,8 +2316,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
-    // ===== BÚSQUEDA RÁPIDA DE INSUMOS =====
-    const cacheBusqueda = new WeakMap();      // índice en memoria; no se guarda en localStorage ni en el respaldo
+    const cacheBusqueda = new WeakMap();
     const MAX_RESULTADOS_DROPDOWN = 50;
     let opcionActiva = 0;
 
@@ -2339,7 +2403,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           seleccionarInsumoFila(idx, items[Math.min(opcionActiva, items.length - 1)].dataset.insId);
         }
       } else if (e.key === 'Tab') {
-        // Si escribió algo y no eligió, toma la primera coincidencia al pasar a la cantidad
         const txt = document.getElementById(`input-insumo-${idx}`).value.trim();
         if (abierto && items.length && txt && !recetaActual.filas[idx].insumoId) {
           seleccionarInsumoFila(idx, items[Math.min(opcionActiva, items.length - 1)].dataset.insId);
@@ -2349,7 +2412,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       }
     }
 
-    // Si el usuario sale del campo sin elegir, vuelve al ingrediente realmente seleccionado
     function restaurarTextoInsumo(idx) {
       const fila = recetaActual.filas[idx];
       const input = document.getElementById(`input-insumo-${idx}`);
@@ -2415,13 +2477,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       recalcularEscandallo();
     }
 
-    // ===== MERMA ÚNICA POR RECETA =====
     function llevaMerma() {
       const r = document.querySelector('input[name="llevaMerma"]:checked');
       return !!r && r.value === 'si';
     }
 
-    // Devuelve la merma total de la receta expresada en kg
     function obtenerMermaKg() {
       if (!llevaMerma()) return 0;
       const c = parseFloat(document.getElementById('mermaCant').value) || 0;
@@ -2447,14 +2507,12 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       mostrarBloqueMerma();
     }
 
-    // Merma de una receta guardada (si es antigua, suma las mermas por ingrediente)
     function mermaDeReceta(receta) {
       const m = parseFloat(receta.mermaKg) || 0;
       if (m > 0) return m;
       return (receta.ingredientes || []).reduce((acc, i) => acc + (parseFloat(i.merma) || 0), 0);
     }
 
-    // Peso bruto total de los ingredientes en kg (el huevo se escribe en gramos, se convierte)
     function calcularPesoBrutoKg() {
       let suma = 0;
       recetaActual.filas.forEach(f => {
@@ -2521,7 +2579,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       document.getElementById('gananciaDolares').textContent = `$${ganancia.toFixed(2)}`;
     }
 
-    // GUARDAR RECETA CON VERIFICACIÓN DE SESIÓN Y MANEJO DE ERRORES
     async function guardarRecetaCatalogo() {
       if (typeof supabaseClient !== 'undefined') {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -2560,8 +2617,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           ingredientesFinales.push({
             insumoId: ins.id,
             nombre: limpiarNombreBase(ins.nombre),
-            cantidad: cantEf,                       // en unidades del insumo
-            cantidadIngresada: f.cantidad,          // lo que escribió el usuario
+            cantidad: cantEf,
+            cantidadIngresada: f.cantidad,
             modo: esHuevo(ins) ? 'gr' : 'und',
             unidad: ins.unidad,
             costoUnit: costoVentaUsado,
@@ -2642,8 +2699,9 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         }
       }
 
+      await recalcularTodasLasRecetasEnCascada();
       persistirLocal();
-        renderizarCatalogo();
+      renderizarCatalogo();
       renderizarTablaInsumos();
       cancelarEdicionReceta();
       cambiarPestana('catalogo');
@@ -2669,7 +2727,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       recalcularEscandallo();
     }
 
-    // CATÁLOGO Y PAGINACIÓN
     const buscarCatalogoInput = debounce(() => { paginaActualCatalogo = 1; renderizarCatalogo(); }, 200);
 
     function renderizarCatalogo() {
@@ -2945,7 +3002,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
         if (esHuevo(match)) {
           if (i.modo === 'gr') cant = i.cantidadIngresada || 0;
           else if (i.modo === 'kg') cant = (i.cantidadIngresada || 0) * 1000;
-          else cant = (i.cantidad || 0) * PESO_HUEVO_G;   // receta antigua: el huevo venía en unidades
+          else cant = (i.cantidad || 0) * PESO_HUEVO_G;
         }
         return {
           insumoId: match ? match.id : i.insumoId,
@@ -2983,7 +3040,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
       recetasCatalogo = recetasCatalogo.filter(r => String(r.id) !== String(id));
       persistirLocal();
-        renderizarCatalogo();
+      renderizarCatalogo();
       alert("✅ Receta eliminada del catálogo.");
     }
 
@@ -3040,7 +3097,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       document.getElementById('fichaModal').classList.add('hidden');
     }
 
-    // IMPRESIÓN INDIVIDUAL DE FICHA - VERSIÓN COMPACTA (1 HOJA CARTA)
     function imprimirFichaTecnicaIndividual(id) {
       const targetId = id || idRecetaFichaActual;
       const receta = recetasCatalogo.find(r => String(r.id) === String(targetId));
@@ -3082,45 +3138,16 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
             * { font-family: 'Inter', sans-serif !important; box-sizing: border-box; }
-            
-            @page {
-              size: letter portrait;
-              margin: 6mm;
-            }
-            
-            body {
-              background: #ffffff;
-              padding: 8px;
-              margin: 0;
-              color: #111827;
-              display: flex;
-              justify-content: center;
-              align-items: flex-start;
-            }
-
-            .ficha-container {
-              width: 96%;
-              max-width: 100%;
-              margin: 0 auto;
-              border: 2px solid #123e1b;
-              border-radius: 12px;
-              padding: 16px 20px;
-              box-shadow: none;
-            }
-
+            @page { size: letter portrait; margin: 6mm; }
+            body { background: #ffffff; padding: 8px; margin: 0; color: #111827; display: flex; justify-content: center; align-items: flex-start; }
+            .ficha-container { width: 96%; max-width: 100%; margin: 0 auto; border: 2px solid #123e1b; border-radius: 12px; padding: 16px 20px; box-shadow: none; }
             table { border-collapse: collapse; width: 100%; }
             tr { page-break-inside: avoid; break-inside: avoid; }
-
-            @media print {
-              body { padding: 0; }
-              .ficha-container { width: 100%; }
-              tr { page-break-inside: avoid; break-inside: avoid; }
-            }
+            @media print { body { padding: 0; } .ficha-container { width: 100%; } tr { page-break-inside: avoid; break-inside: avoid; } }
           </style>
         </head>
         <body class="bg-white">
           <div class="ficha-container">
-            <!-- ENCABEZADO DE LA FICHA -->
             <div class="flex justify-between items-start border-b-2 border-[#123e1b] pb-2 mb-2">
               <div class="flex items-center gap-2">
                 <img src="logo.png" alt="Logo" onerror="this.onerror=null; this.src='logo.jpeg';" class="h-9 w-auto object-contain">
@@ -3135,7 +3162,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
               </div>
             </div>
 
-            <!-- DATOS DE LA RECETA -->
             <div class="mb-2">
               <h2 class="text-lg font-black text-gray-900 tracking-tight mb-2 uppercase">${limpiarNombreBase(receta.nombre)}</h2>
               <div class="grid grid-cols-5 gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
@@ -3163,7 +3189,6 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
               ${mermaInfoHtml}
             </div>
 
-            <!-- COMPOSICIÓN DE INGREDIENTES -->
             <div class="mb-2">
               <h3 class="font-extrabold text-gray-600 text-[10px] uppercase tracking-wider mb-1">COMPOSICIÓN DE INGREDIENTES / SUB-RECETAS</h3>
               <div class="border border-gray-300 rounded-lg overflow-hidden">
@@ -3199,7 +3224,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
       ventana.document.close();
     }
   
-  // ===== LOGIN CLONADO DE index.html =====
+  // ===== LÓGICA DEL MODAL DE LOGIN =====
   (function () {
     const KEY_MAIL = 'hipergalerias_login_email';
     const SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
