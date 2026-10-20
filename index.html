@@ -526,6 +526,7 @@ function gestionarEstadoSesion(session) {
 
     if (session && session.user) {
         cerrarModalLogin();
+        configurarAuditoria(session);
 
         const metadata = session.user.user_metadata || {};
         const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
@@ -547,6 +548,7 @@ function gestionarEstadoSesion(session) {
         document.getElementById('umEmail').textContent = session.user.email || '';
         mostrarBienvenida(nombreFormateado, session.user.id);
     } else {
+        configurarAuditoria(null);
         cerrarUserMenu();
         limpiarBienvenida();
         abrirModalLogin();
@@ -555,6 +557,67 @@ function gestionarEstadoSesion(session) {
                 <button class="btn-login-trigger" onclick="abrirModalLogin()">🔑 Iniciar Sesión</button>
             `;
         }
+    }
+}
+
+// --- TARJETA DE AUDITORÍA (solo auditor / admin) ---
+let pend5Original = null, configurandoAud = false;
+
+async function metricasAuditoria() {
+    try {
+        const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+        const base = () => supabaseClient.from('auditoria').select('id', { count: 'exact', head: true });
+        const [a, b] = await Promise.all([
+            base().gte('creado_en', hoy.toISOString()),
+            base().neq('severidad', 'info').is('revisado_en', null)
+        ]);
+        const hoyN = a.count ?? 0, pendN = b.count ?? 0;
+        const hoyEl = document.getElementById('val-mod5-hoy');
+        const pendEl = document.getElementById('val-mod5-pend');
+        if (hoyEl) hoyEl.innerText = hoyN.toLocaleString('es-ES');
+        if (pendEl) pendEl.innerText = pendN.toLocaleString('es-ES');
+        actualizarColorMetrica('box-mod5-hoy', hoyN, 'blue');
+        actualizarColorMetrica('box-mod5-pend', pendN, 'red');
+    } catch (e) { console.warn('Auditoría: no se pudieron leer las métricas', e); }
+}
+
+async function configurarAuditoria(session) {
+    if (configurandoAud) return;
+    configurandoAud = true;
+    try {
+        const quitar = () => {
+            const c = document.getElementById('cardAuditoria');
+            if (c && pend5Original) { c.replaceWith(pend5Original); pend5Original = null; }
+        };
+        if (!session || typeof supabaseClient === 'undefined') { quitar(); return; }
+
+        const { data: p } = await supabaseClient.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle();
+        if (!p || !['auditor', 'admin'].includes(p.rol)) { quitar(); return; }
+
+        if (document.getElementById('cardAuditoria')) { metricasAuditoria(); return; }
+
+        const slot = document.querySelector('#modulesGrid .module-card.disabled');
+        if (!slot) return;
+        pend5Original = slot;
+
+        const card = document.createElement('article');
+        card.className = 'module-card';
+        card.id = 'cardAuditoria';
+        card.style.setProperty('--i', 4);
+        card.innerHTML = `
+            <div>
+                <div class="module-header"><div class="module-icon" aria-hidden="true">🛡️</div>
+                    <div class="module-title-zone"><h3>Auditoría</h3><p class="module-desc">Quién cambió qué, cuándo y por qué en todos los módulos.</p></div></div>
+                <div class="dashboard-metrics">
+                    <div class="metric-box" id="box-mod5-hoy" title="Cambios registrados hoy"><span class="metric-title">Cambios hoy</span><span class="metric-value" id="val-mod5-hoy">0</span></div>
+                    <div class="metric-box" id="box-mod5-pend" title="Eventos críticos o de atención sin revisar"><span class="metric-title">Sin revisar</span><span class="metric-value" id="val-mod5-pend">0</span></div>
+                </div>
+            </div>
+            <a href="auditoria.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'auditoria.html')">Ingresar al Módulo <span>➔</span></a>`;
+        slot.replaceWith(card);
+        metricasAuditoria();
+    } finally {
+        configurandoAud = false;
     }
 }
 
@@ -574,8 +637,6 @@ async function protegerEnlaceModulo(event, url) {
 }
 
 // --- LECTURA DE DATOS ---
-// Lee tablas completas (Supabase corta en 1000 filas por consulta).
-// El .order('id') da un orden estable para que la paginación no repita ni omita filas.
 async function leerTodo(tabla, columnas = '*') {
     const out = [], paso = 1000;
     for (let desde = 0; ; desde += paso) {
@@ -630,7 +691,7 @@ function actualizarColorMetrica(boxId, valor, tipoAlerta) {
 let sincronizando = false;
 
 async function sincronizarDashboard() {
-    if (sincronizando) return; // evita consultas duplicadas si llegan varios eventos seguidos
+    if (sincronizando) return;
     sincronizando = true;
     try {
         const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
@@ -662,7 +723,6 @@ async function sincronizarDashboard() {
                 }
             }
 
-            // Respaldo: el resumen que guarda descuentos.html al abrirse
             if (!r) {
                 const g = JSON.parse(localStorage.getItem('hipergalerias_dashboard_resumen') || 'null');
                 r = g
@@ -681,7 +741,7 @@ async function sincronizarDashboard() {
             console.error("Error al sincronizar descuentos en el index:", e);
         }
 
-        // Módulo 3: Recetas y Costos (conteo directo en Supabase; respaldo local)
+        // Módulo 3: Recetas y Costos
         try {
             let totalInsumos = null, totalRecetas = null;
 
@@ -731,7 +791,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     iniciarIconosLottie();
 
     if (typeof supabaseClient !== 'undefined') {
-        // Las consultas se hacen DESPUÉS de tener sesión: con RLS, sin sesión Supabase devuelve 0 filas
         const { data: { session } } = await supabaseClient.auth.getSession();
         gestionarEstadoSesion(session);
 
