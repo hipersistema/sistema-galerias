@@ -1,1773 +1,612 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Principal - Hipergalerias</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
-
-    <script src="conexion.js"></script>
-    <script src="usuarios-admin.js"></script>
-    <style>
-        :root {
-            --g9: #0b2e14;
-            --g7: #14532d;
-            --g5: #1b7a3a;
-            --g4: #22a04c;
-            --gold: #f5b000;
-            --bg: #f3f6f4;
-            --surface: #fff;
-            --soft: #f6f9f7;
-            --line: #e1e8e3;
-            --tx: #10201a;
-            --mu: #5b6d64;
-            --shadow: 0 1px 2px rgba(16, 32, 26, .05), 0 8px 24px -12px rgba(16, 32, 26, .12);
-            --ease: cubic-bezier(.22, .8, .3, 1)
-        }
-
-        body.dark-mode {
-            --bg: #0a1310;
-            --surface: #111e19;
-            --soft: #0e1914;
-            --line: #223a30;
-            --tx: #eaf4ee;
-            --mu: #93aa9f;
-            --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 10px 28px -12px rgba(0, 0, 0, .6)
-        }
-
-        * {
-            box-sizing: border-box
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--tx);
-            -webkit-font-smoothing: antialiased;
-            animation: pageIn .5s var(--ease) both;
-            transition: background .3s, color .3s, opacity .22s ease
-        }
-
-        body.leaving {
-            opacity: 0
-        }
-
-        @keyframes pageIn {
-            from {
-                opacity: 0
-            }
-
-            to {
-                opacity: 1
-            }
-        }
-
-        @keyframes rise {
-            from {
-                opacity: 0;
-                transform: translateY(14px)
-            }
-
-            to {
-                opacity: 1;
-                transform: none
-            }
-        }
-
-        @keyframes pop {
-            from {
-                opacity: 0;
-                transform: scale(.94) translateY(10px)
-            }
-
-            to {
-                opacity: 1;
-                transform: none
-            }
-        }
-
-        @keyframes shimmer {
-            to {
-                background-position: -200% 0
-            }
-        }
-
-        :focus-visible {
-            outline: 3px solid var(--g4);
-            outline-offset: 2px;
-            border-radius: 8px
-        }
-
-        .skip {
-            position: absolute;
-            left: 12px;
-            top: -60px;
-            background: var(--g7);
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 8px;
-            z-index: 10000;
-            text-decoration: none;
-            font-weight: 600;
-            transition: top .2s
-        }
-
-        .skip:focus {
-            top: 12px
-        }
-
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            padding: 12px 32px;
-            background: color-mix(in srgb, var(--surface) 88%, transparent);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 3px solid var(--gold);
-            transition: background .3s
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 16px
-        }
-
-        .logo-container {
-            height: 48px;
-            display: flex;
-            align-items: center
-        }
-
-        .logo-container img {
-            height: 100%;
-            width: auto;
-            object-fit: contain;
-            mix-blend-mode: multiply
-        }
-
-        body.dark-mode .logo-container img {
-            mix-blend-mode: normal;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5))
-        }
-
-        .titles .eyebrow {
-            display: block;
-            font-size: .66rem;
-            font-weight: 700;
-            letter-spacing: .14em;
-            color: var(--g5)
-        }
-
-        .titles h1 {
-            margin: 0;
-            font-size: 1.08rem;
-            font-weight: 700;
-            letter-spacing: -.02em
-        }
-
-        body.dark-mode .titles .eyebrow {
-            color: var(--g4)
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap
-        }
-
-        .theme-label {
-            font-size: .8rem;
-            font-weight: 600;
-            user-select: none;
-            white-space: nowrap
-        }
-
-        .theme-switch {
-            position: relative;
-            display: inline-block;
-            width: 42px;
-            height: 22px;
-            flex: none
-        }
-
-        .theme-switch input {
-            position: absolute;
-            opacity: 0;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            margin: 0;
-            cursor: pointer;
-            z-index: 2
-        }
-
-        .slider {
-            position: absolute;
-            inset: 0;
-            background: #c3cfc8;
-            border-radius: 22px;
-            transition: background .3s
-        }
-
-        .slider:before {
-            content: "";
-            position: absolute;
-            left: 3px;
-            bottom: 3px;
-            width: 16px;
-            height: 16px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
-            transition: transform .3s var(--ease)
-        }
-
-        .theme-switch input:checked+.slider {
-            background: var(--g4)
-        }
-
-        .theme-switch input:checked+.slider:before {
-            transform: translateX(20px)
-        }
-
-        .theme-switch input:focus-visible+.slider {
-            outline: 3px solid var(--g4);
-            outline-offset: 2px
-        }
-
-        .btn-login-trigger {
-            font-family: inherit;
-            border: 0;
-            cursor: pointer;
-            font-weight: 700;
-            transition: background .2s, transform .15s
-        }
-
-        .btn-login-trigger {
-            background: var(--g7);
-            color: #fff;
-            padding: 9px 18px;
-            border-radius: 999px;
-            font-size: .82rem
-        }
-
-        .btn-login-trigger:hover {
-            background: var(--g5);
-            transform: translateY(-1px)
-        }
-
-        /* ===== Menú de usuario ===== */
-        .user {
-            position: relative
-        }
-
-        .utrigger {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 5px 14px 5px 5px;
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            background: var(--surface);
-            color: var(--tx);
-            font-weight: 700;
-            font-size: .88rem;
-            cursor: pointer;
-            font-family: inherit;
-            animation: rise .4s var(--ease) both;
-            transition: border-color .2s, box-shadow .2s, transform .2s var(--ease)
-        }
-
-        .utrigger:hover,
-        .utrigger.open {
-            border-color: var(--g4);
-            box-shadow: 0 0 0 3px color-mix(in srgb, var(--g4) 18%, transparent)
-        }
-
-        .utrigger:active {
-            transform: scale(.97)
-        }
-
-        .av {
-            position: relative;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--g5), var(--g9));
-            color: #fff;
-            display: grid;
-            place-items: center;
-            font-weight: 800;
-            font-size: .95rem;
-            flex: none
-        }
-
-        .av.lg {
-            width: 46px;
-            height: 46px;
-            font-size: 1.2rem
-        }
-
-        .av .on {
-            position: absolute;
-            right: -1px;
-            bottom: -1px;
-            width: 11px;
-            height: 11px;
-            border-radius: 50%;
-            background: #22c55e;
-            border: 2px solid var(--surface)
-        }
-
-        .chev {
-            font-size: .8rem;
-            color: var(--mu);
-            transition: transform .25s var(--ease)
-        }
-
-        .utrigger.open .chev {
-            transform: rotate(180deg)
-        }
-
-        .umenu {
-            position: absolute;
-            right: 0;
-            top: calc(100% + 12px);
-            width: 290px;
-            max-width: calc(100vw - 28px);
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 16px;
-            box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
-            padding: 8px;
-            z-index: 60;
-            transform-origin: top right;
-            animation: pop .22s var(--ease)
-        }
-
-        .umenu[hidden] {
-            display: none
-        }
-
-        .uhead {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 10px 12px
-        }
-
-        .uhead strong {
-            display: block;
-            font-size: .98rem;
-            color: var(--tx)
-        }
-
-        .uhead small {
-            display: block;
-            color: var(--mu);
-            font-size: .78rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 190px
-        }
-
-        .usep {
-            height: 1px;
-            background: var(--line);
-            margin: 6px 4px
-        }
-
-        .urow {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: 10px
-        }
-
-        .uitem {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            padding: 10px 12px;
-            border: 0;
-            background: transparent;
-            border-radius: 10px;
-            color: var(--tx);
-            font-weight: 600;
-            font-size: .88rem;
-            text-align: left;
-            text-decoration: none;
-            cursor: pointer;
-            font-family: inherit;
-            transition: background .15s
-        }
-
-        .uitem:hover {
-            background: color-mix(in srgb, var(--g4) 12%, var(--surface))
-        }
-
-        .uitem.danger {
-            color: #ef4444
-        }
-
-        .uitem.danger:hover {
-            background: rgba(239, 68, 68, .12)
-        }
-
-        /* ===== Aviso de bienvenida ===== */
-        .welcome-toast {
-            position: fixed;
-            top: 0;
-            left: 50%;
-            z-index: 10001;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            max-width: calc(100vw - 28px);
-            padding: 12px 24px;
-            border-radius: 999px;
-            background: var(--surface);
-            color: var(--tx);
-            border: 1px solid var(--line);
-            box-shadow: 0 14px 36px -10px rgba(0, 0, 0, .35);
-            font-weight: 600;
-            font-size: .92rem;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transform: translate(-50%, -130%);
-            transition: opacity .35s ease, transform .45s var(--ease)
-        }
-
-        .welcome-toast.show {
-            opacity: 1;
-            transform: translate(-50%, 18px)
-        }
-
-        .welcome-toast strong {
-            color: var(--g5)
-        }
-
-        body.dark-mode .welcome-toast strong {
-            color: var(--g4)
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 28px auto 48px;
-            padding: 0 24px
-        }
-
-        .welcome-card {
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            color: #fff;
-            padding: 30px 34px;
-            border-radius: 20px;
-            margin-bottom: 26px;
-            background: linear-gradient(120deg, #0b2e14, #1b7a3a 60%, #14532d);
-            background-size: 160% 160%;
-            animation: rise .6s var(--ease) both, flow 14s ease-in-out infinite;
-            box-shadow: var(--shadow)
-        }
-
-        @keyframes flow {
-            50% {
-                background-position: 100% 50%
-            }
-        }
-
-        body.dark-mode .welcome-card {
-            background: linear-gradient(120deg, #052e22, #047857 60%, #064e3b);
-            background-size: 160% 160%
-        }
-
-        .welcome-text {
-            position: relative;
-            z-index: 2
-        }
-
-        .welcome-text h2 {
-            margin: 0 0 6px;
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: -.03em
-        }
-
-        .welcome-text p {
-            margin: 0;
-            font-size: .92rem;
-            opacity: .9;
-            max-width: 560px
-        }
-
-        .welcome-card-watermark {
-            position: absolute;
-            right: 130px;
-            top: 50%;
-            transform: translateY(-50%) rotate(-10deg);
-            height: 170px;
-            opacity: .14;
-            pointer-events: none;
-            user-select: none
-        }
-
-        .section-title {
-            margin: 0 0 14px;
-            font-size: .78rem;
-            font-weight: 700;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-            color: var(--mu)
-        }
-
-        .modules-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 22px
-        }
-
-        .module-card {
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 24px 24px 22px 28px;
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 18px;
-            box-shadow: var(--shadow);
-            animation: rise .55s var(--ease) both;
-            animation-delay: calc(var(--i)*80ms + 150ms);
-            transition: transform .3s var(--ease), box-shadow .3s, border-color .3s
-        }
-
-        .module-card:before {
-            content: "";
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: 5px;
-            background: linear-gradient(var(--g5), var(--gold))
-        }
-
-        .module-card:hover {
-            transform: translateY(-5px);
-            border-color: color-mix(in srgb, var(--g4) 45%, var(--line));
-            box-shadow: 0 24px 40px -18px rgba(16, 32, 26, .25)
-        }
-
-        .module-card.disabled {
-            background: var(--soft);
-            box-shadow: none
-        }
-
-        .module-card.disabled:before {
-            background: #a8b5ad
-        }
-
-        .module-card.disabled:hover {
-            transform: none;
-            border-color: var(--line)
-        }
-
-        .module-header {
-            display: flex;
-            gap: 14px;
-            align-items: flex-start;
-            margin-bottom: 18px
-        }
-
-        .module-icon {
-            flex: none;
-            width: 50px;
-            height: 50px;
-            display: grid;
-            place-items: center;
-            font-size: 1.55rem;
-            border-radius: 14px;
-            background: color-mix(in srgb, var(--g4) 14%, var(--surface));
-            transition: transform .3s var(--ease)
-        }
-
-        .module-card:hover .module-icon {
-            transform: scale(1.08)
-        }
-
-        .lottie-icon {
-            display: block;
-            width: 100%;
-            height: 100%
-        }
-
-        .module-card.disabled .module-icon {
-            background: var(--line);
-            filter: grayscale(1);
-            opacity: .7
-        }
-
-        .module-title-zone h3 {
-            margin: 0;
-            font-size: 1.08rem;
-            font-weight: 700;
-            letter-spacing: -.02em
-        }
-
-        .module-desc {
-            margin: 4px 0 0;
-            font-size: .8rem;
-            color: var(--mu);
-            line-height: 1.4;
-            min-height: calc(2 * 1.4em)
-        }
-
-        .dashboard-metrics {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 22px
-        }
-
-        .dashboard-metrics.cols-3 {
-            grid-template-columns: repeat(3, 1fr)
-        }
-
-        .metric-box {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: center;
-            padding: 12px 8px;
-            background: var(--soft);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            transition: background .3s, border-color .3s, transform .2s;
-            cursor: help
-        }
-
-        .metric-box:hover {
-            transform: translateY(-2px)
-        }
-
-        .metric-title {
-            margin-bottom: 4px;
-            font-size: .62rem;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: var(--mu)
-        }
-
-        .metric-value {
-            font-size: 1.4rem;
-            font-weight: 800;
-            letter-spacing: -.02em;
-            color: var(--mu);
-            font-variant-numeric: tabular-nums
-        }
-
-        .metric-sub {
-            display: block;
-            margin-top: 4px;
-            font-size: .64rem;
-            font-weight: 600;
-            color: var(--mu);
-            min-height: 1em
-        }
-
-        .state-alert-green {
-            background: #f0fdf4;
-            border-color: #bbf7d0
-        }
-
-        .state-alert-green .metric-value {
-            color: #166534
-        }
-
-        .state-alert-blue {
-            background: #f0f9ff;
-            border-color: #bae6fd
-        }
-
-        .state-alert-blue .metric-value {
-            color: #0369a1
-        }
-
-        .state-alert-orange {
-            background: #fff7ed;
-            border-color: #fed7aa
-        }
-
-        .state-alert-orange .metric-value {
-            color: #c2410c
-        }
-
-        .state-alert-red {
-            background: #fef2f2;
-            border-color: #fecaca
-        }
-
-        .state-alert-red .metric-value {
-            color: #b91c1c
-        }
-
-        body.dark-mode .state-alert-green {
-            background: #064e3b;
-            border-color: #047857
-        }
-
-        body.dark-mode .state-alert-green .metric-value {
-            color: #4ade80
-        }
-
-        body.dark-mode .state-alert-blue {
-            background: #0c4a6e;
-            border-color: #0369a1
-        }
-
-        body.dark-mode .state-alert-blue .metric-value {
-            color: #38bdf8
-        }
-
-        body.dark-mode .state-alert-orange {
-            background: #7c2d12;
-            border-color: #c2410c
-        }
-
-        body.dark-mode .state-alert-orange .metric-value {
-            color: #fb923c
-        }
-
-        body.dark-mode .state-alert-red {
-            background: #7f1d1d;
-            border-color: #b91c1c
-        }
-
-        body.dark-mode .state-alert-red .metric-value {
-            color: #f87171
-        }
-
-        .is-loading .metric-value {
-            color: transparent;
-            border-radius: 8px;
-            background: linear-gradient(90deg, var(--line) 25%, var(--soft) 50%, var(--line) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.2s linear infinite
-        }
-
-        .btn-module {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 18px;
-            background: var(--g7);
-            color: #fff;
-            text-decoration: none;
-            border-radius: 12px;
-            font-size: .88rem;
-            font-weight: 600;
-            transition: background .2s, transform .2s, box-shadow .2s
-        }
-
-        .btn-module span {
-            transition: transform .25s var(--ease)
-        }
-
-        .btn-module:hover {
-            background: var(--g5);
-            box-shadow: 0 8px 18px -8px rgba(20, 83, 45, .6)
-        }
-
-        .btn-module:hover span {
-            transform: translateX(5px)
-        }
-
-        .btn-module:active {
-            transform: scale(.98)
-        }
-
-        .btn-module.disabled {
-            background: var(--line);
-            color: var(--mu);
-            cursor: not-allowed;
-            pointer-events: none;
-            box-shadow: none
-        }
-
-        body.dark-mode .btn-module {
-            background: #166534
-        }
-
-        body.dark-mode .btn-module:hover {
-            background: #22a04c
-        }
-
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px;
-            background: rgba(8, 20, 14, .7);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-            transition: opacity .3s ease, visibility 0s linear .3s
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-            transition: opacity .3s ease, visibility 0s
-        }
-
-        .login-card {
-            width: 100%;
-            max-width: 410px;
-            padding: 34px;
-            background: var(--surface);
-            border: 1px solid var(--line);
-            border-radius: 22px;
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, .45);
-            transform: translateY(18px) scale(.97);
-            transition: transform .35s var(--ease)
-        }
-
-        .modal-overlay.active .login-card {
-            transform: none
-        }
-
-        .login-card h3 {
-            margin: 0 0 6px;
-            font-size: 1.35rem;
-            font-weight: 800;
-            letter-spacing: -.02em
-        }
-
-        .login-card p {
-            margin: 0 0 22px;
-            font-size: .88rem;
-            color: var(--mu)
-        }
-
-        .form-group {
-            margin-bottom: 16px
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-size: .72rem;
-            font-weight: 700;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: var(--mu)
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 14px;
-            font: inherit;
-            font-size: .92rem;
-            color: var(--tx);
-            background: var(--soft);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            transition: border-color .2s, box-shadow .2s
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--g4);
-            box-shadow: 0 0 0 4px color-mix(in srgb, var(--g4) 22%, transparent)
-        }
-
-        .pw-wrap {
-            position: relative
-        }
-
-        .pw-wrap .form-control {
-            padding-right: 46px
-        }
-
-        .pw-toggle {
-            position: absolute;
-            right: 6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 36px;
-            height: 36px;
-            border: 0;
-            background: none;
-            cursor: pointer;
-            font-size: 1rem;
-            border-radius: 8px
-        }
-
-        .pw-toggle:hover {
-            background: var(--line)
-        }
-
-        .login-error-msg {
-            display: none;
-            margin-bottom: 14px;
-            padding: 10px 12px;
-            font-size: .82rem;
-            font-weight: 600;
-            color: #b91c1c;
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 10px;
-            animation: rise .3s var(--ease)
-        }
-
-        body.dark-mode .login-error-msg {
-            background: #7f1d1d;
-            color: #fecaca;
-            border-color: #b91c1c
-        }
-
-        .btn-submit-login {
-            width: 100%;
-            margin-top: 6px;
-            padding: 13px;
-            font: inherit;
-            font-weight: 700;
-            font-size: .95rem;
-            color: #fff;
-            background: var(--g5);
-            border: 0;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: background .2s, transform .15s
-        }
-
-        .btn-submit-login:hover {
-            background: var(--g7)
-        }
-
-        .btn-submit-login:active {
-            transform: scale(.98)
-        }
-
-        .btn-submit-login:disabled {
-            opacity: .65;
-            cursor: wait
-        }
-
-        @media(max-width:700px) {
-            header {
-                padding: 10px 16px
-            }
-
-            .container {
-                padding: 0 14px
-            }
-
-            .welcome-card {
-                padding: 22px
-            }
-
-            .welcome-card-watermark {
-                display: none
-            }
-
-            .uname {
-                display: none
-            }
-
-            .utrigger {
-                padding-right: 10px
-            }
-        }
-
-        @media(prefers-reduced-motion:reduce) {
-
-            *,
-            *:before {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: .01ms !important
-            }
-        }
-
-        /* ===== LOGIN MEJORADO ===== */
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes floaty {
-            50% {
-                transform: translateY(-4px)
-            }
-        }
-
-        @keyframes shake {
-
-            10%,
-            90% {
-                transform: translateX(-2px)
-            }
-
-            20%,
-            80% {
-                transform: translateX(4px)
-            }
-
-            30%,
-            50%,
-            70% {
-                transform: translateX(-7px)
-            }
-
-            40%,
-            60% {
-                transform: translateX(7px)
-            }
-        }
-
-        .login-card {
-            position: relative;
-            overflow: hidden;
-            max-width: 420px;
-            padding: 36px 34px 24px
-        }
-
-        .login-card:before {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            top: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--g5), var(--gold), var(--g5));
-            z-index: 2
-        }
-
-        .login-card:after {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: -130px;
-            width: 280px;
-            height: 280px;
-            transform: translateX(-50%);
-            background: radial-gradient(circle, color-mix(in srgb, var(--g4) 28%, transparent), transparent 70%);
-            pointer-events: none;
-            z-index: 0
-        }
-
-        .login-card>* {
-            position: relative;
-            z-index: 1
-        }
-
-        .login-card.shake {
-            animation: shake .5s cubic-bezier(.36, .07, .19, .97)
-        }
-
-        .login-logo {
-            width: 86px;
-            height: 86px;
-            margin: 0 auto 16px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            background: #fff;
-            border: 3px solid var(--gold);
-            box-shadow: 0 12px 26px -10px rgba(0, 0, 0, .45), 0 0 0 7px color-mix(in srgb, var(--g4) 16%, transparent);
-            animation: floaty 4s ease-in-out infinite
-        }
-
-        .login-logo img {
-            width: 64px;
-            height: 64px;
-            object-fit: contain
-        }
-
-        .login-card .login-head h3 {
-            text-align: center;
-            font-size: 1.4rem
-        }
-
-        .login-card .login-head p {
-            margin: 0 0 26px;
-            text-align: center
-        }
-
-        .login-card .form-group label {
-            text-transform: none;
-            letter-spacing: 0;
-            font-size: .82rem;
-            font-weight: 600;
-            color: var(--tx);
-            opacity: .85
-        }
-
-        .field {
-            position: relative
-        }
-
-        .field .ico {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--mu);
-            pointer-events: none;
-            transition: color .2s
-        }
-
-        .field:focus-within .ico {
-            color: var(--g4)
-        }
-
-        .field .form-control {
-            padding: 14px 14px 14px 44px
-        }
-
-        .field.pw-wrap .form-control {
-            padding-right: 48px
-        }
-
-        .pw-toggle {
-            display: grid;
-            place-items: center;
-            color: var(--mu)
-        }
-
-        .pw-toggle:hover {
-            color: var(--tx)
-        }
-
-        .form-control.invalid {
-            border-color: #ef4444;
-            box-shadow: 0 0 0 4px rgba(239, 68, 68, .15)
-        }
-
-        .caps-hint {
-            display: none;
-            margin-top: 6px;
-            font-size: .76rem;
-            font-weight: 600;
-            color: #b45309
-        }
-
-        .caps-hint.show {
-            display: block
-        }
-
-        body.dark-mode .caps-hint {
-            color: #fbbf24
-        }
-
-        .remember {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 2px 0 16px;
-            font-size: .82rem;
-            font-weight: 600;
-            color: var(--mu);
-            cursor: pointer;
-            user-select: none
-        }
-
-        .remember input {
-            width: 16px;
-            height: 16px;
-            accent-color: var(--g5);
-            cursor: pointer
-        }
-
-        .login-error-msg {
-            gap: 8px;
-            align-items: flex-start;
-            line-height: 1.35
-        }
-
-        .btn-submit-login {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--g4), var(--g7));
-            box-shadow: 0 12px 24px -12px rgba(20, 83, 45, .75)
-        }
-
-        .btn-submit-login:hover {
-            background: linear-gradient(135deg, var(--g4), var(--g5));
-            transform: translateY(-1px);
-            box-shadow: 0 16px 28px -12px rgba(20, 83, 45, .8)
-        }
-
-        .btn-submit-login:active {
-            transform: scale(.98)
-        }
-
-        .btn-submit-login.loading:disabled {
-            opacity: .9
-        }
-
-        .btn-spin {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255, 255, 255, .4);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin .7s linear infinite
-        }
-
-        .login-card .login-foot {
-            margin: 18px 0 0;
-            text-align: center;
-            font-size: .72rem;
-            font-weight: 600;
-            color: var(--mu);
-            opacity: .8
-        }
-
-        /* Entrada escalonada al abrir */
-        .modal-overlay.active .login-card .stagger {
-            animation: rise .5s var(--ease) both;
-            animation-delay: calc(var(--k) * 70ms + 150ms)
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Principal - Hipergalerias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
+
+<script src="conexion.js"></script>
+<script src="usuarios-admin.js"></script>
+<style>
+:root{--g9:#0b2e14;--g7:#14532d;--g5:#1b7a3a;--g4:#22a04c;--gold:#f5b000;--bg:#f3f6f4;--surface:#fff;--soft:#f6f9f7;--line:#e1e8e3;--tx:#10201a;--mu:#5b6d64;--shadow:0 1px 2px rgba(16,32,26,.05),0 8px 24px -12px rgba(16,32,26,.12);--ease:cubic-bezier(.22,.8,.3,1)}
+body.dark-mode{--bg:#0a1310;--surface:#111e19;--soft:#0e1914;--line:#223a30;--tx:#eaf4ee;--mu:#93aa9f;--shadow:0 1px 2px rgba(0,0,0,.4),0 10px 28px -12px rgba(0,0,0,.6)}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased;animation:pageIn .5s var(--ease) both;transition:background .3s,color .3s,opacity .22s ease}
+body.leaving{opacity:0}
+@keyframes pageIn{from{opacity:0}to{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(10px)}to{opacity:1;transform:none}}
+@keyframes shimmer{to{background-position:-200% 0}}
+:focus-visible{outline:3px solid var(--g4);outline-offset:2px;border-radius:8px}
+.skip{position:absolute;left:12px;top:-60px;background:var(--g7);color:#fff;padding:10px 14px;border-radius:8px;z-index:10000;text-decoration:none;font-weight:600;transition:top .2s}
+.skip:focus{top:12px}
+
+header{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:12px 32px;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:3px solid var(--gold);transition:background .3s}
+.brand{display:flex;align-items:center;gap:16px}
+.logo-container{height:48px;display:flex;align-items:center}
+.logo-container img{height:100%;width:auto;object-fit:contain;mix-blend-mode:multiply}
+body.dark-mode .logo-container img{mix-blend-mode:normal;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.titles .eyebrow{display:block;font-size:.66rem;font-weight:700;letter-spacing:.14em;color:var(--g5)}
+.titles h1{margin:0;font-size:1.08rem;font-weight:700;letter-spacing:-.02em}
+body.dark-mode .titles .eyebrow{color:var(--g4)}
+.header-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+
+.theme-label{font-size:.8rem;font-weight:600;user-select:none;white-space:nowrap}
+.theme-switch{position:relative;display:inline-block;width:42px;height:22px;flex:none}
+.theme-switch input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:2}
+.slider{position:absolute;inset:0;background:#c3cfc8;border-radius:22px;transition:background .3s}
+.slider:before{content:"";position:absolute;left:3px;bottom:3px;width:16px;height:16px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .3s var(--ease)}
+.theme-switch input:checked+.slider{background:var(--g4)}
+.theme-switch input:checked+.slider:before{transform:translateX(20px)}
+.theme-switch input:focus-visible+.slider{outline:3px solid var(--g4);outline-offset:2px}
+
+.btn-login-trigger{font-family:inherit;border:0;cursor:pointer;font-weight:700;transition:background .2s,transform .15s}
+.btn-login-trigger{background:var(--g7);color:#fff;padding:9px 18px;border-radius:999px;font-size:.82rem}
+.btn-login-trigger:hover{background:var(--g5);transform:translateY(-1px)}
+
+/* ===== Menú de usuario ===== */
+.user{position:relative}
+.utrigger{display:flex;align-items:center;gap:10px;padding:5px 14px 5px 5px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--tx);font-weight:700;font-size:.88rem;cursor:pointer;font-family:inherit;animation:rise .4s var(--ease) both;transition:border-color .2s,box-shadow .2s,transform .2s var(--ease)}
+.utrigger:hover,.utrigger.open{border-color:var(--g4);box-shadow:0 0 0 3px color-mix(in srgb,var(--g4) 18%,transparent)}
+.utrigger:active{transform:scale(.97)}
+.av{position:relative;width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--g5),var(--g9));color:#fff;display:grid;place-items:center;font-weight:800;font-size:.95rem;flex:none}
+.av.lg{width:46px;height:46px;font-size:1.2rem}
+.av .on{position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#22c55e;border:2px solid var(--surface)}
+.chev{font-size:.8rem;color:var(--mu);transition:transform .25s var(--ease)}
+.utrigger.open .chev{transform:rotate(180deg)}
+.umenu{position:absolute;right:0;top:calc(100% + 12px);width:290px;max-width:calc(100vw - 28px);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 44px rgba(0,0,0,.28);padding:8px;z-index:60;transform-origin:top right;animation:pop .22s var(--ease)}
+.umenu[hidden]{display:none}
+.uhead{display:flex;align-items:center;gap:12px;padding:10px 10px 12px}
+.uhead strong{display:block;font-size:.98rem;color:var(--tx)}
+.uhead small{display:block;color:var(--mu);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:190px}
+.usep{height:1px;background:var(--line);margin:6px 4px}
+.urow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:10px}
+.uitem{display:flex;align-items:center;gap:8px;width:100%;padding:10px 12px;border:0;background:transparent;border-radius:10px;color:var(--tx);font-weight:600;font-size:.88rem;text-align:left;text-decoration:none;cursor:pointer;font-family:inherit;transition:background .15s}
+.uitem:hover{background:color-mix(in srgb,var(--g4) 12%,var(--surface))}
+.uitem.danger{color:#ef4444}
+.uitem.danger:hover{background:rgba(239,68,68,.12)}
+
+/* ===== Aviso de bienvenida ===== */
+.welcome-toast{position:fixed;top:0;left:50%;z-index:10001;display:flex;align-items:center;gap:10px;max-width:calc(100vw - 28px);padding:12px 24px;border-radius:999px;background:var(--surface);color:var(--tx);border:1px solid var(--line);box-shadow:0 14px 36px -10px rgba(0,0,0,.35);font-weight:600;font-size:.92rem;white-space:nowrap;opacity:0;pointer-events:none;transform:translate(-50%,-130%);transition:opacity .35s ease,transform .45s var(--ease)}
+.welcome-toast.show{opacity:1;transform:translate(-50%,18px)}
+.welcome-toast strong{color:var(--g5)}
+body.dark-mode .welcome-toast strong{color:var(--g4)}
+
+.container{max-width:1280px;margin:28px auto 48px;padding:0 24px}
+.welcome-card{position:relative;overflow:hidden;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;color:#fff;padding:30px 34px;border-radius:20px;margin-bottom:26px;background:linear-gradient(120deg,#0b2e14,#1b7a3a 60%,#14532d);background-size:160% 160%;animation:rise .6s var(--ease) both,flow 14s ease-in-out infinite;box-shadow:var(--shadow)}
+@keyframes flow{50%{background-position:100% 50%}}
+body.dark-mode .welcome-card{background:linear-gradient(120deg,#052e22,#047857 60%,#064e3b);background-size:160% 160%}
+.welcome-text{position:relative;z-index:2}
+.welcome-text h2{margin:0 0 6px;font-size:1.5rem;font-weight:800;letter-spacing:-.03em}
+.welcome-text p{margin:0;font-size:.92rem;opacity:.9;max-width:560px}
+.welcome-card-watermark{position:absolute;right:130px;top:50%;transform:translateY(-50%) rotate(-10deg);height:170px;opacity:.14;pointer-events:none;user-select:none}
+
+.section-title{margin:0 0 14px;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.modules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:22px}
+.module-card{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:24px 24px 22px 28px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);animation:rise .55s var(--ease) both;animation-delay:calc(var(--i)*80ms + 150ms);transition:transform .3s var(--ease),box-shadow .3s,border-color .3s}
+.module-card:before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:linear-gradient(var(--g5),var(--gold))}
+.module-card:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--g4) 45%,var(--line));box-shadow:0 24px 40px -18px rgba(16,32,26,.25)}
+.module-card.disabled{background:var(--soft);box-shadow:none}
+.module-card.disabled:before{background:#a8b5ad}
+.module-card.disabled:hover{transform:none;border-color:var(--line)}
+.module-header{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.module-icon{flex:none;width:50px;height:50px;display:grid;place-items:center;font-size:1.55rem;border-radius:14px;background:color-mix(in srgb,var(--g4) 14%,var(--surface));transition:transform .3s var(--ease)}
+.module-card:hover .module-icon{transform:scale(1.08)}
+.lottie-icon{display:block;width:100%;height:100%}
+.module-card.disabled .module-icon{background:var(--line);filter:grayscale(1);opacity:.7}
+.module-title-zone h3{margin:0;font-size:1.08rem;font-weight:700;letter-spacing:-.02em}
+.module-desc{margin:4px 0 0;font-size:.8rem;color:var(--mu);line-height:1.4;min-height:calc(2 * 1.4em)}
+
+.dashboard-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px}
+.dashboard-metrics.cols-3{grid-template-columns:repeat(3,1fr)}
+.metric-box{display:flex;flex-direction:column;justify-content:center;text-align:center;padding:12px 8px;background:var(--soft);border:1px solid var(--line);border-radius:12px;transition:background .3s,border-color .3s,transform .2s;cursor:help}
+.metric-box:hover{transform:translateY(-2px)}
+.metric-title{margin-bottom:4px;font-size:.62rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
+.metric-value{font-size:1.4rem;font-weight:800;letter-spacing:-.02em;color:var(--mu);font-variant-numeric:tabular-nums}
+.metric-sub{display:block;margin-top:4px;font-size:.64rem;font-weight:600;color:var(--mu);min-height:1em}
+.state-alert-green{background:#f0fdf4;border-color:#bbf7d0}.state-alert-green .metric-value{color:#166534}
+.state-alert-blue{background:#f0f9ff;border-color:#bae6fd}.state-alert-blue .metric-value{color:#0369a1}
+.state-alert-orange{background:#fff7ed;border-color:#fed7aa}.state-alert-orange .metric-value{color:#c2410c}
+.state-alert-red{background:#fef2f2;border-color:#fecaca}.state-alert-red .metric-value{color:#b91c1c}
+body.dark-mode .state-alert-green{background:#064e3b;border-color:#047857}body.dark-mode .state-alert-green .metric-value{color:#4ade80}
+body.dark-mode .state-alert-blue{background:#0c4a6e;border-color:#0369a1}body.dark-mode .state-alert-blue .metric-value{color:#38bdf8}
+body.dark-mode .state-alert-orange{background:#7c2d12;border-color:#c2410c}body.dark-mode .state-alert-orange .metric-value{color:#fb923c}
+body.dark-mode .state-alert-red{background:#7f1d1d;border-color:#b91c1c}body.dark-mode .state-alert-red .metric-value{color:#f87171}
+.is-loading .metric-value{color:transparent;border-radius:8px;background:linear-gradient(90deg,var(--line) 25%,var(--soft) 50%,var(--line) 75%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+
+.btn-module{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;background:var(--g7);color:#fff;text-decoration:none;border-radius:12px;font-size:.88rem;font-weight:600;transition:background .2s,transform .2s,box-shadow .2s}
+.btn-module span{transition:transform .25s var(--ease)}
+.btn-module:hover{background:var(--g5);box-shadow:0 8px 18px -8px rgba(20,83,45,.6)}
+.btn-module:hover span{transform:translateX(5px)}
+.btn-module:active{transform:scale(.98)}
+.btn-module.disabled{background:var(--line);color:var(--mu);cursor:not-allowed;pointer-events:none;box-shadow:none}
+body.dark-mode .btn-module{background:#166534}body.dark-mode .btn-module:hover{background:#22a04c}
+
+.modal-overlay{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,14,.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .3s ease,visibility 0s linear .3s}
+.modal-overlay.active{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .3s ease,visibility 0s}
+.login-card{width:100%;max-width:410px;padding:34px;background:var(--surface);border:1px solid var(--line);border-radius:22px;box-shadow:0 30px 60px -15px rgba(0,0,0,.45);transform:translateY(18px) scale(.97);transition:transform .35s var(--ease)}
+.modal-overlay.active .login-card{transform:none}
+.login-card h3{margin:0 0 6px;font-size:1.35rem;font-weight:800;letter-spacing:-.02em}
+.login-card p{margin:0 0 22px;font-size:.88rem;color:var(--mu)}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;margin-bottom:6px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mu)}
+.form-control{width:100%;padding:12px 14px;font:inherit;font-size:.92rem;color:var(--tx);background:var(--soft);border:1px solid var(--line);border-radius:12px;transition:border-color .2s,box-shadow .2s}
+.form-control:focus{outline:none;border-color:var(--g4);box-shadow:0 0 0 4px color-mix(in srgb,var(--g4) 22%,transparent)}
+.pw-wrap{position:relative}.pw-wrap .form-control{padding-right:46px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border:0;background:none;cursor:pointer;font-size:1rem;border-radius:8px}
+.pw-toggle:hover{background:var(--line)}
+.login-error-msg{display:none;margin-bottom:14px;padding:10px 12px;font-size:.82rem;font-weight:600;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;animation:rise .3s var(--ease)}
+body.dark-mode .login-error-msg{background:#7f1d1d;color:#fecaca;border-color:#b91c1c}
+.btn-submit-login{width:100%;margin-top:6px;padding:13px;font:inherit;font-weight:700;font-size:.95rem;color:#fff;background:var(--g5);border:0;border-radius:12px;cursor:pointer;transition:background .2s,transform .15s}
+.btn-submit-login:hover{background:var(--g7)}
+.btn-submit-login:active{transform:scale(.98)}
+.btn-submit-login:disabled{opacity:.65;cursor:wait}
+
+@media(max-width:700px){header{padding:10px 16px}.container{padding:0 14px}.welcome-card{padding:22px}.welcome-card-watermark{display:none}.uname{display:none}.utrigger{padding-right:10px}}
+@media(prefers-reduced-motion:reduce){*,*:before{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* ===== LOGIN MEJORADO ===== */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes floaty{50%{transform:translateY(-4px)}}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+
+.login-card{position:relative;overflow:hidden;max-width:420px;padding:36px 34px 24px}
+.login-card:before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--g5),var(--gold),var(--g5));z-index:2}
+.login-card:after{content:"";position:absolute;left:50%;top:-130px;width:280px;height:280px;transform:translateX(-50%);background:radial-gradient(circle,color-mix(in srgb,var(--g4) 28%,transparent),transparent 70%);pointer-events:none;z-index:0}
+.login-card > *{position:relative;z-index:1}
+.login-card.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97)}
+
+.login-logo{width:86px;height:86px;margin:0 auto 16px;display:grid;place-items:center;border-radius:50%;background:#fff;border:3px solid var(--gold);box-shadow:0 12px 26px -10px rgba(0,0,0,.45),0 0 0 7px color-mix(in srgb,var(--g4) 16%,transparent);animation:floaty 4s ease-in-out infinite}
+.login-logo img{width:64px;height:64px;object-fit:contain}
+.login-card .login-head h3{text-align:center;font-size:1.4rem}
+.login-card .login-head p{margin:0 0 26px;text-align:center}
+
+.login-card .form-group label{text-transform:none;letter-spacing:0;font-size:.82rem;font-weight:600;color:var(--tx);opacity:.85}
+.field{position:relative}
+.field .ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--mu);pointer-events:none;transition:color .2s}
+.field:focus-within .ico{color:var(--g4)}
+.field .form-control{padding:14px 14px 14px 44px}
+.field.pw-wrap .form-control{padding-right:48px}
+.pw-toggle{display:grid;place-items:center;color:var(--mu)}
+.pw-toggle:hover{color:var(--tx)}
+.form-control.invalid{border-color:#ef4444;box-shadow:0 0 0 4px rgba(239,68,68,.15)}
+
+.caps-hint{display:none;margin-top:6px;font-size:.76rem;font-weight:600;color:#b45309}
+.caps-hint.show{display:block}
+body.dark-mode .caps-hint{color:#fbbf24}
+.remember{display:flex;align-items:center;gap:8px;margin:2px 0 16px;font-size:.82rem;font-weight:600;color:var(--mu);cursor:pointer;user-select:none}
+.remember input{width:16px;height:16px;accent-color:var(--g5);cursor:pointer}
+
+.login-error-msg{gap:8px;align-items:flex-start;line-height:1.35}
+
+.btn-submit-login{display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;background:linear-gradient(135deg,var(--g4),var(--g7));box-shadow:0 12px 24px -12px rgba(20,83,45,.75)}
+.btn-submit-login:hover{background:linear-gradient(135deg,var(--g4),var(--g5));transform:translateY(-1px);box-shadow:0 16px 28px -12px rgba(20,83,45,.8)}
+.btn-submit-login:active{transform:scale(.98)}
+.btn-submit-login.loading:disabled{opacity:.9}
+.btn-spin{width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.login-card .login-foot{margin:18px 0 0;text-align:center;font-size:.72rem;font-weight:600;color:var(--mu);opacity:.8}
+
+/* Entrada escalonada al abrir */
+.modal-overlay.active .login-card .stagger{animation:rise .5s var(--ease) both;animation-delay:calc(var(--k) * 70ms + 150ms)}
+</style>
 </head>
-
 <body>
-    <a class="skip" href="#main">Saltar al contenido</a>
+<a class="skip" href="#main">Saltar al contenido</a>
 
-    <header>
-        <div class="brand">
-            <div class="logo-container"><img src="logo.png" alt="Galeria Hipermarket Logo"
-                    onerror="this.onerror=null; this.src='logo.jpeg';"></div>
-            <div class="titles"><span class="eyebrow">HIPERGALERIAS</span>
-                <h1>Sistema Centralizado de Gestión</h1>
-            </div>
+<header>
+  <div class="brand">
+    <div class="logo-container"><img src="logo.png" alt="Galeria Hipermarket Logo" onerror="this.onerror=null; this.src='logo.jpeg';"></div>
+    <div class="titles"><span class="eyebrow">HIPERGALERIAS</span><h1>Sistema Centralizado de Gestión</h1></div>
+  </div>
+  <div class="header-actions">
+    <div class="user" id="userMenu">
+      <div id="userAuthContainer"></div>
+      <div class="umenu" id="userDropdown" role="menu" hidden>
+        <div class="uhead">
+          <div class="av lg"><span id="umAvatar">U</span><i class="on"></i></div>
+          <div><strong id="umNombre">Usuario</strong><small id="umEmail"></small></div>
         </div>
-        <div class="header-actions">
-            <div class="user" id="userMenu">
-                <div id="userAuthContainer"></div>
-                <div class="umenu" id="userDropdown" role="menu" hidden>
-                    <div class="uhead">
-                        <div class="av lg"><span id="umAvatar">U</span><i class="on"></i></div>
-                        <div><strong id="umNombre">Usuario</strong><small id="umEmail"></small></div>
-                    </div>
-                    <div class="usep"></div>
-                    <div class="urow">
-                        <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
-                        <label class="theme-switch" for="checkboxTheme" title="Cambiar entre modo claro y oscuro">
-                            <input type="checkbox" id="checkboxTheme" aria-label="Activar modo oscuro"
-                                onchange="toggleDarkTheme(this.checked)">
-                            <div class="slider"></div>
-                        </label>
-                    </div>
-                    <div class="usep"></div>
-                    <button type="button" class="uitem danger" onclick="ejecutarLogout()" role="menuitem">⎋ Cerrar
-                        sesión</button>
-                </div>
-            </div>
+        <div class="usep"></div>
+        <div class="urow">
+          <span class="theme-label" id="themeLabel">🌙 Modo oscuro</span>
+          <label class="theme-switch" for="checkboxTheme" title="Cambiar entre modo claro y oscuro">
+            <input type="checkbox" id="checkboxTheme" aria-label="Activar modo oscuro" onchange="toggleDarkTheme(this.checked)">
+            <div class="slider"></div>
+          </label>
         </div>
-    </header>
+        <div class="usep"></div>
+        <button type="button" class="uitem danger" onclick="ejecutarLogout()" role="menuitem">⎋ Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+</header>
 
-    <main class="container" id="main">
-        <section class="welcome-card">
-            <div class="welcome-text">
-                <h2>Panel de Control Ejecutivo</h2>
-                <p>Supervisión general de operaciones, inventarios, costos y sistemas de Hipergalerías.</p>
-            </div>
-            <img src="logo solo g.png" alt="" class="welcome-card-watermark"
-                onerror="this.onerror=null; this.src='logo.png';">
-        </section>
+<main class="container" id="main">
+  <section class="welcome-card">
+    <div class="welcome-text">
+      <h2>Panel de Control Ejecutivo</h2>
+      <p>Supervisión general de operaciones, inventarios, costos y sistemas de Hipergalerías.</p>
+    </div>
+    <img src="logo solo g.png" alt="" class="welcome-card-watermark" onerror="this.onerror=null; this.src='logo.png';">
+  </section>
 
-        <h2 class="section-title">Módulos del sistema</h2>
-        <div class="modules-grid is-loading" id="modulesGrid">
+  <h2 class="section-title">Módulos del sistema</h2>
+  <div class="modules-grid is-loading" id="modulesGrid">
 
-            <article class="module-card" style="--i:0">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/e50acea4-cd98-44b2-933f-55fe3271c515/71KxhDvMQj.json" loop
-                                data-emoji="📦"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>Recepción y Fechas</h3>
-                            <p class="module-desc">Registro de mercancía y control de vencimientos.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics cols-3">
-                        <div class="metric-box" id="box-mod1-optimos" title="Productos con más de 30 días para vencer">
-                            <span class="metric-title">Óptimos</span><span class="metric-value"
-                                id="val-mod1-optimos">0</span></div>
-                        <div class="metric-box" id="box-mod1-porvencer" title="Productos que vencen en 30 días o menos">
-                            <span class="metric-title">Por Vencer</span><span class="metric-value"
-                                id="val-mod1-porvencer">0</span></div>
-                        <div class="metric-box" id="box-mod1-vencidos"
-                            title="Productos con fecha de vencimiento pasada"><span
-                                class="metric-title">Vencidos</span><span class="metric-value"
-                                id="val-mod1-vencidos">0</span></div>
-                    </div>
-                </div>
-                <a href="recepcionyfechas.html" class="btn-module"
-                    onclick="protegerEnlaceModulo(event, 'recepcionyfechas.html')">Ingresar al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card" style="--i:1">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/9c924f2d-0a9f-4258-b925-e1582d676f64/W5x2kJgrfs.lottie" loop
-                                data-emoji="👥"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>Descuentos para Empleados</h3>
-                            <p class="module-desc">Cobro de productos al personal.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics cols-3">
-                        <div class="metric-box" id="box-mod2-pendientes" title="Empleados con deuda y ningún abono">
-                            <span class="metric-title">Pend. Pago</span><span class="metric-value"
-                                id="val-mod2-pendientes">0</span></div>
-                        <div class="metric-box" id="box-mod2-parciales" title="Empleados con deuda y abono parcial">
-                            <span class="metric-title">Parciales</span><span class="metric-value"
-                                id="val-mod2-parciales">0</span></div>
-                        <div class="metric-box" id="box-mod2-porcobrar" title="Monto total pendiente de cobro"><span
-                                class="metric-title">Por Cobrar</span><span class="metric-value"
-                                id="val-mod2-porcobrar">$0</span></div>
-                    </div>
-                </div>
-                <a href="descuentos.html" class="btn-module"
-                    onclick="protegerEnlaceModulo(event, 'descuentos.html')">Ingresar al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card" style="--i:2">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/acf440ae-9654-4635-884e-d6b0d65d41b1/1MxfDUdyfu.lottie" loop
-                                data-emoji="🍳"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>Recetas y Costos</h3>
-                            <p class="module-desc">Escandallos, insumos y precios sugeridos.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" id="box-mod3-recetas" title="Recetas guardadas en el catálogo"><span
-                                class="metric-title">Recetas</span><span class="metric-value"
-                                id="val-mod3-recetas">0</span></div>
-                        <div class="metric-box" id="box-mod3-ingredientes" title="Insumos e ingredientes registrados">
-                            <span class="metric-title">Ingredientes</span><span class="metric-value"
-                                id="val-mod3-ingredientes">0</span></div>
-                    </div>
-                </div>
-                <a href="recetarioycostos.html" class="btn-module"
-                    onclick="protegerEnlaceModulo(event, 'recetarioycostos.html')">Ingresar al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card" style="--i:3">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/67d95dba-3dc3-48a1-ae7a-ec7b94f866c6/GX8l7QoSYJ.lottie" loop
-                                data-emoji="🖥️"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>TI Equipos</h3>
-                            <p class="module-desc">Inventario y mantenimiento de equipos.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" id="box-mod4-equipos" title="Equipos registrados"><span
-                                class="metric-title">Equipos TI</span><span class="metric-value"
-                                id="val-mod4-equipos">0</span></div>
-                        <div class="metric-box" id="box-mod4-mant" title="Mantenimientos por realizar"><span
-                                class="metric-title">Mant. Pendientes</span><span class="metric-value"
-                                id="val-mod4-mant">0</span></div>
-                    </div>
-                </div>
-                <a href="modulo4.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo4.html')">Ingresar
-                    al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card disabled" style="--i:4" aria-disabled="true">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true">📑</div>
-                        <div class="module-title-zone">
-                            <h3>Pendiente 5</h3>
-                            <p class="module-desc">Módulo reservado para una próxima fase.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span
-                                class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span
-                                class="metric-value" style="font-size:1.05rem">Diseño</span></div>
-                    </div>
-                </div>
-                <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
-            </article>
-
-            <article class="module-card disabled" style="--i:5" aria-disabled="true">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true">📊</div>
-                        <div class="module-title-zone">
-                            <h3>Pendiente 6</h3>
-                            <p class="module-desc">Módulo reservado para una próxima fase.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span
-                                class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span
-                                class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
-                    </div>
-                </div>
-                <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
-            </article>
+    <article class="module-card" style="--i:0">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/e50acea4-cd98-44b2-933f-55fe3271c515/71KxhDvMQj.json" loop data-emoji="📦"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>Recepción y Fechas</h3><p class="module-desc">Registro de mercancía y control de vencimientos.</p></div></div>
+        <div class="dashboard-metrics cols-3">
+          <div class="metric-box" id="box-mod1-optimos" title="Productos con más de 30 días para vencer"><span class="metric-title">Óptimos</span><span class="metric-value" id="val-mod1-optimos">0</span></div>
+          <div class="metric-box" id="box-mod1-porvencer" title="Productos que vencen en 30 días o menos"><span class="metric-title">Por Vencer</span><span class="metric-value" id="val-mod1-porvencer">0</span></div>
+          <div class="metric-box" id="box-mod1-vencidos" title="Productos con fecha de vencimiento pasada"><span class="metric-title">Vencidos</span><span class="metric-value" id="val-mod1-vencidos">0</span></div>
         </div>
-    </main>
+      </div>
+      <a href="recepcionyfechas.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recepcionyfechas.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
 
-    <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
-        <div class="login-card" id="loginCard">
-
-            <div class="login-head stagger" style="--k:0">
-                <div class="login-logo">
-                    <img src="logo solo g.png" alt="" onerror="this.onerror=null; this.src='logo.png';">
-                </div>
-                <h3 id="loginTitle">Iniciar sesión</h3>
-                <p>Ingresa tus credenciales corporativas para continuar.</p>
-            </div>
-
-            <form id="loginForm" onsubmit="ejecutarLogin(event)">
-                <div class="form-group stagger" style="--k:1">
-                    <label for="loginEmail">Correo electrónico</label>
-                    <div class="field">
-                        <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="3" y="5" width="18" height="14" rx="2" />
-                            <path d="m3 7 9 6 9-6" />
-                        </svg>
-                        <input type="email" id="loginEmail" class="form-control" placeholder="usuario@hipergalerias.com"
-                            autocomplete="username" required>
-                    </div>
-                </div>
-
-                <div class="form-group stagger" style="--k:2">
-                    <label for="loginPassword">Contraseña</label>
-                    <div class="field pw-wrap">
-                        <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <rect x="4" y="11" width="16" height="10" rx="2" />
-                            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-                        </svg>
-                        <input type="password" id="loginPassword" class="form-control" placeholder="••••••••"
-                            autocomplete="current-password" required>
-                        <button type="button" class="pw-toggle" id="pwToggle" aria-label="Mostrar contraseña"
-                            title="Mostrar u ocultar contraseña" onclick="alternarPassword()">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="caps-hint" id="capsHint">⚠️ Bloq Mayús está activado</div>
-                </div>
-
-                <label class="remember stagger" style="--k:3">
-                    <input type="checkbox" id="loginRemember"> Recordar mi correo
-                </label>
-
-                <div id="loginError" class="login-error-msg" role="alert"></div>
-
-                <button type="submit" class="btn-submit-login stagger" style="--k:4"
-                    id="btnSubmitLogin">Ingresar</button>
-            </form>
-
-            <p class="login-foot stagger" style="--k:5">🔒 Acceso restringido · Hipergalerias C.A.</p>
+    <article class="module-card" style="--i:1">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/9c924f2d-0a9f-4258-b925-e1582d676f64/W5x2kJgrfs.lottie" loop data-emoji="👥"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>Descuentos para Empleados</h3><p class="module-desc">Cobro de productos al personal.</p></div></div>
+        <div class="dashboard-metrics cols-3">
+          <div class="metric-box" id="box-mod2-pendientes" title="Empleados con deuda y ningún abono"><span class="metric-title">Pend. Pago</span><span class="metric-value" id="val-mod2-pendientes">0</span></div>
+          <div class="metric-box" id="box-mod2-parciales" title="Empleados con deuda y abono parcial"><span class="metric-title">Parciales</span><span class="metric-value" id="val-mod2-parciales">0</span></div>
+          <div class="metric-box" id="box-mod2-porcobrar" title="Monto total pendiente de cobro"><span class="metric-title">Por Cobrar</span><span class="metric-value" id="val-mod2-porcobrar">$0</span></div>
         </div>
+      </div>
+      <a href="descuentos.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'descuentos.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
+
+    <article class="module-card" style="--i:2">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/acf440ae-9654-4635-884e-d6b0d65d41b1/1MxfDUdyfu.lottie" loop data-emoji="🍳"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>Recetas y Costos</h3><p class="module-desc">Escandallos, insumos y precios sugeridos.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" id="box-mod3-recetas" title="Recetas guardadas en el catálogo"><span class="metric-title">Recetas</span><span class="metric-value" id="val-mod3-recetas">0</span></div>
+          <div class="metric-box" id="box-mod3-ingredientes" title="Insumos e ingredientes registrados"><span class="metric-title">Ingredientes</span><span class="metric-value" id="val-mod3-ingredientes">0</span></div>
+        </div>
+      </div>
+      <a href="recetarioycostos.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'recetarioycostos.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
+
+    <article class="module-card" style="--i:3">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon" src="https://lottie.host/67d95dba-3dc3-48a1-ae7a-ec7b94f866c6/GX8l7QoSYJ.lottie" loop data-emoji="🖥️"></dotlottie-wc></div>
+          <div class="module-title-zone"><h3>TI Equipos</h3><p class="module-desc">Inventario y mantenimiento de equipos.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" id="box-mod4-equipos" title="Equipos registrados"><span class="metric-title">Equipos TI</span><span class="metric-value" id="val-mod4-equipos">0</span></div>
+          <div class="metric-box" id="box-mod4-mant" title="Mantenimientos por realizar"><span class="metric-title">Mant. Pendientes</span><span class="metric-value" id="val-mod4-mant">0</span></div>
+        </div>
+      </div>
+      <a href="modulo4.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo4.html')">Ingresar al Módulo <span>➔</span></a>
+    </article>
+
+    <article class="module-card disabled" style="--i:4" aria-disabled="true">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true">📑</div>
+          <div class="module-title-zone"><h3>Pendiente 5</h3><p class="module-desc">Módulo reservado para una próxima fase.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span class="metric-value" style="font-size:1.05rem">Diseño</span></div>
+        </div>
+      </div>
+      <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
+    </article>
+
+    <article class="module-card disabled" style="--i:5" aria-disabled="true">
+      <div>
+        <div class="module-header"><div class="module-icon" aria-hidden="true">📊</div>
+          <div class="module-title-zone"><h3>Pendiente 6</h3><p class="module-desc">Módulo reservado para una próxima fase.</p></div></div>
+        <div class="dashboard-metrics">
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
+          <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
+        </div>
+      </div>
+      <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
+    </article>
+  </div>
+</main>
+
+<div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+  <div class="login-card" id="loginCard">
+
+    <div class="login-head stagger" style="--k:0">
+      <div class="login-logo">
+        <img src="logo solo g.png" alt="" onerror="this.onerror=null; this.src='logo.png';">
+      </div>
+      <h3 id="loginTitle">Iniciar sesión</h3>
+      <p>Ingresa tus credenciales corporativas para continuar.</p>
     </div>
 
-    <div class="welcome-toast" id="welcomeToast" role="status" aria-live="polite"></div>
+    <form id="loginForm" onsubmit="ejecutarLogin(event)">
+      <div class="form-group stagger" style="--k:1">
+        <label for="loginEmail">Correo electrónico</label>
+        <div class="field">
+          <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+          <input type="email" id="loginEmail" class="form-control" placeholder="usuario@hipergalerias.com" autocomplete="username" required>
+        </div>
+      </div>
 
-    <script>
-        // --- MANEJO DE MODO OSCURO ---
-        function toggleDarkTheme(isDark) {
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                localStorage.setItem('hipergalerias_theme', 'dark');
-                document.getElementById('themeLabel').innerText = '☀️ Modo claro';
-            } else {
-                document.body.classList.remove('dark-mode');
-                localStorage.setItem('hipergalerias_theme', 'light');
-                document.getElementById('themeLabel').innerText = '🌙 Modo oscuro';
-            }
-        }
+      <div class="form-group stagger" style="--k:2">
+        <label for="loginPassword">Contraseña</label>
+        <div class="field pw-wrap">
+          <svg class="ico" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-label="Mostrar contraseña" title="Mostrar u ocultar contraseña" onclick="alternarPassword()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="caps-hint" id="capsHint">⚠️ Bloq Mayús está activado</div>
+      </div>
 
-        function cargarTemaGuardado() {
-            const tema = localStorage.getItem('hipergalerias_theme');
-            const checkbox = document.getElementById('checkboxTheme');
-            if (tema === 'dark') {
-                checkbox.checked = true;
-                toggleDarkTheme(true);
-            }
-        }
+      <label class="remember stagger" style="--k:3">
+        <input type="checkbox" id="loginRemember"> Recordar mi correo
+      </label>
 
-        // --- AYUDAS DE INTERFAZ (solo visuales) ---
-        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      <div id="loginError" class="login-error-msg" role="alert"></div>
 
-        function alternarPassword() {
-            const input = document.getElementById('loginPassword');
-            const btn = document.getElementById('pwToggle');
-            const oculto = input.type === 'password';
-            input.type = oculto ? 'text' : 'password';
-            btn.innerText = oculto ? '🙈' : '👁️';
-            btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
-        }
+      <button type="submit" class="btn-submit-login stagger" style="--k:4" id="btnSubmitLogin">Ingresar</button>
+    </form>
 
-        function irAModulo(url) {
-            document.body.classList.add('leaving');
-            setTimeout(() => { window.location.href = url; }, 220);
-        }
+    <p class="login-foot stagger" style="--k:5">🔒 Acceso restringido · Hipergalerias C.A.</p>
+  </div>
+</div>
 
-        // --- MENÚ DE USUARIO (avatar + desplegable) ---
-        function toggleUserMenu() {
-            const m = document.getElementById('userDropdown');
-            const abrir = m.hidden;
-            m.hidden = !abrir;
-            const t = document.getElementById('userTrigger');
-            if (t) { t.classList.toggle('open', abrir); t.setAttribute('aria-expanded', abrir); }
-        }
+<div class="welcome-toast" id="welcomeToast" role="status" aria-live="polite"></div>
 
-        function cerrarUserMenu() {
-            const m = document.getElementById('userDropdown');
-            if (!m || m.hidden) return;
-            m.hidden = true;
-            const t = document.getElementById('userTrigger');
-            if (t) { t.classList.remove('open'); t.setAttribute('aria-expanded', 'false'); }
-        }
+<script>
+// --- MANEJO DE MODO OSCURO ---
+function toggleDarkTheme(isDark) {
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('hipergalerias_theme', 'dark');
+        document.getElementById('themeLabel').innerText = '☀️ Modo claro';
+    } else {
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('hipergalerias_theme', 'light');
+        document.getElementById('themeLabel').innerText = '🌙 Modo oscuro';
+    }
+}
 
-        document.addEventListener('click', e => { if (!e.target.closest('#userMenu')) cerrarUserMenu(); });
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarUserMenu(); });
+function cargarTemaGuardado() {
+    const tema = localStorage.getItem('hipergalerias_theme');
+    const checkbox = document.getElementById('checkboxTheme');
+    if (tema === 'dark') {
+        checkbox.checked = true;
+        toggleDarkTheme(true);
+    }
+}
 
-        // --- AVISO DE BIENVENIDA (1.5 s, una vez por sesión del navegador) ---
-        let bienvenidaTimer;
-        function mostrarBienvenida(nombre, uid) {
-            const clave = 'hipergalerias_bienvenida_' + uid;
-            try {
-                if (sessionStorage.getItem(clave)) return;
-                sessionStorage.setItem(clave, '1');
-            } catch (e) { }
-            const t = document.getElementById('welcomeToast');
-            t.innerHTML = '<span aria-hidden="true">👋</span><span>Bienvenido, <strong>' + esc(nombre) + '</strong></span>';
-            clearTimeout(bienvenidaTimer);
-            void t.offsetWidth; // fuerza el reflow para que la animación de entrada se ejecute
-            t.classList.add('show');
-            bienvenidaTimer = setTimeout(() => t.classList.remove('show'), 1500);
-        }
+// --- AYUDAS DE INTERFAZ (solo visuales) ---
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-        function limpiarBienvenida() {
-            try {
-                Object.keys(sessionStorage)
-                    .filter(k => k.startsWith('hipergalerias_bienvenida_'))
-                    .forEach(k => sessionStorage.removeItem(k));
-            } catch (e) { }
-        }
+function alternarPassword() {
+    const input = document.getElementById('loginPassword');
+    const btn = document.getElementById('pwToggle');
+    const oculto = input.type === 'password';
+    input.type = oculto ? 'text' : 'password';
+    btn.innerText = oculto ? '🙈' : '👁️';
+    btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
+}
 
-        // --- ICONOS LOTTIE (solo se animan al pasar el cursor sobre el módulo) ---
-        function iniciarIconosLottie() {
-            document.querySelectorAll('.module-card:not(.disabled)').forEach(card => {
-                const icono = card.querySelector('.lottie-icon');
-                if (!icono) return;
-                const reproducir = () => { if (icono.dotLottie) icono.dotLottie.play(); };
-                const detener = () => { if (icono.dotLottie) icono.dotLottie.stop(); };
-                card.addEventListener('mouseenter', reproducir);
-                card.addEventListener('mouseleave', detener);
-                card.addEventListener('focusin', reproducir);
-                card.addEventListener('focusout', detener);
+function irAModulo(url) {
+    document.body.classList.add('leaving');
+    setTimeout(() => { window.location.href = url; }, 220);
+}
+
+// --- MENÚ DE USUARIO (avatar + desplegable) ---
+function toggleUserMenu() {
+    const m = document.getElementById('userDropdown');
+    const abrir = m.hidden;
+    m.hidden = !abrir;
+    const t = document.getElementById('userTrigger');
+    if (t) { t.classList.toggle('open', abrir); t.setAttribute('aria-expanded', abrir); }
+}
+
+function cerrarUserMenu() {
+    const m = document.getElementById('userDropdown');
+    if (!m || m.hidden) return;
+    m.hidden = true;
+    const t = document.getElementById('userTrigger');
+    if (t) { t.classList.remove('open'); t.setAttribute('aria-expanded', 'false'); }
+}
+
+document.addEventListener('click', e => { if (!e.target.closest('#userMenu')) cerrarUserMenu(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarUserMenu(); });
+
+// --- AVISO DE BIENVENIDA (1.5 s, una vez por sesión del navegador) ---
+let bienvenidaTimer;
+function mostrarBienvenida(nombre, uid) {
+    const clave = 'hipergalerias_bienvenida_' + uid;
+    try {
+        if (sessionStorage.getItem(clave)) return;
+        sessionStorage.setItem(clave, '1');
+    } catch (e) {}
+    const t = document.getElementById('welcomeToast');
+    t.innerHTML = '<span aria-hidden="true">👋</span><span>Bienvenido, <strong>' + esc(nombre) + '</strong></span>';
+    clearTimeout(bienvenidaTimer);
+    void t.offsetWidth; // fuerza el reflow para que la animación de entrada se ejecute
+    t.classList.add('show');
+    bienvenidaTimer = setTimeout(() => t.classList.remove('show'), 1500);
+}
+
+function limpiarBienvenida() {
+    try {
+        Object.keys(sessionStorage)
+            .filter(k => k.startsWith('hipergalerias_bienvenida_'))
+            .forEach(k => sessionStorage.removeItem(k));
+    } catch (e) {}
+}
+
+// --- ICONOS LOTTIE (solo se animan al pasar el cursor sobre el módulo) ---
+function iniciarIconosLottie() {
+    document.querySelectorAll('.module-card:not(.disabled)').forEach(card => {
+        const icono = card.querySelector('.lottie-icon');
+        if (!icono) return;
+        const reproducir = () => { if (icono.dotLottie) icono.dotLottie.play(); };
+        const detener = () => { if (icono.dotLottie) icono.dotLottie.stop(); };
+        card.addEventListener('mouseenter', reproducir);
+        card.addEventListener('mouseleave', detener);
+        card.addEventListener('focusin', reproducir);
+        card.addEventListener('focusout', detener);
+    });
+
+    // Respaldo: si el reproductor no carga, se muestran los emojis originales
+    setTimeout(() => {
+        if (!customElements.get('dotlottie-wc')) {
+            document.querySelectorAll('.lottie-icon').forEach(el => {
+                el.replaceWith(document.createTextNode(el.dataset.emoji));
             });
-
-            // Respaldo: si el reproductor no carga, se muestran los emojis originales
-            setTimeout(() => {
-                if (!customElements.get('dotlottie-wc')) {
-                    document.querySelectorAll('.lottie-icon').forEach(el => {
-                        el.replaceWith(document.createTextNode(el.dataset.emoji));
-                    });
-                }
-            }, 4000);
         }
+    }, 4000);
+}
 
-        // --- AUTENTICACIÓN Y BLOQUEO DE PANTALLA ---
-        function abrirModalLogin() {
-            document.getElementById('loginModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            document.getElementById('loginError').style.display = 'none';
-            setTimeout(() => document.getElementById('loginEmail').focus(), 250);
-        }
+// --- AUTENTICACIÓN Y BLOQUEO DE PANTALLA ---
+function abrirModalLogin() {
+    document.getElementById('loginModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    document.getElementById('loginError').style.display = 'none';
+    setTimeout(() => document.getElementById('loginEmail').focus(), 250);
+}
 
-        function cerrarModalLogin() {
-            document.getElementById('loginModal').classList.remove('active');
-            document.body.style.overflow = 'auto';
-        }
+function cerrarModalLogin() {
+    document.getElementById('loginModal').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
 
-        async function ejecutarLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            const btnSubmit = document.getElementById('btnSubmitLogin');
+async function ejecutarLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errorDiv = document.getElementById('loginError');
+    const btnSubmit = document.getElementById('btnSubmitLogin');
 
-            errorDiv.style.display = 'none';
-            btnSubmit.innerText = 'Verificando...';
-            btnSubmit.disabled = true;
+    errorDiv.style.display = 'none';
+    btnSubmit.innerText = 'Verificando...';
+    btnSubmit.disabled = true;
 
-            if (typeof supabaseClient === 'undefined') {
-                alert("Atención: No se ha encontrado la configuración de Supabase en 'conexion.js'.");
-                btnSubmit.innerText = 'Ingresar';
-                btnSubmit.disabled = false;
-                return;
-            }
+    if (typeof supabaseClient === 'undefined') {
+        alert("Atención: No se ha encontrado la configuración de Supabase en 'conexion.js'.");
+        btnSubmit.innerText = 'Ingresar';
+        btnSubmit.disabled = false;
+        return;
+    }
 
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password
-            });
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
 
-            btnSubmit.innerText = 'Ingresar';
-            btnSubmit.disabled = false;
+    btnSubmit.innerText = 'Ingresar';
+    btnSubmit.disabled = false;
 
-            if (error) {
-                errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.' : error.message);
-                errorDiv.style.display = 'block';
-            } else {
-                cerrarModalLogin();
-                document.getElementById('loginForm').reset();
-            }
-        }
+    if (error) {
+        errorDiv.innerText = 'Error: ' + (error.message === 'Invalid login credentials' ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.' : error.message);
+        errorDiv.style.display = 'block';
+    } else {
+        cerrarModalLogin();
+        document.getElementById('loginForm').reset();
+    }
+}
 
-        async function ejecutarLogout() {
-            cerrarUserMenu();
-            if (typeof supabaseClient !== 'undefined') {
-                await supabaseClient.auth.signOut();
-            }
-        }
+async function ejecutarLogout() {
+    cerrarUserMenu();
+    if (typeof supabaseClient !== 'undefined') {
+        await supabaseClient.auth.signOut();
+    }
+}
 
-        function gestionarEstadoSesion(session) {
-            const authContainer = document.getElementById('userAuthContainer');
+function gestionarEstadoSesion(session) {
+    const authContainer = document.getElementById('userAuthContainer');
 
-            if (session && session.user) {
-                cerrarModalLogin();
-                configurarAuditoria(session);
+    if (session && session.user) {
+        cerrarModalLogin();
+        configurarAuditoria(session);
 
-                const metadata = session.user.user_metadata || {};
-                const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
-                const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-                const inicial = nombreFormateado.charAt(0);
-                const abierto = !document.getElementById('userDropdown').hidden;
+        const metadata = session.user.user_metadata || {};
+        const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
+        const nombreFormateado = nombre.charAt(0).toUpperCase() + nombre.slice(1);
+        const inicial = nombreFormateado.charAt(0);
+        const abierto = !document.getElementById('userDropdown').hidden;
 
-                if (authContainer) {
-                    authContainer.innerHTML = `
+        if (authContainer) {
+            authContainer.innerHTML = `
                 <button type="button" class="utrigger${abierto ? ' open' : ''}" id="userTrigger" aria-haspopup="true" aria-expanded="${abierto}" onclick="toggleUserMenu()">
                     <span class="av">${esc(inicial)}<i class="on"></i></span>
                     <span class="uname">${esc(nombreFormateado)}</span>
                     <span class="chev">▾</span>
                 </button>
             `;
-                }
-                document.getElementById('umAvatar').textContent = inicial;
-                document.getElementById('umNombre').textContent = nombreFormateado;
-                document.getElementById('umEmail').textContent = session.user.email || '';
-                mostrarBienvenida(nombreFormateado, session.user.id);
-            } else {
-                configurarAuditoria(null);
-                cerrarUserMenu();
-                limpiarBienvenida();
-                abrirModalLogin();
-                if (authContainer) {
-                    authContainer.innerHTML = `
+        }
+        document.getElementById('umAvatar').textContent = inicial;
+        document.getElementById('umNombre').textContent = nombreFormateado;
+        document.getElementById('umEmail').textContent = session.user.email || '';
+        mostrarBienvenida(nombreFormateado, session.user.id);
+    } else {
+        configurarAuditoria(null);
+        cerrarUserMenu();
+        limpiarBienvenida();
+        abrirModalLogin();
+        if (authContainer) {
+            authContainer.innerHTML = `
                 <button class="btn-login-trigger" onclick="abrirModalLogin()">🔑 Iniciar Sesión</button>
             `;
-                }
-            }
         }
+    }
+}
 
-        // --- TARJETA DE AUDITORÍA (solo auditor / admin) ---
-        let pend5Original = null, configurandoAud = false;
+// --- TARJETA DE AUDITORÍA (solo auditor / admin) ---
+let pend5Original = null, configurandoAud = false;
 
-        async function metricasAuditoria() {
-            try {
-                const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-                const base = () => supabaseClient.from('auditoria').select('id', { count: 'exact', head: true });
-                const [a, b] = await Promise.all([
-                    base().gte('creado_en', hoy.toISOString()),
-                    base().neq('severidad', 'info').is('revisado_en', null)
-                ]);
-                const hoyN = a.count ?? 0, pendN = b.count ?? 0;
-                const hoyEl = document.getElementById('val-mod5-hoy');
-                const pendEl = document.getElementById('val-mod5-pend');
-                if (hoyEl) hoyEl.innerText = hoyN.toLocaleString('es-ES');
-                if (pendEl) pendEl.innerText = pendN.toLocaleString('es-ES');
-                actualizarColorMetrica('box-mod5-hoy', hoyN, 'blue');
-                actualizarColorMetrica('box-mod5-pend', pendN, 'red');
-            } catch (e) { console.warn('Auditoría: no se pudieron leer las métricas', e); }
-        }
+async function metricasAuditoria() {
+    try {
+        const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+        const base = () => supabaseClient.from('auditoria').select('id', { count: 'exact', head: true });
+        const [a, b] = await Promise.all([
+            base().gte('creado_en', hoy.toISOString()),
+            base().neq('severidad', 'info').is('revisado_en', null)
+        ]);
+        const hoyN = a.count ?? 0, pendN = b.count ?? 0;
+        const hoyEl = document.getElementById('val-mod5-hoy');
+        const pendEl = document.getElementById('val-mod5-pend');
+        if (hoyEl) hoyEl.innerText = hoyN.toLocaleString('es-ES');
+        if (pendEl) pendEl.innerText = pendN.toLocaleString('es-ES');
+        actualizarColorMetrica('box-mod5-hoy', hoyN, 'blue');
+        actualizarColorMetrica('box-mod5-pend', pendN, 'red');
+    } catch (e) { console.warn('Auditoría: no se pudieron leer las métricas', e); }
+}
 
-        async function configurarAuditoria(session) {
-            if (configurandoAud) return;
-            configurandoAud = true;
-            try {
-                const quitar = () => {
-                    const c = document.getElementById('cardAuditoria');
-                    if (c && pend5Original) { c.replaceWith(pend5Original); pend5Original = null; }
-                };
-                if (!session || typeof supabaseClient === 'undefined') { quitar(); return; }
+async function configurarAuditoria(session) {
+    if (configurandoAud) return;
+    configurandoAud = true;
+    try {
+        const quitar = () => {
+            const c = document.getElementById('cardAuditoria');
+            if (c && pend5Original) { c.replaceWith(pend5Original); pend5Original = null; }
+        };
+        if (!session || typeof supabaseClient === 'undefined') { quitar(); return; }
 
-                const { data: p } = await supabaseClient.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle();
-                if (!p || !['auditor', 'admin'].includes(p.rol)) { quitar(); return; }
+        const { data: p } = await supabaseClient.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle();
+        if (!p || !['auditor', 'admin'].includes(p.rol)) { quitar(); return; }
 
-                if (document.getElementById('cardAuditoria')) { metricasAuditoria(); return; }
+        if (document.getElementById('cardAuditoria')) { metricasAuditoria(); return; }
 
-                const slot = document.querySelector('#modulesGrid .module-card.disabled');
-                if (!slot) return;
-                pend5Original = slot;
+        const slot = document.querySelector('#modulesGrid .module-card.disabled');
+        if (!slot) return;
+        pend5Original = slot;
 
-                const card = document.createElement('article');
-                card.className = 'module-card';
-                card.id = 'cardAuditoria';
-                card.style.setProperty('--i', 4);
-                card.innerHTML = `
+        const card = document.createElement('article');
+        card.className = 'module-card';
+        card.id = 'cardAuditoria';
+        card.style.setProperty('--i', 4);
+        card.innerHTML = `
             <div>
                 <div class="module-header"><div class="module-icon" aria-hidden="true">🛡️</div>
                     <div class="module-title-zone"><h3>Auditoría</h3><p class="module-desc">Quién cambió qué, cuándo y por qué en todos los módulos.</p></div></div>
@@ -1777,320 +616,319 @@
                 </div>
             </div>
             <a href="auditoria.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'auditoria.html')">Ingresar al Módulo <span>➔</span></a>`;
-                slot.replaceWith(card);
-                metricasAuditoria();
-            } finally {
-                configurandoAud = false;
-            }
+        slot.replaceWith(card);
+        metricasAuditoria();
+    } finally {
+        configurandoAud = false;
+    }
+}
+
+async function protegerEnlaceModulo(event, url) {
+    event.preventDefault();
+    if (typeof supabaseClient === 'undefined') {
+        irAModulo(url);
+        return;
+    }
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) {
+        abrirModalLogin();
+    } else {
+        irAModulo(url);
+    }
+}
+
+// --- LECTURA DE DATOS ---
+async function leerTodo(tabla, columnas = '*') {
+    const out = [], paso = 1000;
+    for (let desde = 0; ; desde += paso) {
+        const { data, error } = await supabaseClient
+            .from(tabla).select(columnas).order('id').range(desde, desde + paso - 1);
+        if (error) throw error;
+        out.push(...data);
+        if (data.length < paso) break;
+    }
+    return out;
+}
+
+// Descuentos: misma lógica que descuentos.html (se agrupa por cédula)
+function resumirDescuentos(filas) {
+    const n = v => parseFloat(v) || 0;
+    const cuentas = {};
+    filas.forEach(f => {
+        const ced = String(f.cedula || '').trim();
+        const c = cuentas[ced] || (cuentas[ced] = { abonado: 0, saldo: 0 });
+        c.abonado += n(f.monto_abonado);
+        c.saldo += n(f.saldo_pendiente ?? f.total_deuda);
+    });
+    let pendientes = 0, parciales = 0, porCobrar = 0;
+    Object.values(cuentas).forEach(c => {
+        if (c.saldo > 0.01) {
+            porCobrar += c.saldo;
+            if (c.abonado > 0.01) parciales++; else pendientes++;
         }
+    });
+    return { pendientes, parciales, porCobrar };
+}
 
-        async function protegerEnlaceModulo(event, url) {
-            event.preventDefault();
-            if (typeof supabaseClient === 'undefined') {
-                irAModulo(url);
-                return;
-            }
+const leerLocal = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
 
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                abrirModalLogin();
-            } else {
-                irAModulo(url);
-            }
-        }
+// --- METRICAS Y DASHBOARD ---
+function actualizarColorMetrica(boxId, valor, tipoAlerta) {
+    const box = document.getElementById(boxId);
+    if (!box) return;
 
-        // --- LECTURA DE DATOS ---
-        async function leerTodo(tabla, columnas = '*') {
-            const out = [], paso = 1000;
-            for (let desde = 0; ; desde += paso) {
-                const { data, error } = await supabaseClient
-                    .from(tabla).select(columnas).order('id').range(desde, desde + paso - 1);
-                if (error) throw error;
-                out.push(...data);
-                if (data.length < paso) break;
-            }
-            return out;
-        }
+    box.classList.remove('state-alert-orange', 'state-alert-red', 'state-alert-green', 'state-alert-blue');
 
-        // Descuentos: misma lógica que descuentos.html (se agrupa por cédula)
-        function resumirDescuentos(filas) {
-            const n = v => parseFloat(v) || 0;
-            const cuentas = {};
-            filas.forEach(f => {
-                const ced = String(f.cedula || '').trim();
-                const c = cuentas[ced] || (cuentas[ced] = { abonado: 0, saldo: 0 });
-                c.abonado += n(f.monto_abonado);
-                c.saldo += n(f.saldo_pendiente ?? f.total_deuda);
-            });
-            let pendientes = 0, parciales = 0, porCobrar = 0;
-            Object.values(cuentas).forEach(c => {
-                if (c.saldo > 0.01) {
-                    porCobrar += c.saldo;
-                    if (c.abonado > 0.01) parciales++; else pendientes++;
-                }
-            });
-            return { pendientes, parciales, porCobrar };
-        }
+    let numValor = typeof valor === 'string' ? parseFloat(valor.replace(/[^0-9.-]+/g, '')) : valor;
 
-        const leerLocal = k => { try { return JSON.parse(localStorage.getItem(k)) || []; } catch { return []; } };
+    if (!isNaN(numValor) && numValor > 0) {
+        if (tipoAlerta === 'red') box.classList.add('state-alert-red');
+        else if (tipoAlerta === 'orange') box.classList.add('state-alert-orange');
+        else if (tipoAlerta === 'blue') box.classList.add('state-alert-blue');
+        else box.classList.add('state-alert-green');
+    }
+}
 
-        // --- METRICAS Y DASHBOARD ---
-        function actualizarColorMetrica(boxId, valor, tipoAlerta) {
-            const box = document.getElementById(boxId);
-            if (!box) return;
+let sincronizando = false;
 
-            box.classList.remove('state-alert-orange', 'state-alert-red', 'state-alert-green', 'state-alert-blue');
+async function sincronizarDashboard() {
+    if (sincronizando) return;
+    sincronizando = true;
+    try {
+        const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+        const hayDB = typeof supabaseClient !== 'undefined' && supabaseClient;
 
-            let numValor = typeof valor === 'string' ? parseFloat(valor.replace(/[^0-9.-]+/g, '')) : valor;
+        // Módulo 1: Recepción y Fechas
+        let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
+        let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
+        let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
 
-            if (!isNaN(numValor) && numValor > 0) {
-                if (tipoAlerta === 'red') box.classList.add('state-alert-red');
-                else if (tipoAlerta === 'orange') box.classList.add('state-alert-orange');
-                else if (tipoAlerta === 'blue') box.classList.add('state-alert-blue');
-                else box.classList.add('state-alert-green');
-            }
-        }
+        set('val-mod1-optimos', optimos);
+        set('val-mod1-porvencer', porVencer);
+        set('val-mod1-vencidos', vencidos);
 
-        let sincronizando = false;
+        actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
+        actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
+        actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
 
-        async function sincronizarDashboard() {
-            if (sincronizando) return;
-            sincronizando = true;
-            try {
-                const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
-                const hayDB = typeof supabaseClient !== 'undefined' && supabaseClient;
+        // Módulo 2: Descuentos Empleados
+        try {
+            let r = null;
 
-                // Módulo 1: Recepción y Fechas
-                let optimos = parseInt(localStorage.getItem('dashboard_mod1_optimos') || 0);
-                let porVencer = parseInt(localStorage.getItem('dashboard_mod1_porvencer') || 0);
-                let vencidos = parseInt(localStorage.getItem('dashboard_mod1_vencidos') || 0);
-
-                set('val-mod1-optimos', optimos);
-                set('val-mod1-porvencer', porVencer);
-                set('val-mod1-vencidos', vencidos);
-
-                actualizarColorMetrica('box-mod1-optimos', optimos, 'green');
-                actualizarColorMetrica('box-mod1-porvencer', porVencer, 'orange');
-                actualizarColorMetrica('box-mod1-vencidos', vencidos, 'red');
-
-                // Módulo 2: Descuentos Empleados
+            if (hayDB) {
                 try {
-                    let r = null;
-
-                    if (hayDB) {
-                        try {
-                            const filas = await leerTodo('descuento_empleados', 'id,cedula,total_deuda,monto_abonado,saldo_pendiente');
-                            r = resumirDescuentos(filas);
-                        } catch (err) {
-                            console.warn('Descuentos: no se pudo leer Supabase', err);
-                        }
-                    }
-
-                    if (!r) {
-                        const g = JSON.parse(localStorage.getItem('hipergalerias_dashboard_resumen') || 'null');
-                        r = g
-                            ? { pendientes: g.pendientes || 0, parciales: g.parciales || 0, porCobrar: parseFloat(g.saldoPendienteTotal) || 0 }
-                            : { pendientes: 0, parciales: 0, porCobrar: 0 };
-                    }
-
-                    set('val-mod2-pendientes', r.pendientes.toLocaleString('es-ES'));
-                    set('val-mod2-parciales', r.parciales.toLocaleString('es-ES'));
-                    set('val-mod2-porcobrar', '$' + r.porCobrar.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-
-                    actualizarColorMetrica('box-mod2-pendientes', r.pendientes, 'orange');
-                    actualizarColorMetrica('box-mod2-parciales', r.parciales, 'orange');
-                    actualizarColorMetrica('box-mod2-porcobrar', r.porCobrar, 'red');
-                } catch (e) {
-                    console.error("Error al sincronizar descuentos en el index:", e);
-                }
-
-                // Módulo 3: Recetas y Costos
-                try {
-                    let totalInsumos = null, totalRecetas = null;
-
-                    if (hayDB) {
-                        const [rI, rR] = await Promise.allSettled([
-                            supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
-                            supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
-                        ]);
-                        if (rI.status === 'fulfilled' && !rI.value.error && rI.value.count !== null) totalInsumos = rI.value.count;
-                        if (rR.status === 'fulfilled' && !rR.value.error && rR.value.count !== null) totalRecetas = rR.value.count;
-                    }
-
-                    if (totalInsumos === null) totalInsumos = leerLocal('hipergalerias_insumos_db').length;
-                    if (totalRecetas === null) totalRecetas = leerLocal('hipergalerias_recetas_db').length;
-
-                    set('val-mod3-recetas', totalRecetas.toLocaleString('es-ES'));
-                    set('val-mod3-ingredientes', totalInsumos.toLocaleString('es-ES'));
-
-                    actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
-                    actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
-                } catch (e) {
-                    console.error("Error al sincronizar recetas en el index:", e);
-                    set('val-mod3-recetas', '0');
-                    set('val-mod3-ingredientes', '0');
-                }
-
-                // Módulo 4: TI Equipos
-                try {
-                    const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
-                    set('val-mod4-equipos', tiDB.length);
-                    set('val-mod4-mant', '0');
-
-                    actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
-                    actualizarColorMetrica('box-mod4-mant', 0, 'orange');
-                } catch (e) {
-                    console.error("Error al sincronizar TI Equipos en el index:", e);
-                }
-
-                document.getElementById('modulesGrid').classList.remove('is-loading');
-            } finally {
-                sincronizando = false;
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', async () => {
-            cargarTemaGuardado();
-            iniciarIconosLottie();
-
-            if (typeof supabaseClient !== 'undefined') {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                gestionarEstadoSesion(session);
-
-                if (session) await sincronizarDashboard();
-                else document.getElementById('modulesGrid').classList.remove('is-loading');
-
-                supabaseClient.auth.onAuthStateChange((_event, session) => {
-                    gestionarEstadoSesion(session);
-                    if (session) sincronizarDashboard();
-                });
-            } else {
-                await sincronizarDashboard();
-                abrirModalLogin();
-            }
-        });
-
-        window.addEventListener('storage', function () {
-            sincronizarDashboard();
-        });
-
-        window.addEventListener('storage', e => {
-            if (e.key === 'hipergalerias_theme') {
-                const d = e.newValue === 'dark';
-                document.getElementById('checkboxTheme').checked = d;
-                toggleDarkTheme(d);
-            }
-        });
-
-        // ===== LOGIN MEJORADO =====
-        (function () {
-            const KEY_MAIL = 'hipergalerias_login_email';
-            const SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
-            const EYE = SVG + '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
-            const EYE_OFF = SVG + '<path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-5.06M9.9 4.24A10.9 10.9 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg>';
-
-            const $ = id => document.getElementById(id);
-
-            function limpiarError() {
-                $('loginError').style.display = 'none';
-                $('loginEmail').classList.remove('invalid');
-                $('loginPassword').classList.remove('invalid');
-            }
-
-            function mostrarError(msg) {
-                const box = $('loginError');
-                box.innerHTML = '<span aria-hidden="true">⚠️</span><span>' + esc(msg) + '</span>';
-                box.style.display = 'flex';
-                $('loginEmail').classList.add('invalid');
-                $('loginPassword').classList.add('invalid');
-                const card = $('loginCard');
-                card.classList.remove('shake');
-                void card.offsetWidth;
-                card.classList.add('shake');
-                card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
-            }
-
-            function restaurarBoton() {
-                const b = $('btnSubmitLogin');
-                b.disabled = false;
-                b.classList.remove('loading');
-                b.textContent = 'Ingresar';
-            }
-
-            window.alternarPassword = function () {
-                const input = $('loginPassword');
-                const btn = $('pwToggle');
-                const oculto = input.type === 'password';
-                input.type = oculto ? 'text' : 'password';
-                btn.innerHTML = oculto ? EYE_OFF : EYE;
-                btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
-            };
-
-            window.abrirModalLogin = function () {
-                $('loginModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-                limpiarError();
-                const em = $('loginEmail');
-                try {
-                    const guardado = localStorage.getItem(KEY_MAIL);
-                    if (guardado && !em.value) { em.value = guardado; $('loginRemember').checked = true; }
-                } catch (e) { }
-                setTimeout(() => (em.value ? $('loginPassword') : em).focus(), 350);
-            };
-
-            window.ejecutarLogin = async function (e) {
-                e.preventDefault();
-                const email = $('loginEmail').value.trim();
-                const password = $('loginPassword').value;
-                const btn = $('btnSubmitLogin');
-
-                limpiarError();
-                btn.disabled = true;
-                btn.classList.add('loading');
-                btn.innerHTML = '<span class="btn-spin"></span>Verificando…';
-
-                if (typeof supabaseClient === 'undefined') {
-                    restaurarBoton();
-                    mostrarError("No se encontró la configuración de Supabase en 'conexion.js'.");
-                    return;
-                }
-
-                let error = null;
-                try {
-                    const r = await supabaseClient.auth.signInWithPassword({ email, password });
-                    error = r.error;
+                    const filas = await leerTodo('descuento_empleados', 'id,cedula,total_deuda,monto_abonado,saldo_pendiente');
+                    r = resumirDescuentos(filas);
                 } catch (err) {
-                    error = err;
+                    console.warn('Descuentos: no se pudo leer Supabase', err);
                 }
-                restaurarBoton();
+            }
 
-                if (error) {
-                    const msg = error.message === 'Invalid login credentials'
-                        ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.'
-                        : (error.message || 'No se pudo iniciar sesión. Revisa tu conexión.');
-                    mostrarError(msg);
-                    $('loginPassword').focus();
-                    $('loginPassword').select();
-                } else {
-                    try {
-                        if ($('loginRemember').checked) localStorage.setItem(KEY_MAIL, email);
-                        else localStorage.removeItem(KEY_MAIL);
-                    } catch (err) { }
-                    cerrarModalLogin();
-                    $('loginForm').reset();
-                    if ($('loginPassword').type === 'text') alternarPassword();
-                }
-            };
+            if (!r) {
+                const g = JSON.parse(localStorage.getItem('hipergalerias_dashboard_resumen') || 'null');
+                r = g
+                    ? { pendientes: g.pendientes || 0, parciales: g.parciales || 0, porCobrar: parseFloat(g.saldoPendienteTotal) || 0 }
+                    : { pendientes: 0, parciales: 0, porCobrar: 0 };
+            }
 
-            // Aviso de Bloq Mayús y limpieza del borde rojo al escribir
-            const pass = $('loginPassword');
-            const caps = e => $('capsHint').classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock')));
-            pass.addEventListener('keydown', caps);
-            pass.addEventListener('keyup', caps);
-            pass.addEventListener('blur', () => $('capsHint').classList.remove('show'));
-            ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
-        })();
-    </script>
+            set('val-mod2-pendientes', r.pendientes.toLocaleString('es-ES'));
+            set('val-mod2-parciales', r.parciales.toLocaleString('es-ES'));
+            set('val-mod2-porcobrar', '$' + r.porCobrar.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+
+            actualizarColorMetrica('box-mod2-pendientes', r.pendientes, 'orange');
+            actualizarColorMetrica('box-mod2-parciales', r.parciales, 'orange');
+            actualizarColorMetrica('box-mod2-porcobrar', r.porCobrar, 'red');
+        } catch (e) {
+            console.error("Error al sincronizar descuentos en el index:", e);
+        }
+
+        // Módulo 3: Recetas y Costos
+        try {
+            let totalInsumos = null, totalRecetas = null;
+
+            if (hayDB) {
+                const [rI, rR] = await Promise.allSettled([
+                    supabaseClient.from('insumos').select('*', { count: 'exact', head: true }),
+                    supabaseClient.from('recetas').select('*', { count: 'exact', head: true })
+                ]);
+                if (rI.status === 'fulfilled' && !rI.value.error && rI.value.count !== null) totalInsumos = rI.value.count;
+                if (rR.status === 'fulfilled' && !rR.value.error && rR.value.count !== null) totalRecetas = rR.value.count;
+            }
+
+            if (totalInsumos === null) totalInsumos = leerLocal('hipergalerias_insumos_db').length;
+            if (totalRecetas === null) totalRecetas = leerLocal('hipergalerias_recetas_db').length;
+
+            set('val-mod3-recetas', totalRecetas.toLocaleString('es-ES'));
+            set('val-mod3-ingredientes', totalInsumos.toLocaleString('es-ES'));
+
+            actualizarColorMetrica('box-mod3-recetas', totalRecetas, 'green');
+            actualizarColorMetrica('box-mod3-ingredientes', totalInsumos, 'blue');
+        } catch (e) {
+            console.error("Error al sincronizar recetas en el index:", e);
+            set('val-mod3-recetas', '0');
+            set('val-mod3-ingredientes', '0');
+        }
+
+        // Módulo 4: TI Equipos
+        try {
+            const tiDB = JSON.parse(localStorage.getItem('hipergalerias_ti')) || [];
+            set('val-mod4-equipos', tiDB.length);
+            set('val-mod4-mant', '0');
+
+            actualizarColorMetrica('box-mod4-equipos', tiDB.length, 'green');
+            actualizarColorMetrica('box-mod4-mant', 0, 'orange');
+        } catch (e) {
+            console.error("Error al sincronizar TI Equipos en el index:", e);
+        }
+
+        document.getElementById('modulesGrid').classList.remove('is-loading');
+    } finally {
+        sincronizando = false;
+    }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+    cargarTemaGuardado();
+    iniciarIconosLottie();
+
+    if (typeof supabaseClient !== 'undefined') {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        gestionarEstadoSesion(session);
+
+        if (session) await sincronizarDashboard();
+        else document.getElementById('modulesGrid').classList.remove('is-loading');
+
+        supabaseClient.auth.onAuthStateChange((_event, session) => {
+            gestionarEstadoSesion(session);
+            if (session) sincronizarDashboard();
+        });
+    } else {
+        await sincronizarDashboard();
+        abrirModalLogin();
+    }
+});
+
+window.addEventListener('storage', function() {
+    sincronizarDashboard();
+});
+
+window.addEventListener('storage', e => {
+  if (e.key === 'hipergalerias_theme') {
+    const d = e.newValue === 'dark';
+    document.getElementById('checkboxTheme').checked = d;
+    toggleDarkTheme(d);
+  }
+});
+
+// ===== LOGIN MEJORADO =====
+(function () {
+    const KEY_MAIL = 'hipergalerias_login_email';
+    const SVG = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">';
+    const EYE = SVG + '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const EYE_OFF = SVG + '<path d="M17.94 17.94A10.9 10.9 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-5.06M9.9 4.24A10.9 10.9 0 0 1 12 4c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19M14.12 14.12a3 3 0 1 1-4.24-4.24"/><path d="m2 2 20 20"/></svg>';
+
+    const $ = id => document.getElementById(id);
+
+    function limpiarError() {
+        $('loginError').style.display = 'none';
+        $('loginEmail').classList.remove('invalid');
+        $('loginPassword').classList.remove('invalid');
+    }
+
+    function mostrarError(msg) {
+        const box = $('loginError');
+        box.innerHTML = '<span aria-hidden="true">⚠️</span><span>' + esc(msg) + '</span>';
+        box.style.display = 'flex';
+        $('loginEmail').classList.add('invalid');
+        $('loginPassword').classList.add('invalid');
+        const card = $('loginCard');
+        card.classList.remove('shake');
+        void card.offsetWidth;
+        card.classList.add('shake');
+        card.addEventListener('animationend', () => card.classList.remove('shake'), { once: true });
+    }
+
+    function restaurarBoton() {
+        const b = $('btnSubmitLogin');
+        b.disabled = false;
+        b.classList.remove('loading');
+        b.textContent = 'Ingresar';
+    }
+
+    window.alternarPassword = function () {
+        const input = $('loginPassword');
+        const btn = $('pwToggle');
+        const oculto = input.type === 'password';
+        input.type = oculto ? 'text' : 'password';
+        btn.innerHTML = oculto ? EYE_OFF : EYE;
+        btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Mostrar contraseña');
+    };
+
+    window.abrirModalLogin = function () {
+        $('loginModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        limpiarError();
+        const em = $('loginEmail');
+        try {
+            const guardado = localStorage.getItem(KEY_MAIL);
+            if (guardado && !em.value) { em.value = guardado; $('loginRemember').checked = true; }
+        } catch (e) {}
+        setTimeout(() => (em.value ? $('loginPassword') : em).focus(), 350);
+    };
+
+    window.ejecutarLogin = async function (e) {
+        e.preventDefault();
+        const email = $('loginEmail').value.trim();
+        const password = $('loginPassword').value;
+        const btn = $('btnSubmitLogin');
+
+        limpiarError();
+        btn.disabled = true;
+        btn.classList.add('loading');
+        btn.innerHTML = '<span class="btn-spin"></span>Verificando…';
+
+        if (typeof supabaseClient === 'undefined') {
+            restaurarBoton();
+            mostrarError("No se encontró la configuración de Supabase en 'conexion.js'.");
+            return;
+        }
+
+        let error = null;
+        try {
+            const r = await supabaseClient.auth.signInWithPassword({ email, password });
+            error = r.error;
+        } catch (err) {
+            error = err;
+        }
+        restaurarBoton();
+
+        if (error) {
+            const msg = error.message === 'Invalid login credentials'
+                ? 'Credenciales incorrectas. Revisa tu correo y contraseña e inténtalo de nuevo.'
+                : (error.message || 'No se pudo iniciar sesión. Revisa tu conexión.');
+            mostrarError(msg);
+            $('loginPassword').focus();
+            $('loginPassword').select();
+        } else {
+            try {
+                if ($('loginRemember').checked) localStorage.setItem(KEY_MAIL, email);
+                else localStorage.removeItem(KEY_MAIL);
+            } catch (err) {}
+            cerrarModalLogin();
+            $('loginForm').reset();
+            if ($('loginPassword').type === 'text') alternarPassword();
+        }
+    };
+
+    // Aviso de Bloq Mayús y limpieza del borde rojo al escribir
+    const pass = $('loginPassword');
+    const caps = e => $('capsHint').classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock')));
+    pass.addEventListener('keydown', caps);
+    pass.addEventListener('keyup', caps);
+    pass.addEventListener('blur', () => $('capsHint').classList.remove('show'));
+    ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
+})();
+</script>
 </body>
-
 </html>
