@@ -2184,10 +2184,11 @@
       box.hidden = false;
     }
     function filtrarEmpleadosAsignacion(val) {
+      $('selectedCedula').value = ''; $('selectedNombreEmpleado').value = '';
       const v = val.trim().toLowerCase();
       sugerir('listaSugerenciasEmpleados', v ? window.empleados.filter(e => (e.nombre || '').toLowerCase().includes(v) || String(e.cedula || '').toLowerCase().includes(v)) : [],
         e => '<strong>' + esc(e.cedula) + '</strong> - ' + esc(e.nombre),
-        e => { $('inputBuscadorEmpleado').value = e.cedula + ' - ' + e.nombre; $('selectedCedula').value = e.cedula; $('selectedNombreEmpleado').value = e.nombre; });
+        e => { $('inputBuscadorEmpleado').value = e.cedula + ' - ' + e.nombre; $('selectedCedula').value = e.cedula; $('selectedNombreEmpleado').value = e.nombre; renderLista(); });
     }
 
     let artSeq = 0, artTimer;
