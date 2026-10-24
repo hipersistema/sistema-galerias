@@ -480,7 +480,9 @@
     "Después": "变更后",
     "Revisado": "已审核",
     "Bienvenido,": "欢迎，",
-    "Bienvenido": "欢迎"
+    "Bienvenido": "欢迎",
+    "Tasa BCV": "BCV利率",
+    "Anterior": "上一页",
   };
 
   // Textos con datos variables: [expresión, función que arma la traducción]

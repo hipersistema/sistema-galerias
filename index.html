@@ -562,13 +562,113 @@
 
         .welcome-card-watermark {
             position: absolute;
-            right: 130px;
+            right: 200px;
             top: 50%;
             transform: translateY(-50%) rotate(-10deg);
             height: 170px;
             opacity: .14;
             pointer-events: none;
             user-select: none
+        }
+
+        /* ===== Widget Tasa BCV (banner) ===== */
+        .tasa-bcv {
+            position: absolute;
+            right: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 3;
+            width: 158px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            color: #fff;
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .24);
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+            box-shadow: 0 6px 18px -8px rgba(0, 0, 0, .35);
+            display: none
+        }
+
+        .tasa-bcv.show {
+            display: block
+        }
+
+        .tasa-bcv .tb-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            opacity: .85
+        }
+
+        .tasa-bcv .tb-fecha {
+            font-weight: 600;
+            letter-spacing: 0;
+            opacity: .8
+        }
+
+        .tasa-bcv .tb-hoy {
+            margin: 4px 0 2px;
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            line-height: 1.1
+        }
+
+        .tasa-bcv .tb-hoy small {
+            font-size: .72rem;
+            font-weight: 600;
+            opacity: .8;
+            margin-right: 3px
+        }
+
+        .tasa-bcv .tb-ayer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            font-size: .72rem;
+            opacity: .92
+        }
+
+        .tasa-bcv .tb-var {
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .16)
+        }
+
+        .tasa-bcv .tb-var.up {
+            color: #ffd36b
+        }
+
+        .tasa-bcv .tb-var.down {
+            color: #9df0b5
+        }
+
+        .tasa-bcv .tb-msg {
+            margin: 6px 0 0;
+            font-size: .78rem;
+            opacity: .9
+        }
+
+        .tasa-bcv.cargando .tb-hoy {
+            opacity: .45
+        }
+
+        @media(max-width:1000px) {
+            .tasa-bcv {
+                position: relative;
+                right: auto;
+                top: auto;
+                transform: none;
+                width: 100%;
+                max-width: 320px
+            }
         }
 
         .section-title {
@@ -1349,6 +1449,11 @@
             </div>
             <img src="logo solo g.png" alt="" class="welcome-card-watermark"
                 onerror="this.onerror=null; this.src='logo.png';">
+            <aside class="tasa-bcv" id="tasaBcv" aria-live="polite" data-no-i18n>
+                <div class="tb-head"><span>Tasa BCV</span><span class="tb-fecha" id="tbFecha"></span></div>
+                <div class="tb-hoy" id="tbHoy"><small>Bs</small>--</div>
+                <div class="tb-ayer"><span id="tbAyer">Anterior: --</span><span class="tb-var" id="tbVar"></span></div>
+            </aside>
         </section>
 
         <h2 class="section-title">Módulos del sistema</h2>
@@ -1994,6 +2099,69 @@
             }
         }
 
+        // ===== TASA BCV (lee la tabla tasas_bcv; la key de dolarvzla vive solo en la Edge Function) =====
+        function fmtBs(n) {
+            return Number(n).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        function fmtFecha(iso) {
+            const [y, m, d] = String(iso).split('-');
+            return d + '/' + m;
+        }
+        // Lee current.json (trae la tasa vigente y la anterior). Si el navegador no puede
+        // (CORS/red), usa la tabla tasas_bcv de Supabase como respaldo.
+        async function obtenerTasasBCV() {
+            try {
+                const r = await fetch('https://rates.dolarvzla.com/bcv/current.json', { cache: 'no-cache' });
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                const j = await r.json();
+                if (!(j && j.current && j.current.usd && j.previous && j.previous.usd)) throw new Error('Formato inesperado');
+                return {
+                    hoy: { fecha: j.current.date, usd: j.current.usd },
+                    ayer: { fecha: j.previous.date, usd: j.previous.usd }
+                };
+            } catch (e) {
+                console.warn('Tasa BCV directa no disponible, probando respaldo', e);
+            }
+            if (typeof supabaseClient === 'undefined') throw new Error('Sin fuente de tasa');
+            const { data, error } = await supabaseClient
+                .from('tasas_bcv').select('fecha, usd')
+                .order('fecha', { ascending: false }).limit(2);
+            if (error) throw error;
+            if (!data || !data.length) throw new Error('Sin datos de tasa');
+            return { hoy: data[0], ayer: data[1] };
+        }
+        async function cargarTasaBCV() {
+            const box = document.getElementById('tasaBcv');
+            if (!box) return;
+            box.classList.add('show', 'cargando');
+            try {
+                const { hoy, ayer } = await obtenerTasasBCV();
+                document.getElementById('tbFecha').textContent = fmtFecha(hoy.fecha);
+                document.getElementById('tbHoy').innerHTML = '<small>Bs</small>' + fmtBs(hoy.usd);
+                const elAyer = document.getElementById('tbAyer');
+                const elVar = document.getElementById('tbVar');
+                if (ayer) {
+                    elAyer.textContent = 'Anterior (' + fmtFecha(ayer.fecha) + '): ' + fmtBs(ayer.usd);
+                    const pct = (hoy.usd - ayer.usd) / ayer.usd * 100;
+                    elVar.textContent = (pct >= 0 ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(2) + '%';
+                    elVar.className = 'tb-var ' + (pct >= 0 ? 'up' : 'down');
+                } else {
+                    elAyer.textContent = 'Anterior: no disponible';
+                    elVar.textContent = '';
+                    elVar.className = 'tb-var';
+                }
+            } catch (err) {
+                console.warn('Tasa BCV no disponible', err);
+                document.getElementById('tbFecha').textContent = '';
+                document.getElementById('tbHoy').innerHTML = '<small>Bs</small>--';
+                document.getElementById('tbAyer').textContent = 'Tasa no disponible';
+                document.getElementById('tbVar').textContent = '';
+            } finally {
+                box.classList.remove('cargando');
+            }
+        }
+        setInterval(() => { if (document.visibilityState === 'visible') cargarTasaBCV(); }, 30 * 60 * 1000);
+
         window.addEventListener('DOMContentLoaded', async () => {
             cargarTemaGuardado();
             iniciarIconosLottie();
@@ -2002,12 +2170,12 @@
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 gestionarEstadoSesion(session);
 
-                if (session) await sincronizarDashboard();
+                if (session) { await sincronizarDashboard(); cargarTasaBCV(); }
                 else document.getElementById('modulesGrid').classList.remove('is-loading');
 
                 supabaseClient.auth.onAuthStateChange((_event, session) => {
                     gestionarEstadoSesion(session);
-                    if (session) sincronizarDashboard();
+                    if (session) { sincronizarDashboard(); cargarTasaBCV(); }
                 });
             } else {
                 await sincronizarDashboard();
