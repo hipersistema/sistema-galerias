@@ -362,7 +362,89 @@ body.theme-dark .user-item-icon { color: #facc15; }
 body.theme-dark .user-item-danger { color: #ff8d8d; }
 body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
   
-  </style>
+  
+/* ===================== MEJORAS VISUALES Y ANIMACIONES (fx-) ===================== */
+@keyframes fx-page{from{opacity:0}to{opacity:1}}
+@keyframes fx-down{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+@keyframes fx-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes fx-fade{from{opacity:0}to{opacity:1}}
+@keyframes fx-fadeout{from{opacity:1}to{opacity:0}}
+@keyframes fx-pop{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes fx-popout{from{opacity:1;transform:none}to{opacity:0;transform:translateY(8px) scale(.97)}}
+@keyframes fx-row{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fx-drop{from{opacity:0;transform:translateY(-6px) scaleY(.96)}to{opacity:1;transform:none}}
+@keyframes fx-bump{0%{transform:scale(1)}35%{transform:scale(1.09);filter:brightness(1.12)}100%{transform:scale(1)}}
+
+body{animation:fx-page .5s ease both}
+header{animation:fx-down .55s cubic-bezier(.22,.8,.3,1) both;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.logo-container img{transition:transform .35s cubic-bezier(.22,.8,.3,1)}
+.logo-container:hover img{transform:scale(1.05) rotate(-1.5deg)}
+
+/* Pestañas: la barra inferior cambia con transición suave */
+[id^="btn-tab-"]{border-bottom:4px solid transparent;transition:color .25s ease,border-color .25s ease,background-color .25s ease,transform .15s ease}
+[id^="btn-tab-"]:hover{color:#123e1b;background-color:rgba(46,125,50,.06)}
+[id^="btn-tab-"]:active{transform:scale(.97)}
+[id^="btn-tab-"].tab-active{border-bottom-color:#123e1b}
+body.theme-dark [id^="btn-tab-"]:hover{color:#86efac;background-color:rgba(74,222,128,.08)}
+
+/* Contenido de cada pestaña entra con fade + subida */
+main>section:not(.hidden){animation:fx-rise .38s cubic-bezier(.22,.8,.3,1) both}
+
+/* Tarjetas */
+main .bg-white.rounded-lg{transition:box-shadow .3s ease,border-color .3s ease,background-color .3s ease}
+main .bg-white.rounded-lg.shadow-sm:hover,main .bg-white.rounded-lg.shadow-md:hover{box-shadow:0 10px 28px -14px rgba(18,62,27,.35);border-color:rgba(46,125,50,.35)}
+
+/* Botones y campos */
+button{transition:transform .15s ease,box-shadow .25s ease,background-color .2s ease,color .2s ease,border-color .2s ease,opacity .2s ease}
+main button:not(:disabled):hover,.fixed button:not(:disabled):hover{transform:translateY(-1px)}
+main button:not(:disabled):active,.fixed button:not(:disabled):active{transform:translateY(0) scale(.97)}
+button.bg-\[\#2e7d32\]:hover,button.bg-\[\#15803d\]:hover,button.bg-\[\#1b4d3e\]:hover,button.bg-\[\#16a34a\]:hover{box-shadow:0 8px 18px -8px rgba(21,128,61,.7)}
+input,select,textarea{transition:border-color .2s ease,box-shadow .25s ease,background-color .3s ease,color .3s ease}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 4px rgba(46,125,50,.16)}
+input[type=checkbox],input[type=radio]{transition:transform .15s ease}
+input[type=checkbox]:active,input[type=radio]:active{transform:scale(.85)}
+
+/* Transición suave al cambiar entre modo claro y oscuro */
+body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:background-color .35s ease,color .35s ease,border-color .35s ease}
+
+/* Filas de las tablas: aparecen escalonadas (solo las primeras, para no cansar) */
+#tablaInsumosBody tr,#tablaCatalogoBody tr,#listaPend>tr,#tablaHistoricoProtegidoBody tr,#modalIngredientesBody tr{animation:fx-row .28s ease both;transition:background-color .18s ease}
+#tablaInsumosBody tr:nth-child(2),#tablaCatalogoBody tr:nth-child(2),#listaPend>tr:nth-child(2){animation-delay:18ms}
+#tablaInsumosBody tr:nth-child(3),#tablaCatalogoBody tr:nth-child(3),#listaPend>tr:nth-child(3){animation-delay:36ms}
+#tablaInsumosBody tr:nth-child(4),#tablaCatalogoBody tr:nth-child(4),#listaPend>tr:nth-child(4){animation-delay:54ms}
+#tablaInsumosBody tr:nth-child(5),#tablaCatalogoBody tr:nth-child(5),#listaPend>tr:nth-child(5){animation-delay:72ms}
+#tablaInsumosBody tr:nth-child(6),#tablaCatalogoBody tr:nth-child(6),#listaPend>tr:nth-child(6){animation-delay:90ms}
+#tablaInsumosBody tr:nth-child(7),#tablaCatalogoBody tr:nth-child(7),#listaPend>tr:nth-child(7){animation-delay:108ms}
+#tablaInsumosBody tr:nth-child(8),#tablaCatalogoBody tr:nth-child(8),#listaPend>tr:nth-child(8){animation-delay:126ms}
+#tablaInsumosBody tr:nth-child(9),#tablaCatalogoBody tr:nth-child(9),#listaPend>tr:nth-child(9){animation-delay:144ms}
+#tablaInsumosBody tr:nth-child(10),#tablaCatalogoBody tr:nth-child(10),#listaPend>tr:nth-child(10){animation-delay:162ms}
+#tablaInsumosBody tr:nth-child(11),#tablaCatalogoBody tr:nth-child(11),#listaPend>tr:nth-child(11){animation-delay:180ms}
+#tablaInsumosBody tr:nth-child(12),#tablaCatalogoBody tr:nth-child(12),#listaPend>tr:nth-child(12){animation-delay:198ms}
+
+/* Buscador de insumos */
+[id^="dropdown-insumo-"]:not(.hidden){animation:fx-drop .16s ease both;transform-origin:top}
+[id^="dropdown-insumo-"]>div{transition:background-color .15s ease,padding-left .15s ease}
+[id^="dropdown-insumo-"]>div:hover{padding-left:.95rem}
+
+/* Ventanas emergentes: fade-in / fade-out (el fade-out lo gestiona el script al final) */
+.fixed.inset-0:not(.hidden){animation:fx-fade .22s ease both}
+.fixed.inset-0:not(.hidden)>div{animation:fx-pop .3s cubic-bezier(.22,.8,.3,1) both}
+.fixed.inset-0.fx-out{animation:fx-fadeout .18s ease forwards;pointer-events:none}
+.fixed.inset-0.fx-out>div{animation:fx-popout .18s ease forwards}
+
+/* Cifras que se recalculan hacen un pequeño "latido" */
+.fx-bump{display:inline-block;animation:fx-bump .45s ease}
+#pvpSugerido.fx-bump{display:block}
+
+/* Barras de desplazamiento finas y verdes */
+*{scrollbar-width:thin;scrollbar-color:rgba(46,125,50,.45) transparent}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:rgba(46,125,50,.4);border-radius:99px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(46,125,50,.7);background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
 </head>
 <body class="bg-[#f4f6f8] min-h-screen text-[#333]">
 <script>try{if(localStorage.getItem('hipergalerias_theme')==='dark')document.body.classList.add('theme-dark')}catch(e){}</script>
@@ -3320,5 +3402,37 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
   <!-- Script de traducción i18n Español ⇄ 中文 -->
   <script src="i18n.js"></script>
+<script>
+/* ===== Animaciones extra: fade-out de ventanas y "latido" de cifras ===== */
+(function () {
+  document.querySelectorAll('div.fixed.inset-0').forEach(function (el) {
+    if (!el.id || el.id === 'loginModal') return;
+    var ocupado = false;
+    el._fxVisible = !el.classList.contains('hidden');
+    new MutationObserver(function () {
+      if (ocupado) return;
+      var oculto = el.classList.contains('hidden');
+      if (oculto && el._fxVisible) {             // la página la acaba de ocultar: se hace fade-out y luego se oculta de verdad
+        ocupado = true;
+        el.classList.remove('hidden'); el.classList.add('fx-out');
+        setTimeout(function () {
+          el.classList.add('hidden'); el.classList.remove('fx-out');
+          el._fxVisible = false; ocupado = false;
+        }, 180);
+      } else if (!oculto) { el._fxVisible = true; }
+    }).observe(el, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  ['costoTotalBatch', 'costoUnitario', 'pvpSugerido', 'gananciaDolares', 'count-insumos', 'count-catalogo', 'count-revision'].forEach(function (id) {
+    var el = document.getElementById(id); if (!el) return;
+    var ultimo = el.textContent;
+    new MutationObserver(function () {
+      if (el.textContent === ultimo) return;
+      ultimo = el.textContent;
+      el.classList.remove('fx-bump'); void el.offsetWidth; el.classList.add('fx-bump');
+    }).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+})();
+</script>
 </body>
 </html>

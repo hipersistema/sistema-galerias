@@ -535,7 +535,10 @@
         min-width: 100%
       }
     }
-  </style>
+  .lang-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:99px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font-weight:700;font-size:.82rem;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.lang-btn:hover{border-color:var(--gl);box-shadow:0 0 0 3px rgba(31,138,76,.15)}
+.lang-btn:active{transform:scale(.97)}
+</style>
 </head>
 
 <body>
@@ -546,7 +549,7 @@
       <img src="logo.png" alt="Hipergalerias" onerror="this.onerror=null;this.src='logo.jpeg'">
       <h1>Auditoría del sistema</h1>
     </div>
-    <div class="hr"><span class="chip" id="quien">…</span><button class="btn o" id="tema">🌙</button></div>
+    <div class="hr"><button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言" aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button><span class="chip" id="quien">…</span><button class="btn o" id="tema">🌙</button></div>
   </header>
 
   <main>
@@ -563,9 +566,9 @@
         <div><label for="fHasta">Hasta</label><input type="date" id="fHasta"></div>
         <div><label for="fMod">Módulo</label><select id="fMod">
             <option value="">Todos</option>
-            <option>Recepción y Fechas</option>
-            <option>Descuentos</option>
-            <option>Recetario</option>
+            <option value="Recepción y Fechas">Recepción y Fechas</option>
+            <option value="Descuentos">Descuentos</option>
+            <option value="Recetario">Recetario</option>
           </select></div>
         <div><label for="fTabla">Qué se modificó</label><select id="fTabla"></select></div>
         <div><label for="fAcc">Acción</label><select id="fAcc">
@@ -621,7 +624,7 @@
     const POR = 50, ACC = { insert: 'Creó', update: 'Modificó', delete: 'Eliminó', evento: 'Evento' };
     const SEV = { info: 'Normal', aviso: 'Atención', critico: 'Crítico' };
     let pag = 1, total = 0, filas = [];
-    const fmt = d => new Date(d).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'medium' });
+    const fmt = d => new Date(d).toLocaleString(window.idiomaActual && idiomaActual() === 'zh' ? 'zh-CN' : 'es-VE', { dateStyle: 'short', timeStyle: 'medium' });
     const cut = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
 
     /* ---------- Diccionarios: nombres que entiende cualquier usuario ---------- */
@@ -808,15 +811,16 @@
       const { data, error } = await consulta('*').order('creado_en', { ascending: false }).limit(5000);
       $('bExcel').disabled = false;
       if (error || !data?.length) { alert(error ? error.message : 'No hay eventos con este filtro.'); return }
+      const T = window.i18nTr || (x => x);
       const hoja = data.map(a => ({
-        Fecha: fmt(a.creado_en), Usuario: quien(a), Correo: a.usuario_email || '', Módulo: a.modulo,
-        'Qué se modificó': tabla(a.tabla), Elemento: nombreDe(a), Acción: ACC[a.accion] || a.accion,
-        'Campos cambiados': (a.campos_cambiados || []).map(campo).join(', '),
-        Antes: cut(a.antes ? JSON.stringify(a.antes) : '', 30000), Después: cut(a.despues ? JSON.stringify(a.despues) : '', 30000),
-        Motivo: a.motivo || '', Importancia: SEV[a.severidad] || a.severidad, IP: a.ip || '',
-        Revisado: a.revisado_en ? corto(a.revisado_por) + ' ' + fmt(a.revisado_en) : ''
+        [T('Fecha')]: fmt(a.creado_en), [T('Usuario')]: quien(a), [T('Correo')]: a.usuario_email || '', [T('Módulo')]: T(a.modulo || ''),
+        [T('Qué se modificó')]: T(tabla(a.tabla)), [T('Elemento')]: nombreDe(a), [T('Acción')]: T(ACC[a.accion] || a.accion),
+        [T('Campos cambiados')]: (a.campos_cambiados || []).map(c => T(campo(c))).join(', '),
+        [T('Antes')]: cut(a.antes ? JSON.stringify(a.antes) : '', 30000), [T('Después')]: cut(a.despues ? JSON.stringify(a.despues) : '', 30000),
+        [T('Motivo')]: a.motivo || '', [T('Importancia')]: T(SEV[a.severidad] || a.severidad), IP: a.ip || '',
+        [T('Revisado')]: a.revisado_en ? corto(a.revisado_por) + ' ' + fmt(a.revisado_en) : ''
       }));
-      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hoja), 'Auditoría');
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hoja), T('Auditoría'));
       XLSX.writeFile(wb, `auditoria_${new Date().toISOString().slice(0, 10)}.xlsx`);
       supabaseClient.rpc('registrar_evento', { p_tipo: 'Exportación', p_detalle: `Excel de auditoría (${data.length} filas)`, p_modulo: 'Auditoría' });
     };
@@ -836,6 +840,7 @@
       $('gate').classList.add('done');
     })();
   </script>
+  <script src="i18n.js"></script>
 </body>
 
 </html>
