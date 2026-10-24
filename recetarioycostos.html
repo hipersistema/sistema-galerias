@@ -382,6 +382,7 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     </div>
     <div class="header-actions">
         <div class="btn-header-container">
+            <button class="btn btn-backup-export lang-btn" onclick="cambiarIdioma()" title="Cambiar idioma / 切换语言">🌐 <b>中文</b></button>
             <button class="btn btn-backup-export" onclick="respaldarSistema()">💾 Respaldar</button>
         </div>
 
@@ -446,8 +447,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                 <th class="p-3">Código Interno</th>
                 <th class="p-3">Descripción del Producto</th>
                 <th class="p-3 text-center">Unidad</th>
-                <th class="p-3 text-right">Precio de Costo (\$)</th>
-                <th class="p-3 text-center bg-[#e8f5e9] text-[#123e1b] font-bold whitespace-nowrap border-l border-r border-[#2e7d32]/20">Precio de Venta (\$)</th>
+                <th class="p-3 text-right">Precio de Costo ($)</th>
+                <th class="p-3 text-center bg-[#e8f5e9] text-[#123e1b] font-bold whitespace-nowrap border-l border-r border-[#2e7d32]/20">Precio de Venta ($)</th>
                 <th class="p-3 text-center">Acciones Protegidas</th>
               </tr>
             </thead>
@@ -578,8 +579,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                 <tr>
                   <th class="p-3 w-1/3">Ingrediente / Base</th>
                   <th class="p-3 w-24 text-center">Cant. Bruta</th>
-                  <th class="p-3 w-28 text-right">P. Venta Usado (\$)</th>
-                  <th class="p-3 w-28 text-right">Total (\$)</th>
+                  <th class="p-3 w-28 text-right">P. Venta Usado ($)</th>
+                  <th class="p-3 w-28 text-right">Total ($)</th>
                   <th class="p-3 w-10"></th>
                 </tr>
               </thead>
@@ -656,9 +657,9 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                 <th class="px-3 py-2 leading-tight">Producto / Receta</th>
                 <th class="px-3 py-2 leading-tight">Categoría</th>
                 <th class="px-3 py-2 leading-tight text-center">Tipo / Rendimiento</th>
-                <th class="px-3 py-2 leading-tight text-right">Costo Unitario (\$)</th>
+                <th class="px-3 py-2 leading-tight text-right">Costo Unitario ($)</th>
                 <th class="px-3 py-2 leading-tight text-center">Utilidad</th>
-                <th class="px-3 py-2 leading-tight text-right">PVP Sugerido (\$)</th>
+                <th class="px-3 py-2 leading-tight text-right">PVP Sugerido ($)</th>
                 <th class="px-3 py-2 leading-tight text-center">Acciones</th>
               </tr>
             </thead>
@@ -783,11 +784,11 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio de Costo Visual (\$)</label>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio de Costo Visual ($)</label>
             <input type="number" id="costoVisualInput" step="0.0001" min="0" placeholder="0.0000" class="w-full p-2.5 border border-gray-300 rounded-lg text-sm font-bold bg-white focus:ring-2 focus:ring-[#2e7d32] outline-none">
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio Venta (Usado para Cálculos) (\$)</label>
+            <label class="block text-[11px] font-bold text-gray-600 mb-1">Precio Venta (Usado para Cálculos) ($)</label>
             <input type="number" id="costoVentaCalculoInput" step="0.0001" min="0" placeholder="0.0000" class="w-full p-2.5 border border-[#bbf7d0] bg-[#f0fdf4] rounded-lg text-sm font-extrabold text-[#166534] focus:ring-2 focus:ring-[#2e7d32] outline-none">
           </div>
         </div>
@@ -882,8 +883,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                       <tr>
                           <th class="p-3">Ingrediente / Base</th>
                           <th class="p-3 text-center">Cant. Bruta</th>
-                          <th class="p-3 text-right">P. Venta Usado (\$)</th>
-                          <th class="p-3 text-right">Costo Total (\$)</th>
+                          <th class="p-3 text-right">P. Venta Usado ($)</th>
+                          <th class="p-3 text-right">Costo Total ($)</th>
                       </tr>
                   </thead>
                   <tbody id="modalIngredientesBody" class="divide-y divide-gray-100 font-medium">
@@ -989,12 +990,12 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
 
                   <div class="grid grid-cols-2 gap-3">
                       <div>
-                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Unitario (\$)</label>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Unitario ($)</label>
                           <input type="number" id="crearCostoUnitario" step="0.0001" min="0" placeholder="0.0000" required class="w-full p-2 border border-gray-300 rounded-md text-xs font-bold">
                       </div>
 
                       <div>
-                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Venta (\$)</label>
+                          <label class="block text-[11px] font-bold text-gray-500 uppercase mb-1">Costo Venta ($)</label>
                           <input type="number" id="crearPrecioVenta" step="0.0001" min="0" placeholder="0.0000" required class="w-full p-2 border border-gray-300 rounded-md text-xs font-bold text-[#123e1b]">
                       </div>
                   </div>
@@ -1653,6 +1654,10 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
                   <span class="user-item-icon" id="themeToggleIcon">☾</span>
                   <span id="themeToggleLabel">Modo oscuro</span>
                   <span class="theme-switch" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
+                </button>
+                <button type="button" class="user-item lang-btn" onclick="cambiarIdioma()">
+                  <span class="user-item-icon">🌐</span>
+                  <span>Cambiar idioma: <b>中文</b></span>
                 </button>
                 <div class="user-sep"></div>
                 <button type="button" class="user-item user-item-danger" onclick="ejecutarLogout()">⏻ Cerrar sesión</button>
@@ -3312,5 +3317,8 @@ body.theme-dark .user-item-danger:hover { background: #2a1a1c; }
     ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
   })();
   </script>
+
+  <!-- Script de traducción i18n Español ⇄ 中文 -->
+  <script src="i18n.js"></script>
 </body>
 </html>

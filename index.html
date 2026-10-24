@@ -432,6 +432,42 @@
             background: rgba(239, 68, 68, .12)
         }
 
+        /* ===== Botón de idioma ===== */
+        .lang-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 40px;
+            padding: 0 14px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            color: var(--tx);
+            font-weight: 700;
+            font-size: .86rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s, transform .2s var(--ease)
+        }
+
+        .lang-btn:hover {
+            border-color: var(--g4);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--g4) 18%, transparent)
+        }
+
+        .lang-btn:active {
+            transform: scale(.97)
+        }
+
+        .login-card .login-lang {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            height: 34px;
+            padding: 0 12px;
+            z-index: 3
+        }
+
         /* ===== Aviso de bienvenida ===== */
         .welcome-toast {
             position: fixed;
@@ -1279,6 +1315,8 @@
             </div>
         </div>
         <div class="header-actions">
+            <button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言"
+                aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button>
             <div class="user" id="userMenu">
                 <div id="userAuthContainer"></div>
                 <div class="umenu" id="userDropdown" role="menu" hidden>
@@ -1330,10 +1368,12 @@
                     <div class="dashboard-metrics cols-3">
                         <div class="metric-box" id="box-mod1-optimos" title="Productos con más de 30 días para vencer">
                             <span class="metric-title">Óptimos</span><span class="metric-value"
-                                id="val-mod1-optimos">0</span></div>
+                                id="val-mod1-optimos">0</span>
+                        </div>
                         <div class="metric-box" id="box-mod1-porvencer" title="Productos que vencen en 30 días o menos">
                             <span class="metric-title">Por Vencer</span><span class="metric-value"
-                                id="val-mod1-porvencer">0</span></div>
+                                id="val-mod1-porvencer">0</span>
+                        </div>
                         <div class="metric-box" id="box-mod1-vencidos"
                             title="Productos con fecha de vencimiento pasada"><span
                                 class="metric-title">Vencidos</span><span class="metric-value"
@@ -1358,10 +1398,12 @@
                     <div class="dashboard-metrics cols-3">
                         <div class="metric-box" id="box-mod2-pendientes" title="Empleados con deuda y ningún abono">
                             <span class="metric-title">Pend. Pago</span><span class="metric-value"
-                                id="val-mod2-pendientes">0</span></div>
+                                id="val-mod2-pendientes">0</span>
+                        </div>
                         <div class="metric-box" id="box-mod2-parciales" title="Empleados con deuda y abono parcial">
                             <span class="metric-title">Parciales</span><span class="metric-value"
-                                id="val-mod2-parciales">0</span></div>
+                                id="val-mod2-parciales">0</span>
+                        </div>
                         <div class="metric-box" id="box-mod2-porcobrar" title="Monto total pendiente de cobro"><span
                                 class="metric-title">Por Cobrar</span><span class="metric-value"
                                 id="val-mod2-porcobrar">$0</span></div>
@@ -1388,7 +1430,8 @@
                                 id="val-mod3-recetas">0</span></div>
                         <div class="metric-box" id="box-mod3-ingredientes" title="Insumos e ingredientes registrados">
                             <span class="metric-title">Ingredientes</span><span class="metric-value"
-                                id="val-mod3-ingredientes">0</span></div>
+                                id="val-mod3-ingredientes">0</span>
+                        </div>
                     </div>
                 </div>
                 <a href="recetarioycostos.html" class="btn-module"
@@ -1461,6 +1504,8 @@
 
     <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
         <div class="login-card" id="loginCard">
+            <button type="button" class="lang-btn login-lang" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言"
+                aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button>
 
             <div class="login-head stagger" style="--k:0">
                 <div class="login-logo">
@@ -2091,6 +2136,7 @@
             ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
         })();
     </script>
+    <script src="i18n.js"></script>
 </body>
 
 </html>

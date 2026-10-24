@@ -1675,6 +1675,42 @@
       padding: 6px 10px;
       font-size: .76rem
     }
+
+    /* ===== Botón de idioma ===== */
+    .lang-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--text);
+      font-weight: 700;
+      font-size: .86rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color .2s, box-shadow .2s, transform .2s var(--ease)
+    }
+
+    .lang-btn:hover {
+      border-color: var(--g);
+      box-shadow: 0 0 0 3px rgba(46, 125, 50, .15)
+    }
+
+    .lang-btn:active {
+      transform: scale(.97)
+    }
+
+    .login-card .login-lang {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      height: 34px;
+      padding: 0 12px;
+      z-index: 3
+    }
   </style>
 </head>
 
@@ -1687,6 +1723,8 @@
       <h1>Descuentos a Empleados</h1>
     </div>
     <div class="hright">
+      <button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言"
+        aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button>
       <div class="user" id="userMenu">
         <div id="userAuthContainer"></div>
         <div class="umenu" id="userDropdown" role="menu" hidden>
@@ -1845,7 +1883,7 @@
             <div class="f"><label>Código de barras</label><input id="manualArtBarras"></div>
             <div class="f"><label>Código interno</label><input id="manualArtInterno"></div>
             <div class="f wide"><label>Descripción</label><input id="manualArtDesc" required></div>
-            <div class="f"><label>Departamento</label><select id="manualArtDpto">
+            <div class="f"><label>Departamento</label><select id="manualArtDpto" data-no-i18n>
                 <option>Cocina Gourmet</option>
                 <option>Panadería</option>
                 <option>Frutería</option>
@@ -1917,6 +1955,8 @@
   <!-- MODAL DE SESIÓN -->
   <div id="loginModal" class="modal" style="z-index:9999;background:rgba(15,23,42,.75);backdrop-filter:blur(10px)">
     <div class="login-card" id="loginCard" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+      <button type="button" class="lang-btn login-lang" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言"
+        aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button>
       <div class="stagger" style="--k:0">
         <div class="login-logo"><img src="logo solo g.png" alt="" onerror="this.onerror=null;this.src='logo.png'"></div>
         <h3 id="loginTitle">Acceso al Sistema</h3>
@@ -2861,6 +2901,7 @@
       ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
     })();
   </script>
+  <script src="i18n.js"></script>
 </body>
 
 </html>
