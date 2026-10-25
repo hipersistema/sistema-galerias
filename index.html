@@ -182,6 +182,26 @@
             color: var(--g4)
         }
 
+        .titles h1 .version-tag {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 8px;
+            font-size: .62rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            vertical-align: middle;
+            color: var(--g7);
+            background: rgba(27, 122, 58, .12);
+            border: 1px solid rgba(27, 122, 58, .35);
+            border-radius: 999px
+        }
+
+        body.dark-mode .titles h1 .version-tag {
+            color: #fff;
+            background: rgba(34, 160, 76, .25);
+            border-color: rgba(34, 160, 76, .6)
+        }
+
         .header-actions {
             display: flex;
             align-items: center;
@@ -1411,7 +1431,7 @@
             <div class="logo-container"><img src="logo.png" alt="Galeria Hipermarket Logo"
                     onerror="this.onerror=null; this.src='logo.jpeg';"></div>
             <div class="titles"><span class="eyebrow">HIPERGALERIAS</span>
-                <h1>Sistema Centralizado de Gestión</h1>
+                <h1>Sistema Centralizado de Gestión <span class="version-tag" data-no-i18n>v1.0</span></h1>
             </div>
         </div>
         <div class="header-actions">
