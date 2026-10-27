@@ -1808,7 +1808,6 @@
             <input type="date" id="fechaHasta" style="width:auto">
             <button type="button" class="btn btn-dark" onclick="imprimirPlanillaHorizontal()">🖨️ Imprimir pase de
               salida</button>
-            <button type="button" class="btn btn-dark" onclick="exportarExcelAbonados()">📊 Exportar a Excel</button>
           </div>
         </div>
         <input type="text" id="inputFiltroEstado" placeholder="🔍 Filtrar por cédula o nombre..."
@@ -2359,24 +2358,13 @@
 
     function actualizarContadoresYTablas() {
       renderBases();
-      filtrarEstadoCuentas();
+      renderizarTablaDescuentosConsolidada(window.descuentos);
       sincronizarDashboardGlobal();
     }
 
-    // Lista de descuentos dentro del rango Desde/Hasta (y del texto del filtro)
-    function listaEstadoCuentas() {
-      const v = ($('inputFiltroEstado').value || '').toLowerCase();
-      const desde = $('fechaDesde').value, hasta = $('fechaHasta').value;
-      if (desde && hasta && desde > hasta) return [];
-      return window.descuentos.filter(d => {
-        const f = fechaISO(d.fecha);
-        if (desde && (!f || f < desde)) return false;
-        if (hasta && (!f || f > hasta)) return false;
-        return (d.nombreEmpleado || '').toLowerCase().includes(v) || String(d.cedula || '').toLowerCase().includes(v);
-      });
-    }
     function filtrarEstadoCuentas() {
-      renderizarTablaDescuentosConsolidada(listaEstadoCuentas());
+      const v = $('inputFiltroEstado').value.toLowerCase();
+      renderizarTablaDescuentosConsolidada(window.descuentos.filter(d => (d.nombreEmpleado || '').toLowerCase().includes(v) || String(d.cedula || '').toLowerCase().includes(v)));
     }
 
     function sugerir(boxId, items, build, pick) {
@@ -2652,7 +2640,7 @@
     const fechaISO = f => {
       const t = String(f || '').trim();
       let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-      if (m) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3];
+      if (m) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
       m = t.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
       if (m) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
       return '';
@@ -2692,33 +2680,6 @@
       }).join('');
       $('printResumen').textContent = 'Empleados: ' + new Set(filas.map(g => g.cedula)).size + '  ·  Unidades: ' + filas.reduce((a, g) => a + g.cant, 0);
       window.print();
-    }
-
-    // ===== EXPORTAR A EXCEL: cédula, nombre y abonado =====
-    function exportarExcelAbonados() {
-      if (typeof XLSX === 'undefined') return toast('No se cargó la librería de Excel. Revisa tu conexión.', true);
-      const cuentas = obtenerCuentasConsolidadas(listaEstadoCuentas());
-      if (!cuentas.length) return toast('No hay cuentas para exportar en el rango de fechas seleccionado', true);
-
-      const filas = [...cuentas]
-        .sort((a, b) => String(a.nombreEmpleado).localeCompare(String(b.nombreEmpleado), 'es'))
-        .map(c => ({
-          'Cédula': String(c.cedula),
-          'Nombre del trabajador': c.nombreEmpleado,
-          'Abonado': Number(c.totalAbonado.toFixed(2))
-        }));
-
-      const ws = XLSX.utils.json_to_sheet(filas);
-      ws['!cols'] = [{ wch: 14 }, { wch: 44 }, { wch: 14 }];
-      for (let r = 2; r <= filas.length + 1; r++) {
-        const celda = ws['C' + r];
-        if (celda) celda.z = '0.00';
-      }
-
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Abonados');
-      XLSX.writeFile(wb, 'abonados_' + today() + '.xlsx');
-      toast('Excel exportado: ' + filas.length + ' trabajador(es)');
     }
 
     function cerrarModalLogin() { closeM('loginModal'); document.body.style.overflow = ''; }
@@ -2775,7 +2736,6 @@
     $('fechaDesde').value = today();
     $('fechaHasta').value = today();
     $('fechaDesde').addEventListener('change', () => { if ($('fechaHasta').value < $('fechaDesde').value) $('fechaHasta').value = $('fechaDesde').value; });
-    ['fechaDesde', 'fechaHasta'].forEach(id => $(id).addEventListener('change', filtrarEstadoCuentas));
     $('manualFechaIngreso').value = today();
     window.onload = () => { actualizarContadoresYTablas(); iniciarSesion(); };
 
