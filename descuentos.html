@@ -1676,6 +1676,33 @@
       font-size: .76rem
     }
 
+    /* ===== Encabezados ordenables (estado de cuentas) ===== */
+    #tab-asignacion .tw th.sortable {
+      cursor: pointer;
+      user-select: none;
+      transition: background .2s
+    }
+
+    #tab-asignacion .tw th.sortable:hover {
+      background: var(--line)
+    }
+
+    #tab-asignacion .tw th.sortable::after {
+      content: " ⇅";
+      opacity: .35;
+      font-size: .8em
+    }
+
+    #tab-asignacion .tw th.sortable[data-dir="asc"]::after {
+      content: " ▲";
+      opacity: 1
+    }
+
+    #tab-asignacion .tw th.sortable[data-dir="desc"]::after {
+      content: " ▼";
+      opacity: 1
+    }
+
     /* ===== Botón de idioma ===== */
     .lang-btn {
       display: inline-flex;
@@ -2347,7 +2374,7 @@
     $('tablaEmpleados').addEventListener('click', e => { const b = e.target.closest('button[data-del-emp]'); if (b) solicitarClaveParaEliminarEmpleado(b.dataset.delEmp); });
 
     function renderizarTablaDescuentosConsolidada(lista) {
-      const cs = obtenerCuentasConsolidadas(lista);
+      const cs = ordenarCuentas(obtenerCuentasConsolidadas(lista));
       $('tablaDescuentos').innerHTML = cs.length ? cs.map((c, i) => {
         const liq = c.totalSaldo <= .01, par = !liq && c.totalAbonado > .01;
         const badge = liq ? '<span class="badge b-ok">LIQUIDADO</span>' : par ? '<span class="badge b-par">PARCIAL</span>' : '<span class="badge b-pend">PENDIENTE</span>';
@@ -2386,6 +2413,29 @@
       $('fechaDesde').value = '';
       $('fechaHasta').value = '';
       filtrarEstadoCuentas();
+    }
+
+    // ===== ORDENAR LA TABLA DE ESTADO DE CUENTAS (clic en el encabezado) =====
+    const ordenEstado = { col: -1, dir: 'asc' };
+    const ORDEN_COLS = [
+      { dir0: 'asc', txt: true, val: c => c.cedula },
+      { dir0: 'asc', txt: true, val: c => c.nombreEmpleado },
+      { dir0: 'desc', val: c => c.items.length },
+      { dir0: 'desc', val: c => fechaISO(c.ultimaFecha) },
+      { dir0: 'desc', val: c => c.totalDeuda },
+      { dir0: 'desc', val: c => c.totalAbonado },
+      { dir0: 'desc', val: c => c.totalSaldo },
+      { dir0: 'asc', val: c => c.totalSaldo <= .01 ? 2 : (c.totalAbonado > .01 ? 1 : 0) } // Pendiente, Parcial, Liquidado
+    ];
+    function ordenarCuentas(cs) {
+      const o = ORDEN_COLS[ordenEstado.col];
+      if (!o) return cs;
+      const m = ordenEstado.dir === 'asc' ? 1 : -1;
+      return cs.slice().sort((a, b) => {
+        const x = o.val(a), y = o.val(b);
+        const r = o.txt ? String(x).localeCompare(String(y), 'es', { numeric: true }) : (x < y ? -1 : x > y ? 1 : 0);
+        return r * m || String(a.nombreEmpleado).localeCompare(String(b.nombreEmpleado), 'es');
+      });
     }
 
     function sugerir(boxId, items, build, pick) {
@@ -2785,6 +2835,27 @@
     $('fechaHasta').value = today();
     $('fechaDesde').addEventListener('change', () => { if ($('fechaHasta').value < $('fechaDesde').value) $('fechaHasta').value = $('fechaDesde').value; });
     ['fechaDesde', 'fechaHasta'].forEach(id => $(id).addEventListener('change', filtrarEstadoCuentas));
+
+    // Encabezados ordenables: 1er clic orden inicial, 2do clic invertido, 3er clic quita el orden
+    (function () {
+      const ths = document.querySelectorAll('#tab-asignacion .tw thead th');
+      ths.forEach((th, i) => {
+        const o = ORDEN_COLS[i];
+        if (!o) return;
+        th.classList.add('sortable');
+        th.tabIndex = 0;
+        th.title = 'Clic para ordenar';
+        const ordenar = () => {
+          if (ordenEstado.col !== i) { ordenEstado.col = i; ordenEstado.dir = o.dir0; }
+          else if (ordenEstado.dir === o.dir0) ordenEstado.dir = o.dir0 === 'asc' ? 'desc' : 'asc';
+          else ordenEstado.col = -1;
+          ths.forEach((t, j) => { if (j === ordenEstado.col) t.dataset.dir = ordenEstado.dir; else delete t.dataset.dir; });
+          filtrarEstadoCuentas();
+        };
+        th.addEventListener('click', ordenar);
+        th.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ordenar(); } });
+      });
+    })();
     $('manualFechaIngreso').value = today();
     window.onload = () => { actualizarContadoresYTablas(); iniciarSesion(); };
 
