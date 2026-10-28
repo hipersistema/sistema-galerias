@@ -1798,6 +1798,7 @@
       <button class="tab active" data-tab="asignacion">✍️ Asignación</button>
       <button class="tab" data-tab="empleados">👥 Empleados (<span id="countEmpleados">0</span>)</button>
       <button class="tab" data-tab="articulos">🛒 Artículos (<span id="countArticulos">0</span>)</button>
+      <button class="tab" id="tabRrhh" data-tab="rrhh">🧾 RRHH DESC</button>
     </nav>
 
     <!-- ASIGNACIÓN -->
@@ -1873,8 +1874,7 @@
           <form id="formAddEmpleado" onsubmit="agregarEmpleadoManual(event)" class="grid">
             <div class="f"><label>Cédula</label><input id="manualCedula" required></div>
             <div class="f wide"><label>Nombre completo</label><input id="manualNombre" required></div>
-            <div class="f"><label>Cargo / puesto</label><input id="manualCargo" value="GENERAL"
-                style="text-transform:uppercase"></div>
+            <div class="f"><label>Cargo / puesto</label><select id="manualCargo" data-no-i18n></select></div>
             <div class="f"><label>Fecha de ingreso</label><input type="date" id="manualFechaIngreso"></div>
             <div><button type="submit" class="btn btn-dark">Registrar empleado</button></div>
           </form>
@@ -1890,6 +1890,7 @@
                 <th>Nombre completo</th>
                 <th>Cargo / puesto</th>
                 <th>Fecha ingreso</th>
+                <th>Tope máx.</th>
                 <th>Acción</th>
               </tr>
             </thead>
@@ -1940,6 +1941,49 @@
         <div class="pager" id="pagerArt"></div>
       </div>
     </div>
+
+    <!-- RRHH DESC -->
+    <div id="tab-rrhh" class="panel">
+      <div class="card">
+        <div class="shead">
+          <h3>🧾 Descuentos de nómina (RRHH)</h3>
+          <div class="row">
+            <label for="selNomina">📅 Nómina</label>
+            <select id="selNomina" style="width:auto" data-no-i18n onchange="renderRrhh()"></select>
+          </div>
+        </div>
+        <div class="sub" id="rrhhInfo"></div>
+        <section class="stats" style="margin-top:0">
+          <div class="stat"><i>👥</i>
+            <div><small>Trabajadores a descontar</small><b id="rrhhN">0</b></div>
+          </div>
+          <div class="stat"><i>💵</i>
+            <div><small>Total a descontar</small><b id="rrhhTotal">$0.00</b></div>
+          </div>
+          <div class="stat"><i>⏭️</i>
+            <div><small>Pasa a la próxima quincena</small><b id="rrhhNext">$0.00</b></div>
+          </div>
+        </section>
+        <input type="text" id="filtroRrhh" placeholder="🔍 Filtrar por cédula o nombre..." oninput="renderRrhh()"
+          style="margin-bottom:14px">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Cédula</th>
+                <th>Empleado</th>
+                <th>Cargo</th>
+                <th>Ítems en corte</th>
+                <th>A descontar</th>
+                <th>Pasa a próx. quincena</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="tablaRrhh"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- MODAL CLAVE -->
@@ -1977,6 +2021,29 @@
         <button class="btn btn-out" onclick="eliminarCuentaConsolidada()">🗑️ Eliminar cuenta completa</button>
         <button class="btn btn-gray" onclick="closeM('modalDescuento')">Cancelar</button>
         <button class="btn btn-dark" id="btnProcesarAbono" onclick="procesarAbonoModal()">💾 Procesar descuento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR EMPLEADO -->
+  <div id="modalEditEmpleado" class="modal">
+    <div class="mcard" style="width:480px">
+      <h3>✏️ Editar empleado</h3>
+      <div class="sub">Cambia el cargo, el nombre o la fecha de ingreso. El tope de endeudamiento se ajusta solo.</div>
+      <div class="f" style="margin-bottom:12px"><label for="editCedula">Cédula</label><input id="editCedula"
+          class="ro-g" readonly></div>
+      <div class="f" style="margin-bottom:12px"><label for="editNombre">Nombre completo</label><input id="editNombre">
+      </div>
+      <div class="grid">
+        <div class="f"><label for="editCargo">Cargo / puesto</label><select id="editCargo" data-no-i18n
+            onchange="actualizarTopeEdicion()"></select></div>
+        <div class="f"><label for="editFechaIngreso">Fecha de ingreso</label><input type="date" id="editFechaIngreso"
+            onchange="actualizarTopeEdicion()"></div>
+      </div>
+      <div class="sub" id="editTopeInfo" style="margin:14px 0 0"></div>
+      <div class="acts">
+        <button class="btn btn-gray" onclick="closeM('modalEditEmpleado')">Cancelar</button>
+        <button class="btn btn-dark" id="btnGuardarEmp" onclick="guardarEdicionEmpleado()">💾 Guardar cambios</button>
       </div>
     </div>
   </div>
@@ -2368,7 +2435,7 @@
       const le = window.empleados.filter(e => (e.cedula + ' ' + e.nombre).toLowerCase().includes(fe));
       pagEmp = Math.min(Math.max(pagEmp, 1), Math.ceil(le.length / POR_PAG) || 1);
       const ve = le.slice((pagEmp - 1) * POR_PAG, pagEmp * POR_PAG);
-      $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td>' + ((pagEmp - 1) * POR_PAG + i + 1) + '</td><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(fmtFecha(e.fechaIngreso)) + '</td><td><button class="btn btn-out btn-sm" data-del-emp="' + esc(e.cedula) + '">🗑️</button></td></tr>').join('') : '<tr><td colspan="6" class="empty">Aún no hay empleados registrados.</td></tr>';
+      $('tablaEmpleados').innerHTML = ve.length ? ve.map((e, i) => '<tr ' + delay(i) + '><td>' + ((pagEmp - 1) * POR_PAG + i + 1) + '</td><td><strong>' + esc(e.cedula) + '</strong></td><td>' + esc(e.nombre) + '</td><td>' + esc(normCargo(e.cargo)) + '</td><td>' + esc(fmtFecha(e.fechaIngreso)) + '</td><td>' + topeTexto(e) + '</td><td><button class="btn btn-gray btn-sm" data-edit-emp="' + esc(e.cedula) + '" title="Editar empleado">✏️</button> <button class="btn btn-out btn-sm" data-del-emp="' + esc(e.cedula) + '">🗑️</button></td></tr>').join('') : '<tr><td colspan="7" class="empty">Aún no hay empleados registrados.</td></tr>';
       pager('pagerEmp', le.length, pagEmp, 'irPagEmp');
     }
     $('tablaEmpleados').addEventListener('click', e => { const b = e.target.closest('button[data-del-emp]'); if (b) solicitarClaveParaEliminarEmpleado(b.dataset.delEmp); });
@@ -2388,6 +2455,7 @@
     function actualizarContadoresYTablas() {
       renderBases();
       filtrarEstadoCuentas();
+      renderRrhh();
       sincronizarDashboardGlobal();
     }
 
@@ -2541,6 +2609,18 @@
       if (!lineas.length) return toast('Agrega al menos un producto a la tanda', true);
       const mala = lineas.find(l => l.total <= 0);
       if (mala) return toast('"' + mala.producto + '": el total debe ser mayor a $0. Ingresa su precio base.', true);
+
+      // Tope de endeudamiento por cargo: si se pasa, alerta y exige autorización gerencial
+      const autorizadoTope = window._topeAutorizado === cedula;
+      window._topeAutorizado = null;
+      if (!autorizadoTope) {
+        const ex = evaluarTope(cedula, lineas.reduce((a, l) => a + l.total, 0));
+        if (ex) {
+          if (!confirm(ex.mensaje + '\n\nPara asignar esta deuda se requiere autorización gerencial. ¿Solicitarla ahora?')) return;
+          pedirClaveGerencial(() => { window._topeAutorizado = cedula; $('formDescuento').requestSubmit(); });
+          return;
+        }
+      }
 
       const fecha = today();
       const filas = lineas.map(l => ({
@@ -2935,6 +3015,221 @@
       return m ? m[1] : s;
     }
     reiniciarLineas();
+
+    // ===== CARGOS, TOPES DE ENDEUDAMIENTO, EDICIÓN DE EMPLEADOS Y RRHH DESC =====
+    (function () {
+      // --- Configuración (edítala aquí si cambian las reglas) ---
+      const CARGOS = ['GERENTE', 'GENERAL', 'ASEADOR', 'RRHH', 'COCINERO', 'SOPORTE TECNICO', 'SISTEMAS',
+        'TECNICO DE MANTENIMIENTO', 'AUXILIAR DE FARMACIA', 'REGENTE', 'CARNICERO', 'CHARCUTERO', 'DESPACHADORA',
+        'CAJERA', 'PASILLERO', 'INSPECTOR DE SEGURIDAD', 'MARKETING', 'OPERADOR CUARTO DE CONTROL',
+        'SUPERVISORA DE CAJA', 'SUPERVISOR DE PASILLO', 'SUPERVISOR DE SEGURIDAD', 'ANALISTA CONTABLE',
+        'ADMINISTRADOR', 'MONTACARGUISTA', 'SUPERVISOR DE ALMACEN', 'ANALISTA DE TESORERIA',
+        'MANIPULADOR DE FRULEVER', 'SUPERVISOR DE FRULEVER', 'PANADERO', 'SUPERVISOR DE PANADERIA',
+        'AYUDANTE DE PANADERIA', 'ANALISTA DE INVENTARIO', 'ANALISTA DE RECEPCION', 'AYUDANTE DE COCINA',
+        'AYUDANTE DE REPOSTERIA', 'REPOSTERO', 'ALMACENISTA', 'VENDEDORA', 'PROMOTORA', 'ANFITRIONA'];
+      const CARGOS_SIN_TOPE = ['GERENTE'];
+      const TOPE_GENERAL = 50, TOPE_NUEVO = 10, MESES_NUEVO = 2;
+      const PAGO_Q1 = 15, PAGO_Q2 = 30, CORTE_Q1 = 12, CORTE_Q2 = 27;
+
+      const usd = n => '$' + Number(n).toFixed(2);
+      const iso = (y, m, d) => y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+
+      // --- Desplegable de cargos ---
+      function llenarSelectCargos(sel, actual) {
+        const lista = CARGOS.slice();
+        if (actual && !lista.includes(actual)) lista.unshift(actual);
+        sel.innerHTML = '';
+        lista.forEach(c => sel.add(new Option(c, c, c === 'GENERAL', c === 'GENERAL')));
+        if (actual) sel.value = actual;
+      }
+      llenarSelectCargos($('manualCargo'));
+
+      // --- Tope de endeudamiento ---
+      function topeEmpleado(emp) {
+        const cargo = normCargo(emp && emp.cargo);
+        if (CARGOS_SIN_TOPE.includes(cargo)) return { tope: Infinity, nuevo: false };
+        const f = fechaISO(emp && emp.fechaIngreso);
+        if (f) {
+          const d = new Date(f + 'T00:00:00');
+          d.setMonth(d.getMonth() + MESES_NUEVO);
+          if (today() < iso(d.getFullYear(), d.getMonth() + 1, d.getDate())) return { tope: TOPE_NUEVO, nuevo: true };
+        }
+        return { tope: TOPE_GENERAL, nuevo: false };
+      }
+
+      window.topeTexto = function (emp) {
+        const t = topeEmpleado(emp);
+        if (t.tope === Infinity) return '<span class="badge b-ok">Ilimitado</span>';
+        return '<span class="count">' + usd(t.tope) + '</span>' + (t.nuevo ? ' <span class="badge b-par">Nuevo ingreso</span>' : '');
+      };
+
+      window.evaluarTope = function (cedula, nuevo) {
+        const emp = window.empleados.find(e => String(e.cedula).trim() === String(cedula).trim());
+        const t = topeEmpleado(emp);
+        if (t.tope === Infinity) return null;
+        const actual = window.descuentos
+          .filter(d => String(d.cedula || '').trim() === String(cedula).trim())
+          .reduce((a, d) => a + num(d.saldoPendiente ?? d.totalADeber), 0);
+        const total = actual + nuevo;
+        if (total <= t.tope + .001) return null;
+        return {
+          mensaje: '⚠️ TOPE DE ENDEUDAMIENTO EXCEDIDO\n\n' +
+            'Empleado: ' + (emp ? emp.nombre : cedula) + ' (' + normCargo(emp && emp.cargo) + ')\n' +
+            'Tope máximo: ' + usd(t.tope) + (t.nuevo ? ' (nuevo ingreso)' : '') + '\n' +
+            'Deuda pendiente actual: ' + usd(actual) + '\n' +
+            'Esta tanda: ' + usd(nuevo) + '\n' +
+            'Total resultante: ' + usd(total) + '\n' +
+            'Exceso: ' + usd(total - t.tope)
+        };
+      };
+
+      // --- Editar empleado ---
+      window.actualizarTopeEdicion = function () {
+        const t = topeEmpleado({ cargo: $('editCargo').value, fechaIngreso: $('editFechaIngreso').value });
+        $('editTopeInfo').innerHTML = 'Tope de endeudamiento: <strong>' +
+          (t.tope === Infinity ? 'Ilimitado' : usd(t.tope) + (t.nuevo ? ' (nuevo ingreso)' : '')) + '</strong>';
+      };
+
+      window.abrirEditarEmpleado = function (ced) {
+        const e = window.empleados.find(x => String(x.cedula) === String(ced));
+        if (!e) return;
+        $('editCedula').value = e.cedula;
+        $('editNombre').value = e.nombre;
+        llenarSelectCargos($('editCargo'), normCargo(e.cargo));
+        $('editFechaIngreso').value = fechaISO(e.fechaIngreso);
+        actualizarTopeEdicion();
+        openM('modalEditEmpleado');
+        setTimeout(() => $('editNombre').focus(), 80);
+      };
+
+      window.guardarEdicionEmpleado = async function () {
+        const ced = $('editCedula').value;
+        const e = window.empleados.find(x => String(x.cedula) === String(ced));
+        if (!e) return;
+        const nombre = $('editNombre').value.trim();
+        if (!nombre) return toast('El nombre no puede quedar vacío', true);
+        const cargo = normCargo($('editCargo').value);
+        const fecha = $('editFechaIngreso').value;
+        const btn = $('btnGuardarEmp');
+        btn.disabled = true;
+        try {
+          if (hayDB()) {
+            const cambios = { nombre_apellido: nombre, cargo };
+            if (fecha) cambios.fecha_ingreso = fecha;
+            const { data, error } = await supabaseClient.from('empleados').update(cambios).eq('cedula', ced).select();
+            if (error) { console.error(error); toast('No se pudo actualizar el empleado: ' + error.message, true); return; }
+            if (!data || !data.length) { toast('No se actualizó ningún registro. Revisa los permisos de la tabla empleados.', true); return; }
+          }
+          e.nombre = nombre; e.cargo = cargo; e.fechaIngreso = fecha || e.fechaIngreso;
+          closeM('modalEditEmpleado');
+          actualizarContadoresYTablas();
+          toast('Empleado actualizado');
+        } finally {
+          btn.disabled = false;
+        }
+      };
+
+      $('tablaEmpleados').addEventListener('click', e => {
+        const b = e.target.closest('button[data-edit-emp]');
+        if (b) pedirClaveGerencial(() => abrirEditarEmpleado(b.dataset.editEmp));
+      });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeM('modalEditEmpleado'); });
+
+      // --- Quincenas y fecha de corte ---
+      function fechasNomina(y, m) {
+        const ultimo = new Date(y, m, 0).getDate();
+        return [
+          { pago: iso(y, m, PAGO_Q1), corte: iso(y, m, CORTE_Q1) },
+          { pago: iso(y, m, Math.min(PAGO_Q2, ultimo)), corte: iso(y, m, CORTE_Q2) }
+        ];
+      }
+      function listaNominas() {
+        const h = new Date(), out = [];
+        for (let k = -1; k <= 1; k++) {
+          const d = new Date(h.getFullYear(), h.getMonth() + k, 1);
+          out.push(...fechasNomina(d.getFullYear(), d.getMonth() + 1));
+        }
+        return out;
+      }
+      function pagoSiguiente(nom) {
+        const [y, m, d] = nom.pago.split('-').map(Number);
+        if (d === PAGO_Q1) return fechasNomina(y, m)[1].pago;
+        return (m === 12 ? fechasNomina(y + 1, 1) : fechasNomina(y, m + 1))[0].pago;
+      }
+
+      // --- Pestaña RRHH DESC ---
+      window.renderRrhh = function () {
+        const sel = $('selNomina');
+        if (!sel || !sel.value) return;
+        const nom = listaNominas().find(n => n.pago === sel.value);
+        if (!nom) return;
+        const v = ($('filtroRrhh').value || '').toLowerCase();
+        const cargos = {};
+        window.empleados.forEach(e => { cargos[String(e.cedula).trim()] = normCargo(e.cargo); });
+
+        const m = {};
+        window.descuentos.forEach(d => {
+          const s = num(d.saldoPendiente ?? d.totalADeber);
+          if (s <= .001) return;
+          const c = String(d.cedula || '').trim();
+          const f = fechaISO(d.fecha);
+          const g = m[c] = m[c] || { cedula: c, nombre: d.nombreEmpleado || '', items: 0, desc: 0, next: 0 };
+          if (!f || f <= nom.corte) { g.desc += s; g.items++; } else g.next += s;
+        });
+
+        const todos = Object.values(m).filter(g => g.desc > .01 || g.next > .01);
+        const aDescontar = todos.filter(g => g.desc > .01);
+        $('rrhhN').textContent = aDescontar.length;
+        $('rrhhTotal').textContent = usd(todos.reduce((a, g) => a + g.desc, 0));
+        $('rrhhNext').textContent = usd(todos.reduce((a, g) => a + g.next, 0));
+        $('rrhhInfo').innerHTML = 'Se descuentan las compras hechas hasta el <strong>' + esc(fmtFecha(nom.corte)) +
+          '</strong> (incluido). Lo comprado después pasa a la nómina del <strong>' + esc(fmtFecha(pagoSiguiente(nom))) + '</strong>.';
+
+        const filas = todos
+          .filter(g => (g.nombre + ' ' + g.cedula).toLowerCase().includes(v))
+          .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es'));
+
+        $('tablaRrhh').innerHTML = filas.length ? filas.map((g, i) => {
+          const btn = g.desc > .01
+            ? '<button class="btn btn-amber btn-sm" data-rrhh-ced="' + esc(g.cedula) + '" data-rrhh-monto="' + g.desc.toFixed(2) + '">🛡️ Descontar</button>'
+            : '—';
+          return '<tr ' + delay(i) + '><td><strong>' + esc(g.cedula) + '</strong></td><td><strong>' + esc(g.nombre) + '</strong></td><td>' +
+            esc(cargos[g.cedula] || '—') + '</td><td><span class="count">' + g.items + ' prod.</span></td><td>' +
+            (g.desc > .01 ? '<span class="saldo">' + usd(g.desc) + '</span>' : '$0.00') + '</td><td>' + usd(g.next) + '</td><td>' + btn + '</td></tr>';
+        }).join('') : '<tr><td colspan="7" class="empty">No hay descuentos pendientes para esta nómina.</td></tr>';
+      };
+
+      // El botón abre el modal de descuento de siempre, con el monto del corte ya cargado
+      $('tablaRrhh').addEventListener('click', e => {
+        const b = e.target.closest('button[data-rrhh-ced]');
+        if (!b) return;
+        const ced = b.dataset.rrhhCed, monto = num(b.dataset.rrhhMonto);
+        currentCedula = ced;
+        pedirClaveGerencial(async () => {
+          await abrirModalDescuento(ced);
+          $('modalMontoPersonalizado').value = monto.toFixed(2);
+        });
+      });
+
+      // Selector de nómina: por defecto la próxima
+      (function () {
+        const hoy = today(), noms = listaNominas();
+        const prox = noms.find(n => n.pago >= hoy) || noms[noms.length - 1];
+        $('selNomina').innerHTML = noms.map(n =>
+          '<option value="' + n.pago + '">Nómina del ' + fmtFecha(n.pago) + (n === prox ? ' (próxima)' : '') + '</option>').join('');
+        $('selNomina').value = prox.pago;
+      })();
+
+      // Seguridad visual entre pestañas (incluida Análisis) y ubicación de RRHH DESC al final
+      document.querySelector('.tabs').addEventListener('click', e => {
+        const t = e.target.closest('.tab');
+        if (t && t.dataset.tab !== 'rrhh') { $('tab-rrhh').classList.remove('active'); $('tabRrhh').classList.remove('active'); }
+      });
+      window.addEventListener('load', () => setTimeout(() => {
+        const nav = document.querySelector('.tabs'), t = $('tabRrhh');
+        if (nav && t) nav.appendChild(t);
+      }, 0));
+    })();
 
     // ===== LOGIN MEJORADO =====
     (function () {
