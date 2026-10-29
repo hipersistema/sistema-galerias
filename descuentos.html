@@ -1854,7 +1854,6 @@
                 <th>Abonado</th>
                 <th>Saldo pendiente</th>
                 <th>Estatus</th>
-                <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="tablaDescuentos"></tbody>
@@ -1950,6 +1949,7 @@
           <div class="row">
             <label for="selNomina">📅 Nómina</label>
             <select id="selNomina" style="width:auto" data-no-i18n onchange="renderRrhh()"></select>
+            <button type="button" class="btn btn-dark" id="btnRecibosPanel" onclick="imprimirRecibosDelDia()">🖨️ Recibos del día (0)</button>
           </div>
         </div>
         <div class="sub" id="rrhhInfo"></div>
@@ -2021,6 +2021,18 @@
         <button class="btn btn-out" onclick="eliminarCuentaConsolidada()">🗑️ Eliminar cuenta completa</button>
         <button class="btn btn-gray" onclick="closeM('modalDescuento')">Cancelar</button>
         <button class="btn btn-dark" id="btnProcesarAbono" onclick="procesarAbonoModal()">💾 Procesar descuento</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL RECIBO DE DESCUENTO -->
+  <div id="modalRecibo" class="modal">
+    <div class="mcard" style="width:440px">
+      <div id="reciboContenido"></div>
+      <div class="acts" style="flex-wrap:wrap">
+        <button class="btn btn-gray" onclick="closeM('modalRecibo')">Cerrar</button>
+        <button class="btn btn-dark" onclick="imprimirReciboActual()">🖨️ Imprimir este recibo</button>
+        <button class="btn btn-amber" id="btnReciboDia" onclick="imprimirRecibosDelDia()">🖨️ Imprimir todos los del día (0)</button>
       </div>
     </div>
   </div>
@@ -2445,9 +2457,8 @@
       $('tablaDescuentos').innerHTML = cs.length ? cs.map((c, i) => {
         const liq = c.totalSaldo <= .01, par = !liq && c.totalAbonado > .01;
         const badge = liq ? '<span class="badge b-ok">LIQUIDADO</span>' : par ? '<span class="badge b-par">PARCIAL</span>' : '<span class="badge b-pend">PENDIENTE</span>';
-        const btn = '<button class="btn ' + (liq ? 'btn-gray' : 'btn-amber') + ' btn-sm" data-ced="' + esc(c.cedula) + '">' + (liq ? '🔍 Ver detalle' : '🛡️ Descontar (' + c.items.length + ')') + '</button>';
-        return '<tr ' + delay(i) + '><td><strong>' + esc(c.cedula) + '</strong></td><td><strong>' + esc(c.nombreEmpleado) + '</strong></td><td><span class="count">' + c.items.length + ' prod.</span></td><td>' + esc(fmtFecha(c.ultimaFecha)) + '</td><td>$' + c.totalDeuda.toFixed(2) + '</td><td>$' + c.totalAbonado.toFixed(2) + '</td><td><span class="saldo">$' + c.totalSaldo.toFixed(2) + '</span></td><td>' + badge + '</td><td>' + btn + '</td></tr>';
-      }).join('') : '<tr><td colspan="9" class="empty">Aún no hay cuentas activas.</td></tr>';
+        return '<tr ' + delay(i) + '><td><strong>' + esc(c.cedula) + '</strong></td><td><strong>' + esc(c.nombreEmpleado) + '</strong></td><td><span class="count">' + c.items.length + ' prod.</span></td><td>' + esc(fmtFecha(c.ultimaFecha)) + '</td><td>$' + c.totalDeuda.toFixed(2) + '</td><td>$' + c.totalAbonado.toFixed(2) + '</td><td><span class="saldo">$' + c.totalSaldo.toFixed(2) + '</span></td><td>' + badge + '</td></tr>';
+      }).join('') : '<tr><td colspan="8" class="empty">Aún no hay cuentas activas.</td></tr>';
     }
     $('tablaDescuentos').addEventListener('click', e => { const b = e.target.closest('button[data-ced]'); if (b) solicitarClaveParaDescontar(b.dataset.ced); });
     $('modalContenedorDetalleItems').addEventListener('click', e => { const b = e.target.closest('button[data-del-id]'); if (b) eliminarRegistroItem(b.dataset.delId); });
@@ -3229,6 +3240,144 @@
         const nav = document.querySelector('.tabs'), t = $('tabRrhh');
         if (nav && t) nav.appendChild(t);
       }, 0));
+    })();
+
+    // ===== RECIBO DE DESCUENTO POR NÓMINA =====
+    (function () {
+      const KEY = 'hipergalerias_recibos_dia';
+      const usd = n => '$' + Number(n).toFixed(2);
+      const logoURL = () => new URL('logo.png', location.href).href;
+
+      const RCB_CSS = `
+        .rcb{background:#fff;color:#111;border:1px solid #d7dee5;border-radius:12px;padding:16px 18px;font-family:'Inter',Arial,sans-serif;font-size:13px;line-height:1.35;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        .rcb *{box-sizing:border-box}
+        .rcb .rh{display:flex;align-items:center;gap:10px;border-bottom:2px solid #123e1b;padding-bottom:8px;margin-bottom:8px}
+        .rcb .rh img{height:34px}
+        .rcb .rh b{display:block;font-size:13px;color:#123e1b}
+        .rcb .rh small{color:#555;font-size:11px}
+        .rcb .rt{text-align:center;font-weight:800;font-size:12px;letter-spacing:.04em;margin:6px 0 8px}
+        .rcb .rr{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+        .rcb .rr span{color:#555}
+        .rcb .rr b{text-align:right}
+        .rcb hr{border:0;border-top:1px dashed #9aa5b1;margin:8px 0}
+        .rcb .rs{font-weight:800;font-size:11px;color:#123e1b;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+        .rcb .ri{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:3px 0;border-bottom:1px dotted #e1e6ea}
+        .rcb .ri small{display:block;color:#666;font-size:11px}
+        .rcb .tot{display:flex;justify-content:space-between;font-weight:800;font-size:14px;padding:3px 0}
+        .rcb .tot.sal{color:#b45309}
+        .rcb .nota{margin-top:8px;font-size:11px;color:#444;text-align:center}
+        .rcb .firma{margin-top:24px;border-top:1px solid #111;text-align:center;font-size:11px;padding-top:3px}`;
+      const PRINT_CSS = `
+        @page{size:A4 portrait;margin:10mm}
+        html,body{margin:0;background:#fff}
+        .pg{display:grid;grid-template-columns:1fr 1fr;gap:8mm;align-items:start}
+        .rcb{break-inside:avoid;border:1px dashed #666;border-radius:0}`;
+
+      const st = document.createElement('style');
+      st.textContent = RCB_CSS + '#reciboContenido .rcb{max-width:380px;margin:0 auto}';
+      document.head.appendChild(st);
+
+      let recibos = [], actual = null, enCurso = false;
+      try { const o = JSON.parse(localStorage.getItem(KEY)); if (o && o.fecha === today() && Array.isArray(o.lista)) recibos = o.lista; } catch (e) { }
+      const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify({ fecha: today(), lista: recibos })); } catch (e) { } };
+      function actualizarContadores() {
+        const n = recibos.length;
+        const a = $('btnReciboDia'), b = $('btnRecibosPanel');
+        if (a) a.textContent = '🖨️ Imprimir todos los del día (' + n + ')';
+        if (b) b.textContent = '🖨️ Recibos del día (' + n + ')';
+      }
+
+      function htmlRecibo(r, logo) {
+        const items = r.items.map(i =>
+          '<div class="ri"><div>' + esc(i.desc) + '<small>x' + esc(i.cant) + ' · compra ' + esc(fmtFecha(i.fechaCompra)) + '</small></div><b>' + usd(i.descontado) + '</b></div>').join('');
+        const nota = r.saldo <= .01 ? '✔ Su cuenta quedó liquidada.' : 'El saldo pendiente se descontará en las próximas nóminas.';
+        return '<div class="rcb">' +
+          '<div class="rh"><img src="' + esc(logo) + '" alt="" onerror="this.onerror=null;this.src=this.src.replace(\'logo.png\',\'logo.jpeg\')"><div><b>Hipergalerias C.A.</b><small>Descuentos a empleados</small></div></div>' +
+          '<div class="rt">RECIBO DE DESCUENTO POR NÓMINA</div>' +
+          '<div class="rr"><span>Fecha</span><b>' + esc(fmtFecha(r.fecha)) + ' · ' + esc(r.hora) + '</b></div>' +
+          '<div class="rr"><span>Trabajador</span><b>' + esc(r.nombre) + '</b></div>' +
+          '<div class="rr"><span>Cédula</span><b>' + esc(r.cedula) + '</b></div>' +
+          '<div class="rr"><span>Cargo</span><b>' + esc(r.cargo) + '</b></div>' +
+          '<hr><div class="rs">Detalle descontado</div>' + items + '<hr>' +
+          '<div class="tot"><span>Total descontado</span><span>' + usd(r.total) + '</span></div>' +
+          '<div class="tot sal"><span>Saldo pendiente</span><span>' + usd(r.saldo) + '</span></div>' +
+          '<div class="nota">' + nota + '</div>' +
+          '<div class="firma">Firma del trabajador</div></div>';
+      }
+
+      function construirRecibo(ced, antes) {
+        const cuenta = window.descuentos.filter(d => String(d.cedula) === String(ced));
+        const items = [];
+        cuenta.forEach(d => {
+          const ab0 = antes.get(String(d.id));
+          if (ab0 === undefined) return;
+          const inc = num(d.abonado) - ab0;
+          if (inc > .004) items.push({
+            desc: d.descripcionArticulo || parseProducto(d.producto).desc,
+            cant: d.cantidad || 1, fechaCompra: d.fecha, descontado: inc
+          });
+        });
+        if (!items.length) return null;
+        items.sort((a, b) => String(fechaISO(a.fechaCompra)).localeCompare(String(fechaISO(b.fechaCompra))));
+        const emp = window.empleados.find(e => String(e.cedula).trim() === String(ced).trim());
+        return {
+          fecha: today(),
+          hora: new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' }),
+          cedula: String(ced),
+          nombre: (emp && emp.nombre) || (cuenta[0] && cuenta[0].nombreEmpleado) || '',
+          cargo: emp ? normCargo(emp.cargo) : '—',
+          items,
+          total: items.reduce((a, i) => a + i.descontado, 0),
+          saldo: cuenta.reduce((a, d) => a + num(d.saldoPendiente ?? d.totalADeber), 0)
+        };
+      }
+
+      function mostrarRecibo(r) {
+        actual = r;
+        $('reciboContenido').innerHTML = htmlRecibo(r, logoURL());
+        actualizarContadores();
+        openM('modalRecibo');
+      }
+
+      // Impresión aislada en un iframe (no toca la impresión del pase de salida)
+      function imprimir(lista) {
+        if (!lista.length) return toast('No hay recibos para imprimir', true);
+        const logo = logoURL();
+        const html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Recibos de descuento</title><style>' +
+          RCB_CSS + PRINT_CSS + '</style></head><body><div class="pg">' +
+          lista.map(r => htmlRecibo(r, logo)).join('') +
+          '</div><script>window.onload=function(){setTimeout(function(){window.focus();window.print();},200)}<\/script></body></html>';
+        const f = document.createElement('iframe');
+        f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0';
+        document.body.appendChild(f);
+        f.contentDocument.open(); f.contentDocument.write(html); f.contentDocument.close();
+        setTimeout(() => f.remove(), 60000);
+      }
+      window.imprimirReciboActual = () => { if (actual) imprimir([actual]); };
+      window.imprimirRecibosDelDia = () => imprimir(recibos);
+
+      // Se envuelve el procesamiento: la lógica original corre intacta y el recibo se arma comparando antes y después
+      const procesarOriginal = procesarAbonoModal;
+      window.procesarAbonoModal = async function () {
+        if (enCurso) return procesarOriginal();
+        const ced = currentCedula;
+        const antes = new Map();
+        if (ced) window.descuentos.forEach(d => { if (String(d.cedula) === String(ced)) antes.set(String(d.id), num(d.abonado)); });
+        enCurso = true;
+        try {
+          await procesarOriginal();
+        } finally {
+          enCurso = false;
+        }
+        if (!ced) return;
+        try {
+          const r = construirRecibo(ced, antes);
+          if (r) { recibos.push(r); guardar(); mostrarRecibo(r); }
+        } catch (e) { console.error('No se pudo generar el recibo:', e); }
+      };
+
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeM('modalRecibo'); });
+      actualizarContadores();
     })();
 
     // ===== LOGIN MEJORADO =====
