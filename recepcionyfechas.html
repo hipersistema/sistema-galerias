@@ -1131,6 +1131,56 @@
             border-bottom: 0;
         }
 
+        /* ===== Stock real (MySQL / NewPosline) ===== */
+        td.stk {
+            min-width: 150px;
+            line-height: 1.3;
+        }
+
+        .stk-total {
+            font-size: .95rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stk-total.pos {
+            color: var(--ok);
+        }
+
+        .stk-total.neg {
+            color: var(--red-text);
+        }
+
+        .stk-total.cero {
+            color: var(--muted);
+        }
+
+        .stk-det {
+            display: block;
+            margin-top: 2px;
+            font-size: .7rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-align: left;
+        }
+
+        .stk-det b {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stk-det b.pos {
+            color: var(--ok);
+        }
+
+        .stk-det b.neg {
+            color: var(--red-text);
+        }
+
+        .stk-na {
+            color: var(--muted);
+            font-weight: 700;
+        }
+
         /* Esqueleto de carga */
         .skel {
             display: block;
@@ -2073,7 +2123,8 @@
             <div class="card table-card">
                 <p class="table-hint">💡 Haz clic (o pulsa Enter) en una fila para ver sus acciones. Ordena con los
                     encabezados <strong>F. recepción</strong>, <strong>F. vencimiento</strong> o
-                    <strong>Estatus</strong>.</p>
+                    <strong>Estatus</strong>. La columna <strong>Cant. (Stock Real)</strong> suma Piso de Venta +
+                    Depósito desde el sistema NewPosline.</p>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -2083,7 +2134,7 @@
                                 <th>Producto</th>
                                 <th>Dpto.</th>
                                 <th>Lote</th>
-                                <th>Cant.</th>
+                                <th>Cant. (Stock Real)</th>
                                 <th class="sortable" tabindex="0" onclick="sortTable('recepcion', this)"
                                     onkeydown="if(event.key==='Enter')sortTable('recepcion', this)">F. recepción</th>
                                 <th class="sortable" tabindex="0" onclick="sortTable('vencimiento', this)"
@@ -2162,6 +2213,13 @@
     <div id="toastHost" aria-live="polite" aria-atomic="false"></div>
 
     <script>
+        /* ============================================================
+           API LOCAL DE STOCK (Node.js + MySQL / NewPosline)
+           - En pruebas: http://localhost:3000/api
+           - Con túnel (cloudflared / ngrok): pega aquí la URL https://...
+           ============================================================ */
+        const API_URL = 'http://localhost:3000/api';
+
         let registros = [];
         let filtroEstadoActual = 'todos';
         let itemSeleccionadoActual = null;
@@ -2180,6 +2238,100 @@
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
         $('fechaRecepcion').value = hoyISO();
+
+        /* ============ STOCK REAL DESDE MYSQL (API LOCAL) ============
+           Es independiente de la sesión: si la API falla, solo esa celda
+           muestra "—". Nunca bloquea la pantalla ni el login.          */
+        const cacheStock = new Map();          // codigo -> { inv: [...] | null, t: timestamp }
+        const STOCK_TTL = 60 * 1000;           // 1 min de caché para no saturar la API
+        const STOCK_REINTENTO = 30 * 1000;     // si falló, reintenta a los 30 s
+        let apiFalloHasta = 0;                 // "cortocircuito" cuando la API está caída
+        let stockSeq = 0;
+
+        const fmtStock = n => {
+            const v = Number(n) || 0;
+            return Number.isInteger(v) ? String(v) : v.toFixed(2);
+        };
+        const claseStock = n => n > 0 ? 'pos' : n < 0 ? 'neg' : 'cero';
+
+        // El ID de MySQL (itemID) corresponde al código interno del artículo
+        function codigoStock(item) {
+            const c = String((item && item.codInterno) || '').trim();
+            return (c && c !== 'S/C') ? c : '';
+        }
+
+        async function obtenerStockReal(codigo) {
+            if (!codigo || codigo === 'S/C') return null;
+            if (Date.now() < apiFalloHasta) return null;
+            try {
+                if (typeof supabaseClient === 'undefined' || !supabaseClient) return null;
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                if (!session) return null;
+
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 8000);
+                let res;
+                try {
+                    // ?t=... evita que el navegador guarde la respuesta en caché
+                    res = await fetch(`${API_URL}/stock/${encodeURIComponent(codigo)}?t=${Date.now()}`, {
+                        headers: { Authorization: 'Bearer ' + session.access_token },
+                        signal: ctrl.signal
+                    });
+                } finally { clearTimeout(timer); }
+
+                if (!res.ok) return null;
+                const data = await res.json();
+                return data && data.exito ? (data.inventario || []) : null;
+            } catch (e) {
+                console.warn('API MySQL no disponible:', e);
+                apiFalloHasta = Date.now() + STOCK_REINTENTO;
+                return null;
+            }
+        }
+
+        function htmlStock(cod) {
+            if (!cod) return '<span class="stk-na" title="Este producto no tiene código interno">—</span>';
+            const c = cacheStock.get(cod);
+            if (!c) return '<span class="skel" style="width:46px;margin:0 auto"></span>';
+            if (!c.inv) return '<span class="stk-na" title="Stock no disponible (API apagada o sin conexión)">—</span>';
+            if (!c.inv.length) return '<span class="stk-total cero">0</span><span class="stk-det">Sin registro en almacenes</span>';
+
+            const total = c.inv.reduce((a, r) => a + (Number(r.cantidad) || 0), 0);
+            const det = c.inv.map(r => {
+                const q = Number(r.cantidad) || 0;
+                const nombre = r.almacen || ('Almacén ' + r.warehouseID);
+                return '<span class="stk-det">' + esc(nombre) + ': <b class="' + claseStock(q) + '">' + fmtStock(q) + '</b></span>';
+            }).join('');
+            return '<span class="stk-total ' + claseStock(total) + '">' + fmtStock(total) + '</span>' + det;
+        }
+
+        function pintarStock(cod) {
+            const html = htmlStock(cod);
+            document.querySelectorAll('td.stk').forEach(td => { if (td.dataset.cod === cod) td.innerHTML = html; });
+        }
+
+        async function cargarStocksVisibles(lista) {
+            const pendientes = [...new Set(lista.map(codigoStock).filter(Boolean))].filter(c => {
+                const x = cacheStock.get(c);
+                return !x || Date.now() - x.t > STOCK_TTL;
+            });
+            if (!pendientes.length) return;
+
+            const miSeq = ++stockSeq;
+            let i = 0;
+            async function worker() {
+                while (i < pendientes.length && miSeq === stockSeq) {
+                    const c = pendientes[i++];
+                    const inv = await obtenerStockReal(c);
+                    // si falló, se guarda con una marca de tiempo que permite reintentar pronto
+                    cacheStock.set(c, { inv, t: inv ? Date.now() : Date.now() - STOCK_TTL + STOCK_REINTENTO });
+                    pintarStock(c);
+                }
+            }
+            try {
+                await Promise.all(Array.from({ length: Math.min(5, pendientes.length) }, worker));
+            } catch (e) { console.warn('Error cargando stock:', e); }
+        }
 
         /* ============ UI: ESTADO DEL SISTEMA, NOTIFICACIONES, MODALES ============ */
         let cargasActivas = 0;
@@ -2937,13 +3089,15 @@
                     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirModalItem(item); }
                 };
 
+                const codStock = codigoStock(item);
+
                 tr.innerHTML = `
                     <td><strong>${esc(item.codBarra || 'S/C')}</strong></td>
                     <td><code>${esc(item.codInterno || 'S/C')}</code></td>
                     <td><strong>${esc(item.producto)}</strong></td>
                     <td>${esc((item.departamento || 'GENERAL').toUpperCase())}</td>
                     <td>${esc(item.lote || 'S/L')}</td>
-                    <td><strong>${esc(item.cantidad || 0)}</strong></td>
+                    <td class="stk" data-cod="${esc(codStock)}">${htmlStock(codStock)}</td>
                     <td>${formatearFechaMostrar(item.fechaRecepcion)}</td>
                     <td>${formatearFechaMostrar(item.fechaVencimiento)}</td>
                     <td>${badgeHtml}</td>
@@ -2952,6 +3106,10 @@
             });
 
             renderizarPaginacion(totalRegistros, paginaActual, totalPaginas);
+
+            // El stock se consulta DESPUÉS de pintar la tabla y sin esperar el resultado:
+            // si la API falla, la pantalla y la sesión no se ven afectadas.
+            cargarStocksVisibles(muestra).catch(e => console.warn('Stock:', e));
         }
 
         function renderizarPaginacion(total, pagina, totalPaginas) {
@@ -3030,7 +3188,7 @@
             $('modalDpto').innerText = (item.departamento || 'GENERAL').toUpperCase();
             $('modalProveedor').innerText = (item.proveedor || 'S/P').toUpperCase();
             $('modalFacturaLote').innerText = `Fac: ${item.numFactura || 'S/F'} | Lote: ${item.lote || 'S/L'}`;
-            $('modalCantCostos').innerText = `${item.cantidad || 0} uds. | Unit: $${(item.costoUnitario || 0).toFixed(2)} | Total: $${(item.costoTotal || 0).toFixed(2)}`;
+            $('modalCantCostos').innerText = `${item.cantidad || 0} uds. recibidas | Unit: $${(item.costoUnitario || 0).toFixed(2)} | Total: $${(item.costoTotal || 0).toFixed(2)}`;
             $('modalRecibe').innerText = item.personaRecibe || 'S/N';
             $('modalObservaciones').innerText = item.observaciones || '-';
 
@@ -3369,9 +3527,14 @@
             }
         });
 
-        /* ============ INICIO ============ */
+        /* ============ INICIO ============
+           Orden a prueba de bucles:
+           1) Supabase valida la sesión  -> se quita "Verificando sesión…"
+           2) Se cargan los registros (Supabase)
+           3) El stock de MySQL se pide aparte, sin bloquear nada
+           Cada paso está aislado con try/catch.                          */
         window.addEventListener('DOMContentLoaded', async () => {
-            inicializarTema();
+            try { inicializarTema(); } catch (e) { console.error(e); }
 
             $('tablaRegistros').innerHTML = Array.from({ length: 8 }, () =>
                 `<tr>${Array.from({ length: 9 }, (_, i) => `<td><span class="skel" style="width:${i === 2 ? 180 : 60}px"></span></td>`).join('')}</tr>`
@@ -3381,17 +3544,27 @@
             $('fechaCaducidad').addEventListener('change', validarFechas);
             $('btnLimpiar').addEventListener('click', () => { limpiarFiltros(); $('inputBuscar').focus(); });
 
-            if (typeof supabaseClient !== 'undefined') {
+            if (typeof supabaseClient === 'undefined' || !supabaseClient) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 gestionarEstadoSesion(session);
 
-                supabaseClient.auth.onAuthStateChange((_event, session) => {
-                    gestionarEstadoSesion(session);
+                supabaseClient.auth.onAuthStateChange((_event, s) => {
+                    gestionarEstadoSesion(s);
                 });
+            } catch (e) {
+                console.error('Error verificando sesión:', e);
+            }
 
+            try {
                 await cargarDatosDB();
-            } else {
-                window.location.href = 'index.html';
+            } catch (e) {
+                console.error('Error cargando datos:', e);
+                toast('Error cargando los registros. Reintenta.', { type: 'error' });
             }
         });
 
@@ -3402,10 +3575,12 @@
             const original = gestionarEstadoSesion;
 
             window.gestionarEstadoSesion = function (session) {
-                original(session);
-                if (session && session.user) abrir();
+                try { original(session); } finally {
+                    if (session && session.user) abrir();
+                }
             };
 
+            // Seguro anti-bucle: pase lo que pase, la pantalla de carga se quita a los 6 s
             setTimeout(abrir, 6000);
         })();
     </script>
