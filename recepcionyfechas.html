@@ -2124,7 +2124,7 @@
                 <p class="table-hint">💡 Haz clic (o pulsa Enter) en una fila para ver sus acciones. Ordena con los
                     encabezados <strong>F. recepción</strong>, <strong>F. vencimiento</strong> o
                     <strong>Estatus</strong>. La columna <strong>Cant. (Stock Real)</strong> suma Piso de Venta +
-                    Depósito desde el sistema NewPosline.</p>
+                    Depósito desde el sistema NewPosline.<span id="stockSyncInfo"></span></p>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -2213,13 +2213,6 @@
     <div id="toastHost" aria-live="polite" aria-atomic="false"></div>
 
     <script>
-        /* ============================================================
-           API LOCAL DE STOCK (Node.js + MySQL / NewPosline)
-           - En pruebas: http://localhost:3000/api
-           - Con túnel (cloudflared / ngrok): pega aquí la URL https://...
-           ============================================================ */
-        const API_URL = 'http://localhost:3000/api';
-
         let registros = [];
         let filtroEstadoActual = 'todos';
         let itemSeleccionadoActual = null;
@@ -2239,14 +2232,16 @@
 
         $('fechaRecepcion').value = hoyISO();
 
-        /* ============ STOCK REAL DESDE MYSQL (API LOCAL) ============
-           Es independiente de la sesión: si la API falla, solo esa celda
-           muestra "—". Nunca bloquea la pantalla ni el login.          */
+        /* ============ STOCK REAL (MySQL -> Supabase) ============
+           Un script en la PC del supermercado copia el stock de NewPosline a la
+           tabla "stock_real" de Supabase cada pocos minutos. La web solo LEE esa
+           tabla con la sesión del usuario. Si falla, solo esa celda muestra "—". */
         const cacheStock = new Map();          // codigo -> { inv: [...] | null, t: timestamp }
-        const STOCK_TTL = 60 * 1000;           // 1 min de caché para no saturar la API
-        const STOCK_REINTENTO = 30 * 1000;     // si falló, reintenta a los 30 s
-        let apiFalloHasta = 0;                 // "cortocircuito" cuando la API está caída
+        const STOCK_TTL = 60 * 1000;           // refresca cada 1 min
+        const STOCK_REINTENTO = 15 * 1000;     // si falló, reintenta a los 15 s
         let stockSeq = 0;
+        let ultimaMuestra = [];
+        let syncInfoT = 0;
 
         const fmtStock = n => {
             const v = Number(n) || 0;
@@ -2260,41 +2255,12 @@
             return (c && c !== 'S/C') ? c : '';
         }
 
-        async function obtenerStockReal(codigo) {
-            if (!codigo || codigo === 'S/C') return null;
-            if (Date.now() < apiFalloHasta) return null;
-            try {
-                if (typeof supabaseClient === 'undefined' || !supabaseClient) return null;
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (!session) return null;
-
-                const ctrl = new AbortController();
-                const timer = setTimeout(() => ctrl.abort(), 8000);
-                let res;
-                try {
-                    // ?t=... evita que el navegador guarde la respuesta en caché
-                    res = await fetch(`${API_URL}/stock/${encodeURIComponent(codigo)}?t=${Date.now()}`, {
-                        headers: { Authorization: 'Bearer ' + session.access_token },
-                        signal: ctrl.signal
-                    });
-                } finally { clearTimeout(timer); }
-
-                if (!res.ok) return null;
-                const data = await res.json();
-                return data && data.exito ? (data.inventario || []) : null;
-            } catch (e) {
-                console.warn('API MySQL no disponible:', e);
-                apiFalloHasta = Date.now() + STOCK_REINTENTO;
-                return null;
-            }
-        }
-
         function htmlStock(cod) {
             if (!cod) return '<span class="stk-na" title="Este producto no tiene código interno">—</span>';
             const c = cacheStock.get(cod);
             if (!c) return '<span class="skel" style="width:46px;margin:0 auto"></span>';
-            if (!c.inv) return '<span class="stk-na" title="Stock no disponible (API apagada o sin conexión)">—</span>';
-            if (!c.inv.length) return '<span class="stk-total cero">0</span><span class="stk-det">Sin registro en almacenes</span>';
+            if (!c.inv) return '<span class="stk-na" title="No se pudo leer el stock. Revisa tu conexión.">—</span>';
+            if (!c.inv.length) return '<span class="stk-na" title="Aún no hay datos de stock para este código">—</span><span class="stk-det">Sin datos de stock</span>';
 
             const total = c.inv.reduce((a, r) => a + (Number(r.cantidad) || 0), 0);
             const det = c.inv.map(r => {
@@ -2310,28 +2276,63 @@
             document.querySelectorAll('td.stk').forEach(td => { if (td.dataset.cod === cod) td.innerHTML = html; });
         }
 
+        // Indicador "Stock actualizado hace X min" (avisa si la sincronización se detuvo)
+        async function actualizarInfoSync() {
+            const el = $('stockSyncInfo');
+            if (!el || Date.now() - syncInfoT < 30000) return;
+            syncInfoT = Date.now();
+            try {
+                const { data, error } = await supabaseClient.from('stock_sync').select('ultima_sync').eq('id', 1).maybeSingle();
+                if (error || !data) { el.textContent = ''; return; }
+                const min = Math.max(0, Math.round((Date.now() - new Date(data.ultima_sync).getTime()) / 60000));
+                el.textContent = ' · Stock actualizado ' + (min < 1 ? 'hace menos de 1 min' : 'hace ' + min + ' min') +
+                    (min > 15 ? ' ⚠️ la sincronización parece detenida' : '');
+                el.style.color = min > 15 ? 'var(--red-text)' : '';
+                el.style.fontWeight = min > 15 ? '700' : '';
+            } catch (e) { /* no es crítico */ }
+        }
+
         async function cargarStocksVisibles(lista) {
             const pendientes = [...new Set(lista.map(codigoStock).filter(Boolean))].filter(c => {
                 const x = cacheStock.get(c);
                 return !x || Date.now() - x.t > STOCK_TTL;
             });
-            if (!pendientes.length) return;
+            if (!pendientes.length) { actualizarInfoSync(); return; }
 
             const miSeq = ++stockSeq;
-            let i = 0;
-            async function worker() {
-                while (i < pendientes.length && miSeq === stockSeq) {
-                    const c = pendientes[i++];
-                    const inv = await obtenerStockReal(c);
-                    // si falló, se guarda con una marca de tiempo que permite reintentar pronto
-                    cacheStock.set(c, { inv, t: inv ? Date.now() : Date.now() - STOCK_TTL + STOCK_REINTENTO });
-                    pintarStock(c);
-                }
-            }
             try {
-                await Promise.all(Array.from({ length: Math.min(5, pendientes.length) }, worker));
-            } catch (e) { console.warn('Error cargando stock:', e); }
+                if (typeof supabaseClient === 'undefined' || !supabaseClient) throw new Error('Sin conexión a Supabase');
+                for (let i = 0; i < pendientes.length; i += 100) {
+                    const lote = pendientes.slice(i, i + 100);
+                    const { data, error } = await supabaseClient.from('stock_real')
+                        .select('item_id,warehouse_id,almacen,cantidad')
+                        .in('item_id', lote).order('warehouse_id');
+                    if (error) throw error;
+                    if (miSeq !== stockSeq) return; // cambió la página: esta respuesta ya no sirve
+                    const porItem = new Map(lote.map(c => [c, []]));
+                    (data || []).forEach(r => {
+                        const arr = porItem.get(String(r.item_id));
+                        if (arr) arr.push({ warehouseID: r.warehouse_id, almacen: r.almacen, cantidad: r.cantidad });
+                    });
+                    porItem.forEach((inv, c) => { cacheStock.set(c, { inv, t: Date.now() }); pintarStock(c); });
+                }
+            } catch (e) {
+                console.warn('No se pudo leer el stock:', e);
+                pendientes.forEach(c => {
+                    cacheStock.set(c, { inv: null, t: Date.now() - STOCK_TTL + STOCK_REINTENTO });
+                    pintarStock(c);
+                });
+            }
+            actualizarInfoSync();
         }
+
+        // Refresca solo las celdas de stock de la página visible (sin repintar la tabla)
+        setInterval(() => {
+            if (document.visibilityState === 'visible' && ultimaMuestra.length) {
+                syncInfoT = 0;
+                cargarStocksVisibles(ultimaMuestra).catch(e => console.warn('Stock:', e));
+            }
+        }, 60000);
 
         /* ============ UI: ESTADO DEL SISTEMA, NOTIFICACIONES, MODALES ============ */
         let cargasActivas = 0;
@@ -3109,6 +3110,7 @@
 
             // El stock se consulta DESPUÉS de pintar la tabla y sin esperar el resultado:
             // si la API falla, la pantalla y la sesión no se ven afectadas.
+            ultimaMuestra = muestra;
             cargarStocksVisibles(muestra).catch(e => console.warn('Stock:', e));
         }
 
@@ -3531,7 +3533,7 @@
            Orden a prueba de bucles:
            1) Supabase valida la sesión  -> se quita "Verificando sesión…"
            2) Se cargan los registros (Supabase)
-           3) El stock de MySQL se pide aparte, sin bloquear nada
+           3) El stock (tabla stock_real de Supabase) se pide aparte, sin bloquear nada
            Cada paso está aislado con try/catch.                          */
         window.addEventListener('DOMContentLoaded', async () => {
             try { inicializarTema(); } catch (e) { console.error(e); }
