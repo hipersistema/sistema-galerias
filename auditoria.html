@@ -10,535 +10,147 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="conexion.js"></script>
   <style>
-    :root {
-      --bg: #f4f6f3;
-      --sf: #fff;
-      --sf2: #f7f9f6;
-      --ln: #dfe6e0;
-      --tx: #17231b;
-      --mu: #5d6f63;
-      --g: #166534;
-      --gl: #1f8a4c;
-      --mint: #e8f4ec;
-      --gold: #f4b400;
-      --red: #c8372d;
-      --redbg: #fceceb;
-      --amb: #8f5600;
-      --ambbg: #fff3d6;
-      --blu: #0b6aa8;
-      --blubg: #e4f1fa
-    }
-
-    body.dark {
-      --bg: #0c1511;
-      --sf: #121e19;
-      --sf2: #172620;
-      --ln: #233a30;
-      --tx: #e8f2ec;
-      --mu: #9bb2a5;
-      --g: #1f8a4c;
-      --mint: #163a28;
-      --redbg: #3d1f22;
-      --amb: #f5c15a;
-      --ambbg: #41331a;
-      --blu: #6cb9ee;
-      --blubg: #16303f;
-      --red: #ff8a80
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      margin: 0;
-      font: 14px/1.45 Inter, system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--tx)
-    }
-
-    button,
-    input,
-    select {
-      font: inherit;
-      color: inherit
-    }
-
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 28px;
-      background: var(--sf);
-      border-bottom: 3px solid var(--gold)
-    }
-
-    .hl {
-      display: flex;
-      align-items: center;
-      gap: 14px
-    }
-
-    .hl img {
-      height: 42px;
-      mix-blend-mode: multiply
-    }
-
-    body.dark .hl img {
-      mix-blend-mode: normal;
-      background: #fff;
-      border-radius: 6px;
-      padding: 2px 5px
-    }
-
-    .hl h1 {
-      margin: 0;
-      font-size: 1.05rem
-    }
-
-    .back {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      height: 38px;
-      padding: 0 14px;
-      border: 1px solid var(--ln);
-      border-radius: 99px;
-      background: var(--sf);
-      color: var(--g);
-      font-weight: 700;
-      text-decoration: none
-    }
-
-    .back:hover {
-      background: var(--mint)
-    }
-
-    .hr {
-      display: flex;
-      align-items: center;
-      gap: 10px
-    }
-
-    .chip {
-      padding: 6px 12px;
-      border: 1px solid var(--ln);
-      border-radius: 99px;
-      font-weight: 600;
-      font-size: .82rem;
-      background: var(--sf2)
-    }
-
-    main {
-      max-width: 1500px;
-      margin: 0 auto;
-      padding: 22px 28px 50px
-    }
-
-    .kpis {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 14px;
-      margin-bottom: 16px
-    }
-
-    .kpi {
-      background: var(--sf);
-      border: 1px solid var(--ln);
-      border-left: 5px solid var(--gl);
-      border-radius: 10px;
-      padding: 14px 18px
-    }
-
-    .kpi.w {
-      border-left-color: var(--gold)
-    }
-
-    .kpi.c {
-      border-left-color: var(--red);
-      cursor: pointer
-    }
-
-    .kpi small {
-      color: var(--mu);
-      font-weight: 600
-    }
-
-    .kpi b {
-      display: block;
-      font-size: 1.8rem;
-      letter-spacing: -.03em
-    }
-
-    .panel {
-      background: var(--sf);
-      border: 1px solid var(--ln);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px
-    }
-
-    .filters {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 10px;
-      align-items: end
-    }
-
-    .filters label {
-      display: block;
-      font-size: .75rem;
-      font-weight: 600;
-      color: var(--mu);
-      margin-bottom: 4px
-    }
-
-    .filters input,
-    .filters select {
-      width: 100%;
-      padding: 8px 10px;
-      border: 1px solid var(--ln);
-      border-radius: 8px;
-      background: var(--sf)
-    }
-
-    .filters input:focus,
-    .filters select:focus {
-      outline: 2px solid var(--gl);
-      outline-offset: 0
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      margin-top: 12px
-    }
-
-    .btn {
-      border: 0;
-      border-radius: 99px;
-      padding: 8px 16px;
-      font-weight: 700;
-      font-size: .82rem;
-      cursor: pointer;
-      background: var(--g);
-      color: #fff
-    }
-
-    .btn:hover {
-      filter: brightness(.92)
-    }
-
-    .btn.o {
-      background: transparent;
-      color: var(--tx);
-      border: 1px solid var(--ln)
-    }
-
-    .btn:disabled {
-      opacity: .5;
-      cursor: not-allowed
-    }
-
-    .chk {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-weight: 600;
-      font-size: .82rem
-    }
-
-    .tw {
-      overflow: auto;
-      border: 1px solid var(--ln);
-      border-radius: 10px;
-      max-height: 62vh
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: .82rem
-    }
-
-    th,
-    td {
-      padding: 9px 12px;
-      text-align: left;
-      border-bottom: 1px solid var(--ln);
-      white-space: nowrap
-    }
-
-    th {
-      position: sticky;
-      top: 0;
-      background: var(--mint);
-      color: var(--g);
-      z-index: 1
-    }
-
-    body.dark th {
-      color: #9ae8b8
-    }
-
-    td.res {
-      white-space: normal;
-      min-width: 240px;
-      max-width: 420px
-    }
-
-    tbody tr {
-      cursor: pointer
-    }
-
-    tbody tr:hover {
-      background: var(--mint)
-    }
-
-    tr.pend td:first-child {
-      box-shadow: inset 4px 0 0 var(--red)
-    }
-
-    .b {
-      display: inline-block;
-      padding: 2px 9px;
-      border-radius: 99px;
-      font-size: .72rem;
-      font-weight: 700
-    }
-
-    .insert {
-      background: #e3f3e9;
-      color: #17703d
-    }
-
-    .update {
-      background: var(--blubg);
-      color: var(--blu)
-    }
-
-    .delete {
-      background: var(--redbg);
-      color: var(--red)
-    }
-
-    .evento {
-      background: var(--ambbg);
-      color: var(--amb)
-    }
-
-    .info {
-      background: var(--sf2);
-      color: var(--mu)
-    }
-
-    .aviso {
-      background: var(--ambbg);
-      color: var(--amb)
-    }
-
-    .critico {
-      background: var(--redbg);
-      color: var(--red)
-    }
-
-    .pg {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-      color: var(--mu)
-    }
-
-    .empty {
-      text-align: center;
-      padding: 34px;
-      color: var(--mu);
-      white-space: normal
-    }
-
-    .ov {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      background: rgba(8, 20, 13, .55);
-      z-index: 100
-    }
-
-    .ov.on {
-      display: flex
-    }
-
-    .card {
-      width: 760px;
-      max-width: 100%;
-      max-height: 92vh;
-      overflow: auto;
-      background: var(--sf);
-      border-radius: 14px;
-      border-top: 5px solid var(--gold);
-      padding: 22px
-    }
-
-    .meta {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      margin: 14px 0
-    }
-
-    .meta div {
-      background: var(--sf2);
-      border: 1px solid var(--ln);
-      border-radius: 8px;
-      padding: 8px 12px
-    }
-
-    .meta small {
-      display: block;
-      color: var(--mu);
-      font-weight: 600;
-      font-size: .72rem
-    }
-
-    .why {
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: var(--ambbg);
-      color: var(--amb);
-      font-weight: 600;
-      margin-bottom: 14px
-    }
-
-    .frase {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin: 12px 0 4px;
-      line-height: 1.35
-    }
-
-    .frase u {
-      text-decoration: none;
-      color: var(--g)
-    }
-
-    body.dark .frase u {
-      color: #9ae8b8
-    }
-
-    .sub {
-      margin: 6px 0 10px;
-      font-size: .95rem
-    }
-
-    .ch {
-      padding: 10px 12px;
-      border: 1px solid var(--ln);
-      border-radius: 8px;
-      background: var(--sf2);
-      margin-bottom: 8px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap
-    }
-
-    .ch>b {
-      min-width: 170px
-    }
-
-    .ar {
-      color: var(--mu)
-    }
-
-    .ch .old {
-      background: var(--redbg);
-      color: var(--red);
-      padding: 2px 8px;
-      border-radius: 6px;
-      text-decoration: line-through
-    }
-
-    .ch .new {
-      background: var(--mint);
-      color: var(--gl);
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-weight: 700
-    }
-
-    .ch .val {
-      font-weight: 600
-    }
-
-    .ent {
-      flex-basis: 100%;
-      padding: 6px 10px;
-      border-left: 3px solid var(--gl);
-      background: var(--sf);
-      border-radius: 4px
-    }
-
-    .ent em {
-      color: var(--mu);
-      font-style: normal
-    }
-
-    details.tec {
-      margin: 12px 0;
-      color: var(--mu)
-    }
-
-    details.tec summary {
-      cursor: pointer;
-      font-weight: 600
-    }
-
-    #gate {
-      position: fixed;
-      inset: 0;
-      z-index: 500;
-      display: grid;
-      place-items: center;
-      background: var(--bg);
-      color: var(--mu);
-      font-weight: 600;
-      transition: opacity .3s
-    }
-
-    #gate.done {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none
-    }
-
-    @media(max-width:700px) {
-
-      header,
-      main {
-        padding-left: 14px;
-        padding-right: 14px
-      }
-
-      .ch>b {
-        min-width: 100%
-      }
-    }
-  .lang-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:99px;border:1px solid var(--ln);background:var(--sf);color:var(--tx);font-weight:700;font-size:.82rem;cursor:pointer;transition:border-color .2s,box-shadow .2s}
-.lang-btn:hover{border-color:var(--gl);box-shadow:0 0 0 3px rgba(31,138,76,.15)}
-.lang-btn:active{transform:scale(.97)}
-</style>
+    :root{--bg:#f4f6f3;--sf:#fff;--sf2:#f7f9f6;--ln:#dfe6e0;--tx:#17231b;--mu:#5d6f63;--g:#166534;--gl:#1f8a4c;--mint:#e8f4ec;--gold:#f4b400;--red:#c8372d;--redbg:#fceceb;--amb:#8f5600;--ambbg:#fff3d6;--blu:#0b6aa8;--blubg:#e4f1fa;--okbg:#e3f3e9;--ok:#17703d}
+    body.dark{--bg:#0c1511;--sf:#121e19;--sf2:#172620;--ln:#233a30;--tx:#e8f2ec;--mu:#9bb2a5;--g:#1f8a4c;--mint:#163a28;--redbg:#3d1f22;--amb:#f5c15a;--ambbg:#41331a;--blu:#6cb9ee;--blubg:#16303f;--red:#ff8a80;--okbg:#15382a;--ok:#74e5a4}
+    *{box-sizing:border-box}
+    body{margin:0;font:14px/1.45 Inter,system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+    button,input,select{font:inherit;color:inherit}
+    :focus-visible{outline:3px solid color-mix(in srgb,var(--gl) 55%,transparent);outline-offset:2px}
+    header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 28px;background:var(--sf);border-bottom:3px solid var(--gold)}
+    .hl,.hr{display:flex;align-items:center;gap:12px}
+    .hl img{height:42px;mix-blend-mode:multiply}
+    body.dark .hl img{mix-blend-mode:normal;background:#fff;border-radius:6px;padding:2px 5px}
+    .hl h1{margin:0;font-size:1.05rem}
+    .back,.lang-btn{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border:1px solid var(--ln);border-radius:99px;background:var(--sf);color:var(--g);font-weight:700;text-decoration:none;cursor:pointer}
+    .lang-btn{color:var(--tx);font-size:.82rem}
+    .back:hover,.lang-btn:hover{background:var(--mint)}
+    .chip{padding:6px 12px;border:1px solid var(--ln);border-radius:99px;font-weight:600;font-size:.82rem;background:var(--sf2)}
+    main{max-width:1500px;margin:0 auto;padding:22px 28px 50px}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:16px}
+    .kpi{background:var(--sf);border:1px solid var(--ln);border-left:5px solid var(--gl);border-radius:10px;padding:14px 18px}
+    .kpi.c{border-left-color:var(--red);cursor:pointer}
+    .kpi small{color:var(--mu);font-weight:600}
+    .kpi b{display:block;font-size:1.8rem;letter-spacing:-.03em}
+    .panel{background:var(--sf);border:1px solid var(--ln);border-radius:12px;padding:16px;margin-bottom:16px}
+    .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+    .filters label{display:block;font-size:.75rem;font-weight:600;color:var(--mu);margin-bottom:4px}
+    .filters input,.filters select{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:var(--sf)}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+    .btn{border:0;border-radius:99px;padding:8px 16px;font-weight:700;font-size:.82rem;cursor:pointer;background:var(--g);color:#fff}
+    .btn:hover{filter:brightness(.92)}
+    .btn.o{background:transparent;color:var(--tx);border:1px solid var(--ln)}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .chk{display:flex;align-items:center;gap:6px;font-weight:600;font-size:.82rem}
+    .tw{overflow:auto;border:1px solid var(--ln);border-radius:10px;max-height:66vh;background:var(--sf)}
+    table{width:100%;border-collapse:collapse;font-size:.84rem}
+    th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--ln);vertical-align:top}
+    th{position:sticky;top:0;background:var(--mint);color:var(--g);z-index:1;white-space:nowrap}
+    body.dark th{color:#9ae8b8}
+    td.mv{min-width:300px;max-width:520px}
+    td.dt{white-space:nowrap}
+    tbody tr{cursor:pointer}
+    tbody tr:hover{background:var(--mint)}
+    tr.pend td:first-child{box-shadow:inset 4px 0 0 var(--red)}
+    .tm,.sm{color:var(--mu);font-size:.76rem}
+    .sm{margin-top:3px;line-height:1.6}
+    .b{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.74rem;font-weight:700;white-space:nowrap}
+    .insert{background:var(--okbg);color:var(--ok)}.update{background:var(--blubg);color:var(--blu)}.delete{background:var(--redbg);color:var(--red)}
+    .evento,.aviso{background:var(--ambbg);color:var(--amb)}.info{background:var(--sf2);color:var(--mu)}.critico{background:var(--redbg);color:var(--red)}
+    .mod{display:inline-flex;align-items:center;gap:7px;font-weight:600;white-space:nowrap}
+    .mod i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+    .vo{background:var(--redbg);color:var(--red);padding:0 6px;border-radius:5px;text-decoration:line-through}
+    .vn{background:var(--okbg);color:var(--ok);padding:0 6px;border-radius:5px;font-weight:700}
+    .sm em{font-style:normal;font-weight:600;color:var(--tx)}
+    .pg{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:12px;color:var(--mu)}
+    .empty{text-align:center;padding:34px;color:var(--mu)}
+    .ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(8,20,13,.55);z-index:100}
+    .ov.on{display:flex}
+    .card{width:780px;max-width:100%;max-height:92vh;overflow:auto;background:var(--sf);border-radius:14px;border-top:5px solid var(--gold);padding:22px;animation:pop .2s ease}
+    @keyframes pop{from{opacity:0;transform:translateY(10px)}}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+    .frase{font-size:1.2rem;font-weight:700;margin:14px 0 12px;line-height:1.35}
+    .frase u{text-decoration:none;color:var(--g)}
+    body.dark .frase u{color:#9ae8b8}
+    .meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+    .meta>div,.dg>div{background:var(--sf2);border:1px solid var(--ln);border-radius:8px;padding:8px 12px;overflow-wrap:anywhere}
+    .meta small,.dg small{display:block;color:var(--mu);font-weight:600;font-size:.74rem}
+    .why{padding:8px 12px;border-radius:8px;background:var(--ambbg);color:var(--amb);font-weight:600;margin-bottom:14px}
+    .why.no{background:transparent;color:var(--mu);font-weight:500;padding:0}
+    h4{margin:16px 0 8px;font-size:1rem}
+    .cg{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px;align-items:stretch;margin-bottom:8px}
+    .cg>*{padding:9px 12px;border-radius:8px;overflow-wrap:anywhere}
+    .cg .h{padding:0 4px;color:var(--mu);font-size:.76rem;font-weight:700}
+    .cg .f{font-weight:700;background:var(--sf2);border:1px solid var(--ln)}
+    .cg .o{background:var(--redbg);color:var(--red)}
+    .cg .n{background:var(--okbg);color:var(--ok);font-weight:700}
+    .cg .n.w{grid-column:2/4}
+    .dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+    .dg b{font-weight:600}
+    .ay{font-weight:500;font-size:.72rem;color:var(--mu);margin-top:2px}
+    .na{color:var(--mu);font-weight:500;font-style:italic}
+    details.tec{margin:14px 0;color:var(--mu)}
+    details.tec summary{cursor:pointer;font-weight:600}
+    .dg>div.full{grid-column:1/-1}
+    .dl{display:flex;gap:10px;align-items:flex-start;background:var(--sf);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:8px 12px;margin-bottom:8px;font-weight:500}
+    .dl .ic{line-height:1.35}
+    .dl small{display:block;color:var(--mu);margin-top:2px;font-size:.78rem}
+    .dl.add{border-left:4px solid var(--ok)}.dl.del{border-left:4px solid var(--red)}.dl.mod{border-left:4px solid var(--blu)}
+    details.lst summary{display:inline-flex;align-items:center;gap:6px;cursor:pointer;list-style:none;padding:5px 12px;border:1px solid var(--ln);border-radius:99px;background:var(--sf);color:var(--tx);font-weight:700;font-size:.82rem}
+    details.lst summary::-webkit-details-marker{display:none}
+    details.lst summary::after{content:'▾'}
+    details.lst[open] summary::after{content:'▴'}
+    .lbody{margin-top:8px;overflow:auto;color:var(--tx);font-weight:500;background:var(--sf);border:1px solid var(--ln);border-radius:8px}
+    .lbody table{font-size:.8rem}
+    .lbody th{position:static}
+    .lbody .r{text-align:right}
+    .ent{padding:6px 10px;border-left:3px solid var(--gl);background:var(--sf2);margin:4px}
+    .ent em{font-style:normal;color:var(--mu)}
+    #gate{position:fixed;inset:0;z-index:500;display:grid;place-items:center;background:var(--bg);color:var(--mu);font-weight:600;transition:opacity .3s}
+    #gate.done{opacity:0;visibility:hidden;pointer-events:none}
+    body{background:radial-gradient(900px 320px at 8% -8%,color-mix(in srgb,var(--gl) 14%,transparent),transparent) no-repeat,var(--bg)}
+    header{background:color-mix(in srgb,var(--sf) 88%,transparent);backdrop-filter:blur(10px)}
+    .ov{backdrop-filter:blur(4px)}
+    .kpi{display:flex;align-items:center;gap:14px;transition:transform .2s,box-shadow .2s;animation:rise .5s both}
+    .kpi:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(18,62,27,.12)}
+    .kpi:nth-child(2){animation-delay:.07s}.kpi:nth-child(3){animation-delay:.14s}
+    .kpi>div:not(.spark){flex:1}
+    .ki{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;font-size:1.3rem;background:var(--mint)}
+    .kpi.c .ki{background:var(--redbg)}
+    .kpi.c.has .ki{animation:pulse 1.6s ease-in-out infinite}
+    .spark{display:flex;align-items:flex-end;gap:4px;height:40px}
+    .spark i{width:9px;border-radius:3px 3px 0 0;background:var(--gl);opacity:.8;transform-origin:bottom;animation:grow .6s both}
+    .spark i.t{background:var(--gold);opacity:1}
+    .qk{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .q{border:1px solid var(--ln);background:var(--sf);border-radius:99px;padding:6px 14px;font-weight:700;font-size:.82rem;cursor:pointer;transition:all .2s}
+    .q:hover{border-color:var(--gl)}
+    .q.on{background:var(--g);border-color:var(--g);color:#fff;box-shadow:0 4px 12px rgba(22,101,52,.25)}
+    .tw{box-shadow:0 6px 20px rgba(18,62,27,.07)}
+    tbody tr[data-i]{animation:rowin .35s both;animation-delay:var(--d,0ms);transition:background .15s}
+    tr.ac-insert td:first-child{box-shadow:inset 3px 0 0 var(--ok)}tr.ac-update td:first-child{box-shadow:inset 3px 0 0 var(--blu)}tr.ac-delete td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+    tr.pend td:first-child{box-shadow:inset 5px 0 0 var(--red)}
+    tr.day td{background:var(--sf2);color:var(--g);font-weight:800;font-size:.8rem;padding:7px 12px;text-transform:capitalize;cursor:default}
+    body.dark tr.day td{color:#9ae8b8}
+    tbody tr.day:hover{background:transparent}
+    .us{display:inline-flex;align-items:center;gap:8px;font-weight:600;white-space:nowrap}
+    .us i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-weight:800;font-size:.8rem;color:#fff;background:hsl(var(--h) 55% 42%)}
+    .mod{padding:3px 10px 3px 8px;border-radius:99px;background:color-mix(in srgb,var(--c) 14%,transparent)}
+    .pd{display:inline-block;animation:pulse 1.6s ease-in-out infinite;font-weight:700;color:var(--amb)}
+    .sk td{padding:12px}
+    .sk i{display:block;height:18px;border-radius:6px;background:linear-gradient(90deg,var(--sf2),var(--ln),var(--sf2));background-size:200% 100%;animation:shine 1.2s linear infinite}
+    .empty .big{font-size:2.2rem;margin-bottom:6px}
+    .card.a-insert{border-top-color:var(--ok)}.card.a-update{border-top-color:var(--blu)}.card.a-delete{border-top-color:var(--red)}
+    @keyframes rise{from{opacity:0;transform:translateY(12px)}}
+    @keyframes grow{from{transform:scaleY(0)}}
+    @keyframes rowin{from{opacity:0;transform:translateX(-8px)}}
+    @keyframes pulse{50%{transform:scale(1.08);opacity:.75}}
+    @keyframes shine{to{background-position:-200% 0}}
+    .res1{display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:10px;background:var(--mint);border-left:4px solid var(--gl);margin:0 0 12px;font-weight:500;line-height:1.4}
+    .res1 b{font-weight:800}
+    .res1.update{border-left-color:var(--blu);background:var(--blubg)}
+    .res1.delete{border-left-color:var(--red);background:var(--redbg)}
+    @media(max-width:700px){header,main{padding-left:14px;padding-right:14px}.cg{grid-template-columns:1fr}.cg .h{display:none}.cg .n.w{grid-column:auto}}
+    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  </style>
 </head>
 
 <body>
@@ -549,26 +161,25 @@
       <img src="logo.png" alt="Hipergalerias" onerror="this.onerror=null;this.src='logo.jpeg'">
       <h1>Auditoría del sistema</h1>
     </div>
-    <div class="hr"><button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言" aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button><span class="chip" id="quien">…</span><button class="btn o" id="tema">🌙</button></div>
+    <div class="hr"><button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言" aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button><span class="chip" id="quien">…</span><button class="btn o" id="tema" aria-label="Cambiar tema">🌙</button></div>
   </header>
 
   <main>
     <section class="kpis">
-      <div class="kpi"><small>Cambios hoy</small><b id="kHoy">–</b></div>
-      <div class="kpi"><small>Últimos 7 días</small><b id="kSem">–</b></div>
-      <div class="kpi c" id="kCritCard" title="Filtrar pendientes"><small>Críticos y avisos sin revisar</small><b
-          id="kCrit">–</b></div>
+      <div class="kpi"><span class="ki">📅</span><div><small>Cambios hoy</small><b id="kHoy">–</b></div></div>
+      <div class="kpi"><span class="ki">📈</span><div><small>Últimos 7 días</small><b id="kSem">–</b></div><div class="spark" id="spark"></div></div>
+      <div class="kpi c" id="kCritCard" title="Filtrar pendientes"><span class="ki">🔔</span><div><small>Críticos y avisos sin revisar</small><b id="kCrit">–</b></div></div>
     </section>
 
     <section class="panel">
-      <div class="filters">
+      <div class="qk"><button class="q on" data-q="">Todo</button><button class="q" data-q="hoy">Hoy</button><button class="q" data-q="7">Últimos 7 días</button><button class="q" data-q="pend">⏳ Pendientes</button></div><div class="filters">
         <div><label for="fDesde">Desde</label><input type="date" id="fDesde"></div>
         <div><label for="fHasta">Hasta</label><input type="date" id="fHasta"></div>
         <div><label for="fMod">Módulo</label><select id="fMod">
             <option value="">Todos</option>
-            <option value="Recepción y Fechas">Recepción y Fechas</option>
-            <option value="Descuentos">Descuentos</option>
-            <option value="Recetario">Recetario</option>
+            <option value="Recepción y Fechas">Recepción de Producto</option>
+            <option value="Descuentos">Descuentos a empleados</option>
+            <option value="Recetario">Recetario y costos</option>
           </select></div>
         <div><label for="fTabla">Qué se modificó</label><select id="fTabla"></select></div>
         <div><label for="fAcc">Acción</label><select id="fAcc">
@@ -584,8 +195,7 @@
             <option value="aviso">Atención</option>
             <option value="info">Normal</option>
           </select></div>
-        <div><label for="fTxt">Usuario o dato</label><input id="fTxt" placeholder="usuario, cédula, código…"
-            autocomplete="off"></div>
+        <div><label for="fTxt">Usuario o dato</label><input id="fTxt" placeholder="usuario, cédula, código…" autocomplete="off"></div>
       </div>
       <div class="row">
         <label class="chk"><input type="checkbox" id="fPend"> Solo pendientes de revisar</label>
@@ -598,15 +208,7 @@
     <div class="tw">
       <table>
         <thead>
-          <tr>
-            <th>Cuándo</th>
-            <th>Quién</th>
-            <th>Dónde</th>
-            <th>Acción</th>
-            <th>Qué pasó</th>
-            <th>Importancia</th>
-            <th>Revisión</th>
-          </tr>
+          <tr><th>Fecha</th><th>Usuario</th><th>Módulo</th><th>Acción</th><th>Movimiento</th><th>Importancia</th><th>Revisión</th></tr>
         </thead>
         <tbody id="tb"></tbody>
       </table>
@@ -621,35 +223,48 @@
   <script>
     const $ = id => document.getElementById(id);
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    const POR = 50, ACC = { insert: 'Creó', update: 'Modificó', delete: 'Eliminó', evento: 'Evento' };
+    const POR = 50, ACC = { insert: '➕ Creó', update: '✏️ Modificó', delete: '🗑️ Eliminó', evento: '⚡ Evento' };
     const SEV = { info: 'Normal', aviso: 'Atención', critico: 'Crítico' };
     let pag = 1, total = 0, filas = [];
-    const fmt = d => new Date(d).toLocaleString(window.idiomaActual && idiomaActual() === 'zh' ? 'zh-CN' : 'es-VE', { dateStyle: 'short', timeStyle: 'medium' });
+    const loc = () => window.idiomaActual && idiomaActual() === 'zh' ? 'zh-CN' : 'es-VE';
+    const fmt = d => new Date(d).toLocaleString(loc(), { dateStyle: 'short', timeStyle: 'medium' });
     const cut = (s, n) => s.length > n ? s.slice(0, n) + '…' : s;
 
-    /* ---------- Diccionarios: nombres que entiende cualquier usuario ---------- */
-    /* [nombre en pantalla, cómo se nombra "un/una ..." en la frase] */
+    /* ---------- Nombres que entiende cualquier usuario ---------- */
+    const MODS = {
+      'Recepción y Fechas': ['Recepción de Producto', '#1f8a4c'], 'Descuentos': ['Descuentos a empleados', '#0b6aa8'],
+      'Recetario': ['Recetario y costos', '#c47f00'], 'Auditoría': ['Auditoría', '#7a5cc7']
+    };
+    const modulo = a => MODS[a.modulo] || [a.modulo || '—', '#8a968f'];
     const TABLAS = {
       recepcion_fechas: ['Recepción y vencimientos', 'un registro de recepción'],
       descuento_empleados: ['Descuentos a empleados', 'un descuento de empleado'],
-      empleados: ['Empleados', 'un empleado'],
-      articulos: ['Artículos', 'un artículo'],
-      insumos: ['Insumos', 'un insumo'],
-      recetas: ['Recetas', 'una receta'],
-      evento: ['Eventos del sistema', 'un evento']
+      empleados: ['Empleados', 'un empleado'], articulos: ['Artículos', 'un artículo'],
+      insumos: ['Insumos', 'un insumo'], recetas: ['Recetas', 'una receta'], evento: ['Eventos del sistema', 'un evento']
     };
-    /* Agrega aquí las columnas reales de tus tablas. Las que falten se muestran igual, "prettificadas". */
     const CAMPOS = {
-      costo_venta: 'Costo de venta', costo: 'Costo', precio: 'Precio', historial: 'Historial de cambios',
-      inhabilitado: 'Inhabilitado', nombre: 'Nombre', producto: 'Producto', descripcion: 'Descripción',
-      cedula: 'Cédula', unidad: 'Unidad', cantidad: 'Cantidad', lote: 'Lote', vencimiento: 'Fecha de vencimiento',
-      motivo: 'Motivo', usuario: 'Usuario', fecha: 'Fecha', costoNuevo: 'Costo nuevo', costoVentaNuevo: 'Costo de venta nuevo',
-      categoria: 'Categoría', proveedor: 'Proveedor', monto: 'Monto', nombre_empleado: 'Nombre del empleado',
-      nombre_apellido: 'Nombre y apellido', codigo: 'Código', estado: 'Estado'
+      costo_venta: 'Costo de venta', costo: 'Costo', precio: 'Precio', historial: 'Historial de cambios', inhabilitado: 'Inhabilitado',
+      nombre: 'Nombre', producto: 'Producto', descripcion: 'Descripción', cedula: 'Cédula', unidad: 'Unidad', cantidad: 'Cantidad',
+      lote: 'Lote', vencimiento: 'Fecha de vencimiento', motivo: 'Motivo', usuario: 'Usuario', fecha: 'Fecha',
+      costoNuevo: 'Costo nuevo', costoVentaNuevo: 'Costo de venta nuevo', categoria: 'Categoría', proveedor: 'Proveedor', monto: 'Monto',
+      nombre_empleado: 'Nombre del empleado', nombre_apellido: 'Nombre y apellido', codigo: 'Código', estado: 'Estado',
+      codBarra: 'Código de barras', codInterno: 'Código interno', costoTotal: 'Costo total', costoUnitario: 'Costo unitario',
+      numFactura: 'Nro. de factura', personaRecibe: 'Recibido por', fechaRecepcion: 'Fecha de recepción', fechaVencimiento: 'Fecha de vencimiento',
+      observaciones: 'Observaciones', departamento: 'Departamento',
+      costo_unit: 'Costo por unidad', costo_total: 'Costo total', cantidad_ingresada: 'Cantidad ingresada', insumo_id: 'Código del insumo', es_subreceta: 'Es subreceta', pvp: 'PVP'
     };
     const OCULTOS = ['id', 'created_at', 'updated_at', 'creado_en'];
-    const campo = k => CAMPOS[k] || String(k).replace(/_/g, ' ').replace(/^./, c => c.toUpperCase());
+    const campo = k => CAMPOS[k] || String(k).replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').toLowerCase().replace(/\bunit\b/g, 'unitario').replace(/\bid\b/g, 'ID').replace(/^./, c => c.toUpperCase());
     const tabla = t => (TABLAS[t] || [t])[0];
+    /* Orden de los datos en el detalle (los que no estén aquí van al final) */
+    const ORDEN = { recepcion_fechas: ['producto', 'cantidad', 'codInterno', 'codBarra', 'proveedor', 'departamento', 'costoTotal', 'costoUnitario', 'numFactura', 'inhabilitado', 'personaRecibe', 'fechaRecepcion'] };
+    const ord = (t, ks) => { const o = ORDEN[t] || [], p = k => { const i = o.indexOf(k); return i < 0 ? 99 : i }; return [...ks].sort((a, b) => p(a) - p(b)) };
+    /* Explicación breve de datos que se prestan a confusión */
+    const AYUDA = {
+      'recetas.costobatch': 'Costo de preparar la receta completa (una tanda)', 'recetas.costounitario': 'Costo de una porción o unidad de la receta',
+      'recetas.pvp': 'Precio de venta al público', 'recepcion_fechas.costounitario': 'Costo de cada unidad recibida', 'recepcion_fechas.costototal': 'Costo de toda la cantidad recibida'
+    };
+    const ayuda = (t, k) => { const h = AYUDA[t + '.' + String(k).toLowerCase().replace(/_/g, '')]; return h ? `<div class="ay">${h}</div>` : '' };
     const quien = a => a.usuario_nombre || (a.usuario_email || 'Sistema').split('@')[0];
     const corto = e => (e || '').split('@')[0];
     const nav = u => {
@@ -659,58 +274,135 @@
       return s ? `${b} en ${s}` : b
     };
 
-    /* Valor legible */
-    const fv = v => {
+    /* Valor legible: "S/L" → "Sin dato", fechas dd/mm/aaaa, Sí/No */
+    const fv = (v, k) => {
       if (v === null || v === undefined || v === '') return '(vacío)';
       if (v === true) return 'Sí'; if (v === false) return 'No';
-      if (typeof v === 'number') return v.toLocaleString('es-VE');
+      if (typeof v === 'number') return k && /costo|precio|pvp|monto|deuda|saldo|abono/i.test(k) ? '$' + v.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 3 }) : v.toLocaleString('es-VE');
       if (typeof v === 'object') return JSON.stringify(v);
+      if (/^S\/[A-Z]$/.test(v)) return 'Sin dato';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v.split('-').reverse().join('/');
       if (/^\d{4}-\d{2}-\d{2}T/.test(v)) return fmt(v);
       return String(v)
     };
-    /* Un objeto como "Campo: valor · Campo: valor" */
+    const fvH = (v, k) => { const t = fv(v, k); return t === 'Sin dato' || t === '(vacío)' ? `<span class="na">${t}</span>` : esc(t) };
     const fe = o => o && typeof o === 'object'
-      ? Object.entries(o).filter(([k]) => !OCULTOS.includes(k)).map(([k, v]) => `<span><em>${esc(campo(k))}:</em> ${esc(fv(v))}</span>`).join(' · ')
-      : esc(fv(o));
-    /* Nombre del elemento afectado */
-    const nombreDe = a => {
-      const o = a.despues || a.antes || {};
-      return o.producto || o.nombre || o.descripcion || o.nombre_empleado || o.nombre_apellido || o.cedula || ''
-    };
+      ? Object.entries(o).filter(([k]) => !OCULTOS.includes(k)).map(([k, v]) => `<em>${esc(campo(k))}:</em> ${esc(fv(v, k))}`).join(' · ') : esc(fv(o));
+    const nombreDe = a => { const o = a.despues || a.antes || {}; return o.producto || o.nombre || o.descripcion || o.nombre_empleado || o.nombre_apellido || o.cedula || '' };
+    const cambios = a => (a.campos_cambiados || []).filter(c => !OCULTOS.includes(c));
+    const esLista = (x, y) => Array.isArray(x) || Array.isArray(y);
+    const nuevos = (x, y) => { const v = (x || []).map(j => JSON.stringify(j)); return (y || []).filter(j => !v.includes(JSON.stringify(j))) };
 
-    /* Un campo que cambió: "Costo de venta  1,2 → 1,22" */
-    function cambio(k, x, y) {
-      if (Array.isArray(x) || Array.isArray(y)) {
-        const viejos = (x || []).map(j => JSON.stringify(j));
-        const nuevos = (y || []).filter(j => !viejos.includes(JSON.stringify(j)));
-        return `<div class="ch"><b>${esc(campo(k))}</b><span>${nuevos.length ? 'Se agregó:' : 'Se modificaron entradas anteriores'}</span>${nuevos.map(n => `<div class="ent">${fe(n)}</div>`).join('')}</div>`
-      }
-      return `<div class="ch"><b>${esc(campo(k))}</b><span class="old">${esc(fv(x))}</span><span class="ar">→</span><span class="new">${esc(fv(y))}</span></div>`
+    /* Listas (ingredientes, historial): ocultas tras un botón; ingredientes en tabla legible */
+    const g = (o, ...ks) => { for (const k of ks) if (o[k] !== undefined && o[k] !== null) return o[k] };
+    function lista(k, arr, upd) {
+      const n = arr.length, ing = /ingred/i.test(k);
+      if (!n) return '<span class="na">Sin elementos</span>';
+      const tit = upd ? `Ver lo que cambió (${n})` : `Ver ${n} ${ing ? 'ingrediente' : 'entrada'}${n > 1 ? 's' : ''}`;
+      const cuerpo = ing
+        ? `<table><thead><tr><th>Ingrediente</th><th class="r">Cantidad</th><th class="r">Costo por unidad</th><th class="r">Costo total</th></tr></thead><tbody>${arr.map(i => `<tr><td>${esc(g(i, 'nombre', 'name') ?? '—')}</td><td class="r">${esc(fv(g(i, 'cantidad')))} ${esc(g(i, 'unidad') ?? '')}</td><td class="r">${esc(fv(g(i, 'costo_unit', 'costoUnit'), 'costo'))}</td><td class="r">${esc(fv(g(i, 'costo_total', 'costoTotal'), 'costo'))}</td></tr>`).join('')}</tbody></table>`
+        : arr.map(i => `<div class="ent">${fe(i)}</div>`).join('');
+      return `<details class="lst"><summary>${tit}</summary><div class="lbody">${cuerpo}</div></details>`;
     }
-    /* Un dato simple: "Cédula  12345678" */
-    const dato = (k, v) => `<div class="ch"><b>${esc(campo(k))}</b><span class="val">${Array.isArray(v) ? '' : esc(fv(v))}</span>${Array.isArray(v) ? v.map(n => `<div class="ent">${fe(n)}</div>`).join('') : ''}</div>`;
+
+    /* Qué pasó con cada ingrediente: se agregó, se quitó o se modificó (y qué datos cambiaron) */
+    function ingCambios(x, y) {
+      const idx = arr => { const c = {}, m = {}; (arr || []).forEach(i => { const b = String(g(i, 'insumo_id', 'insumoId', 'nombre') ?? ''); c[b] = (c[b] || 0) + 1; m[b + '#' + c[b]] = i }); return m };
+      const A = idx(x), B = idx(y), nm = i => esc(g(i, 'nombre', 'name') ?? 'ingrediente');
+      const det = i => `${esc(fv(g(i, 'cantidad')))} ${esc(g(i, 'unidad') ?? '')} · ${esc(fv(g(i, 'costo_unit', 'costoUnit'), 'costo'))} por unidad · ${esc(fv(g(i, 'costo_total', 'costoTotal'), 'costo'))} en total`;
+      const L = (cls, ic, txt, sub) => `<div class="dl ${cls}"><span class="ic">${ic}</span><div>${txt}${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+      let h = '';
+      Object.keys(B).forEach(k => {
+        if (!A[k]) h += L('add', '➕', `<b>Se agregó</b> ${nm(B[k])}`, det(B[k]));
+        else if (JSON.stringify(A[k]) !== JSON.stringify(B[k])) {
+          const ch = Object.keys(B[k]).filter(f => !/id$/i.test(f) && JSON.stringify(A[k][f]) !== JSON.stringify(B[k][f]))
+            .map(f => `${esc(campo(f))}: <span class="vo">${esc(fv(A[k][f], f))}</span> → <span class="vn">${esc(fv(B[k][f], f))}</span>`).join(' · ');
+          h += L('mod', '✏️', `<b>Se modificó</b> ${nm(B[k])}`, ch);
+        }
+      });
+      Object.keys(A).forEach(k => { if (!B[k]) h += L('del', '➖', `<b>Se quitó</b> ${nm(A[k])}`, det(A[k])); });
+      return h || L('mod', '✏️', 'Se modificaron los datos de los ingredientes', '');
+    }
+
+    /* Apoyos visuales */
+    const hue = s => [...s].reduce((t, c) => t + c.charCodeAt(0), 0) * 47 % 360;
+    const ldate = n => { const d = new Date(Date.now() - n * 864e5); return new Date(d - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) };
+    const diaTxt = f => {
+      const h = new Date(), n = Math.round((new Date(h.getFullYear(), h.getMonth(), h.getDate()) - new Date(f.getFullYear(), f.getMonth(), f.getDate())) / 864e5);
+      return (n === 0 ? 'Hoy · ' : n === 1 ? 'Ayer · ' : '') + f.toLocaleDateString(loc(), { weekday: 'long', day: 'numeric', month: 'long' })
+    };
+    function sincQ() {
+      const v = id => $(id).value, otros = ['fMod', 'fTabla', 'fAcc', 'fSev', 'fTxt'].some(id => v(id)); let q = null;
+      if (!otros && !v('fHasta')) {
+        if ($('fPend').checked) q = v('fDesde') ? null : 'pend';
+        else q = !v('fDesde') ? '' : v('fDesde') === ldate(0) ? 'hoy' : v('fDesde') === ldate(6) ? '7' : null
+      }
+      document.querySelectorAll('.q').forEach(b => b.classList.toggle('on', b.dataset.q === q));
+    }
+    function cuenta(id, n) {
+      const el = $(id), t0 = performance.now();
+      const p = t => { const x = Math.min(1, (t - t0) / 700); el.textContent = Math.round(n * (1 - Math.pow(1 - x, 3))).toLocaleString(); if (x < 1) requestAnimationFrame(p) };
+      requestAnimationFrame(p);
+    }
+    async function barras() {
+      const d0 = new Date(); d0.setHours(0, 0, 0, 0); d0.setDate(d0.getDate() - 6);
+      const { data } = await supabaseClient.from('auditoria').select('creado_en').gte('creado_en', d0.toISOString()).limit(5000);
+      const c = Array(7).fill(0); (data || []).forEach(x => { const i = Math.floor((new Date(x.creado_en) - d0) / 864e5); if (i >= 0 && i < 7) c[i]++ });
+      const mx = Math.max(1, ...c);
+      $('spark').innerHTML = c.map((n, i) => `<i class="${i === 6 ? 't' : ''}" title="${n} cambio(s)" style="height:${Math.max(8, n / mx * 100)}%;animation-delay:${i * 60}ms"></i>`).join('');
+    }
+
+    /* Resumen de una línea: qué pasó, en lenguaje llano */
+    function queFue(a) {
+      if (a.accion === 'evento') return '';
+      const A = a.antes || {}, D = a.despues || {}, m = v => fv(v, 'costo'), nk = k => String(k).toLowerCase().replace(/_/g, '');
+      const val = (o, k) => { const x = Object.keys(o).find(y => nk(y) === k); return x === undefined ? undefined : o[x] };
+      const lc = t => t === t.toUpperCase() ? t : t.toLowerCase();
+      if (a.accion === 'update') {
+        const ks = cambios(a), x0 = val(A, 'montoabonado'), x1 = val(D, 'montoabonado'), sp = val(D, 'saldopendiente');
+        if (typeof x0 === 'number' && typeof x1 === 'number' && x1 > x0)
+          return `Se registró un abono de ${m(+(x1 - x0).toFixed(2))}` + (typeof sp !== 'number' ? '' : sp === 0 ? ' y la deuda quedó saldada ✅' : ` y el saldo pendiente quedó en ${m(sp)}`);
+        const fr = ks.slice(0, 2).map((k, i) => {
+          const x = A[k], y = D[k], c = i ? lc(campo(k)) : campo(k);
+          if (esLista(x, y)) return /ingred/i.test(k) ? (i ? 'cambió' : 'Cambió') + ' la lista de ingredientes' : `${c} se actualizó`;
+          if (typeof x === 'number' && typeof y === 'number') return `${c} ${y > x ? 'subió' : 'bajó'} de ${fv(x, k)} a ${fv(y, k)}`;
+          return `${c} cambió de «${fv(x, k)}» a «${fv(y, k)}»`;
+        });
+        return fr.join(' y ') + (ks.length > 2 ? ` (y ${ks.length - 2} cambio${ks.length > 3 ? 's' : ''} más)` : '');
+      }
+      const del = a.accion === 'delete', o = del ? A : D, emp = val(o, 'nombreempleado'), td = val(o, 'totaldeuda'), pr = val(o, 'producto');
+      if (emp && typeof td === 'number') return `${del ? 'Se eliminó la deuda de' : 'Se cargó una deuda de'} ${m(td)} ${del ? 'de' : 'a'} ${emp}${pr ? ` por «${pr}»` : ''}`;
+      if (a.tabla === 'recepcion_fechas' && pr) {
+        const c = val(o, 'cantidad'), pv = val(o, 'proveedor');
+        return del ? `Se eliminó la recepción de «${pr}»` : `Se recibieron ${c ?? 1} unidad(es) de «${pr}»${pv && !/^S\//.test(pv) ? ` del proveedor ${pv}` : ''}`;
+      }
+      const nom = nombreDe(a);
+      return `${del ? 'Se eliminó' : 'Se registró'} ${nom ? '«' + nom + '»' : (TABLAS[a.tabla] || [, 'un registro'])[1]}`;
+    }
 
     /* Tema compartido con los demás módulos */
     function tema(d) { document.body.classList.toggle('dark', d); $('tema').textContent = d ? '☀️' : '🌙' }
     tema(localStorage.getItem('hipergalerias_theme') === 'dark');
     $('tema').onclick = () => { const d = !document.body.classList.contains('dark'); localStorage.setItem('hipergalerias_theme', d ? 'dark' : 'light'); tema(d) };
-
-    /* Filtro "Qué se modificó" con nombres legibles */
     $('fTabla').innerHTML = '<option value="">Todo</option>' + Object.entries(TABLAS).map(([k, v]) => `<option value="${k}">${v[0]}</option>`).join('');
 
-    /* Resumen legible de una fila */
+    /* Columna "Movimiento": qué elemento y, si se modificó, qué cambió (antes → después) */
     function resumen(a) {
       const o = a.despues || a.antes || {};
       if (a.accion === 'evento') return esc(`${o.tipo || 'Evento'}: ${o.detalle || ''}`);
-      const nom = nombreDe(a);
+      const nom = nombreDe(a) || (TABLAS[a.tabla] || [, 'un registro'])[1];
+      let sub = a.accion === 'insert' ? 'Registro nuevo' : a.accion === 'delete' ? 'Registro eliminado' : '';
       if (a.accion === 'update') {
-        const cs = (a.campos_cambiados || []).filter(c => !OCULTOS.includes(c)).map(c => esc(campo(c).toLowerCase())).join(', ');
-        return `<b>${esc(nom)}</b>${cs ? ' · cambió ' + cs : ''}`
+        const ks = cambios(a);
+        sub = ks.slice(0, 2).map(k => {
+          const x = (a.antes || {})[k], y = (a.despues || {})[k];
+          return esLista(x, y) ? `<em>${esc(campo(k))}:</em> se agregó una entrada`
+            : `<em>${esc(campo(k))}:</em> <span class="vo">${esc(fv(x, k))}</span> → <span class="vn">${esc(fv(y, k))}</span>`
+        }).join('<br>') + (ks.length > 2 ? `<br>y ${ks.length - 2} cambio(s) más` : '');
       }
-      return `<b>${esc(nom)}</b>`;
+      return `<b>${esc(nom)}</b>${sub ? `<div class="sm">${sub}</div>` : ''}`;
     }
 
-    /* Construye la consulta con los filtros */
     function consulta(sel, opts) {
       let q = supabaseClient.from('auditoria').select(sel, opts);
       const g = id => $(id).value.trim();
@@ -727,20 +419,24 @@
     }
 
     async function buscar() {
-      $('tb').innerHTML = '<tr><td colspan="7" class="empty">Cargando…</td></tr>';
+      sincQ(); $('tb').innerHTML = '<tr class="sk"><td colspan="7"><i></i></td></tr>'.repeat(6);
       const d = (pag - 1) * POR;
       const { data, count, error } = await consulta('*', { count: 'exact' }).order('creado_en', { ascending: false }).range(d, d + POR - 1);
       if (error) { $('tb').innerHTML = `<tr><td colspan="7" class="empty">No se pudo leer la auditoría: ${esc(error.message)}</td></tr>`; return }
       filas = data || []; total = count || 0;
+      let ult = '';
       $('tb').innerHTML = filas.length ? filas.map((a, i) => {
-        const pend = a.severidad !== 'info' && !a.revisado_en;
-        return `<tr class="${pend ? 'pend' : ''}" data-i="${i}" tabindex="0"><td>${fmt(a.creado_en)}</td><td>${esc(quien(a))}</td>
-    <td>${esc(tabla(a.tabla))} <small style="color:var(--mu)">${esc(a.modulo || '')}</small></td>
-    <td><span class="b ${a.accion}">${ACC[a.accion] || a.accion}</span></td><td class="res">${resumen(a)}</td>
+        const pend = a.severidad !== 'info' && !a.revisado_en, m = modulo(a), f = new Date(a.creado_en), dk = f.toLocaleDateString(loc()), u = quien(a);
+        const sep = dk !== ult ? `<tr class="day"><td colspan="7">${esc(diaTxt(f))}</td></tr>` : ''; ult = dk;
+        return sep + `<tr class="${pend ? 'pend' : ''} ac-${a.accion}" data-i="${i}" tabindex="0" style="--d:${Math.min(i, 14) * 25}ms">
+    <td class="dt"><b>${f.toLocaleTimeString(loc(), { hour: '2-digit', minute: '2-digit' })}</b><div class="tm">${dk}</div></td>
+    <td><span class="us"><i style="--h:${hue(u)}">${esc(u.charAt(0).toUpperCase())}</i>${esc(u)}</span></td>
+    <td><span class="mod" style="--c:${m[1]}"><i></i>${esc(m[0])}</span></td>
+    <td><span class="b ${a.accion}">${ACC[a.accion] || a.accion}</span></td>
+    <td class="mv">${resumen(a)}</td>
     <td><span class="b ${a.severidad}">${SEV[a.severidad] || a.severidad}</span></td>
-    <td>${a.severidad === 'info' ? '—' : a.revisado_en ? '✅ ' + esc(corto(a.revisado_por)) : '⏳ Pendiente'}</td></tr>`
-      }).join('')
-        : '<tr><td colspan="7" class="empty"><strong>Sin resultados</strong><br>Ajusta los filtros o el rango de fechas.</td></tr>';
+    <td>${a.severidad === 'info' ? '—' : a.revisado_en ? '✅ ' + esc(corto(a.revisado_por)) : '<span class="pd">⏳ Pendiente</span>'}</td></tr>`
+      }).join('') : '<tr><td colspan="7" class="empty"><div class="big">🔍</div><strong>Sin resultados</strong><br>Prueba con otro filtro o amplía el rango de fechas.</td></tr>';
       const tp = Math.max(1, Math.ceil(total / POR));
       $('pg').innerHTML = total ? `<div>Mostrando <strong>${d + 1}-${Math.min(d + POR, total)}</strong> de <strong>${total.toLocaleString()}</strong> eventos</div>
   <div><button class="btn o" id="pP" ${pag <= 1 ? 'disabled' : ''}>◀ Anterior</button> Página <strong>${pag}</strong> de ${tp} <button class="btn o" id="pN" ${pag >= tp ? 'disabled' : ''}>Siguiente ▶</button></div>` : '';
@@ -753,40 +449,40 @@
       const hoy = new Date(); hoy.setHours(0, 0, 0, 0); const sem = new Date(hoy); sem.setDate(sem.getDate() - 6);
       const base = () => supabaseClient.from('auditoria').select('id', { count: 'exact', head: true });
       const [a, b, k] = await Promise.all([c(base().gte('creado_en', hoy.toISOString())), c(base().gte('creado_en', sem.toISOString())), c(base().neq('severidad', 'info').is('revisado_en', null))]);
-      $('kHoy').textContent = a.toLocaleString(); $('kSem').textContent = b.toLocaleString(); $('kCrit').textContent = k.toLocaleString();
+      cuenta('kHoy', a); cuenta('kSem', b); cuenta('kCrit', k); $('kCritCard').classList.toggle('has', k > 0); barras();
     }
 
-    /* Detalle en lenguaje claro */
+    /* Detalle: una frase clara + Antes/Después o ficha del registro */
     function abrir(a) {
-      const antes = a.antes || {}, desp = a.despues || {};
-      const nom = nombreDe(a);
+      const antes = a.antes || {}, desp = a.despues || {}, nom = nombreDe(a), m = modulo(a);
       const verbo = { insert: 'creó', update: 'modificó', delete: 'eliminó' }[a.accion];
       const frase = a.accion === 'evento'
         ? `${esc(quien(a))} registró: ${esc(((desp.tipo || '') + ' ' + (desp.detalle || '')).trim())}`
-        : `${esc(quien(a))} ${verbo} ${(TABLAS[a.tabla] || [, 'un registro'])[1]}${nom ? ` <u>${esc(nom)}</u>` : ''}`;
-      let titulo = '', cuerpo = '';
+        : `${esc(quien(a))} ${verbo} ${(TABLAS[a.tabla] || [, 'un registro'])[1]}${nom ? ` <u>[${esc(nom)}]</u>` : ''}`;
+      let cuerpo = ''; const rs = queFue(a);
       if (a.accion === 'update') {
-        titulo = '¿Qué cambió?';
-        cuerpo = (a.campos_cambiados || []).filter(k => !OCULTOS.includes(k)).map(k => cambio(k, antes[k], desp[k])).join('');
+        cuerpo = '<h4>Qué cambió</h4><div class="cg"><span class="h">Dato</span><span class="h">Antes</span><span class="h">Ahora</span></div>' + ord(a.tabla, cambios(a)).map(k => {
+          const x = antes[k], y = desp[k];
+          if (esLista(x, y)) return `<div class="cg"><div class="f">${esc(campo(k))}${ayuda(a.tabla, k)}</div><div class="n w">${/ingred/i.test(k) ? ingCambios(x, y) + lista(k, y || []) : nuevos(x, y).length ? lista(k, nuevos(x, y), true) : 'Se modificaron entradas anteriores'}</div></div>`;
+          return `<div class="cg"><div class="f">${esc(campo(k))}${ayuda(a.tabla, k)}</div><div class="o">${fvH(x, k)}</div><div class="n">${fvH(y, k)}</div></div>`
+        }).join('');
       } else if (a.accion !== 'evento') {
         const src = a.accion === 'delete' ? antes : desp;
-        titulo = a.accion === 'delete' ? 'Datos que se eliminaron' : 'Datos registrados';
-        cuerpo = Object.keys(src).filter(k => !OCULTOS.includes(k) && src[k] !== null && src[k] !== '').map(k => dato(k, src[k])).join('');
+        cuerpo = `<h4>${a.accion === 'delete' ? 'Datos que se eliminaron' : 'Datos del nuevo registro'}</h4><div class="dg">` +
+          ord(a.tabla, Object.keys(src).filter(k => !OCULTOS.includes(k) && src[k] !== null && src[k] !== '')).map(k =>
+            `<div${Array.isArray(src[k]) ? ' class="full"' : ''}><small>${esc(campo(k))}</small>${ayuda(a.tabla, k)}${Array.isArray(src[k]) ? lista(k, src[k]) : `<b>${fvH(src[k], k)}</b>`}</div>`).join('') + '</div>';
       }
-      $('card').innerHTML = `<div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-    <span class="b ${a.severidad}">${SEV[a.severidad] || a.severidad}</span><button class="btn o" id="xC" aria-label="Cerrar">✕</button></div>
-  <div class="frase">${frase}</div>
-  <div class="meta">
-    <div><small>Cuándo</small>${fmt(a.creado_en)}</div>
-    <div><small>Dónde</small>${esc(a.modulo || '—')} › ${esc(tabla(a.tabla))}</div></div>
-  <div class="why">${a.motivo ? 'Motivo: ' + esc(a.motivo) : 'No se indicó el motivo de este cambio'}</div>
-  ${cuerpo ? `<h4 class="sub">${titulo}</h4>${cuerpo}` : ''}
+      $('card').innerHTML = `<div class="top"><span><span class="b ${a.accion}">${ACC[a.accion] || a.accion}</span> <span class="b ${a.severidad}">${SEV[a.severidad] || a.severidad}</span></span><button class="btn o" id="xC" aria-label="Cerrar">✕</button></div>
+  <div class="frase">${frase}</div>${rs ? `<div class="res1 ${a.accion}"><span>💡</span><div><b>En resumen:</b> ${esc(rs)}</div></div>` : ''}
+  <div class="meta"><div><small>Fecha</small>${fmt(a.creado_en)}</div><div><small>Usuario</small>${esc(quien(a))}</div><div><small>Módulo</small><b>${esc(m[0])}</b></div></div>
+  <div class="why ${a.motivo ? '' : 'no'}">${a.motivo ? 'Motivo: ' + esc(a.motivo) : 'Sin motivo indicado'}</div>
+  ${cuerpo}
   <details class="tec"><summary>Detalles técnicos</summary>
-    <div style="margin-top:8px">Dispositivo: ${esc(nav(a.user_agent))} · IP: ${esc(a.ip || 'no disponible')}<br>Correo: ${esc(a.usuario_email || 'Sistema')}<br>Registro: ${esc(a.tabla)} #${esc(a.registro_id || '—')}</div></details>
+    <div style="margin-top:8px">Dispositivo: ${esc(nav(a.user_agent))} · IP: ${esc(a.ip || 'no disponible')}<br>Correo: ${esc(a.usuario_email || 'Sistema')}<br>Sección: ${esc(tabla(a.tabla))} · Registro #${esc(a.registro_id || '—')}</div></details>
   <div class="row" style="justify-content:flex-end">
    ${a.registro_id && a.tabla !== 'evento' ? `<button class="btn o" id="xH">Ver todo el historial de este registro</button>` : ''}
    ${a.severidad !== 'info' && !a.revisado_en ? `<button class="btn" id="xR">✔ Marcar como revisado</button>` : a.revisado_en ? `<span class="chip">Revisado por ${esc(corto(a.revisado_por))} · ${fmt(a.revisado_en)}</span>` : ''}</div>`;
-      $('ov').classList.add('on');
+      $('card').className = 'card a-' + a.accion; $('ov').classList.add('on');
       $('xC').onclick = cerrar;
       if ($('xH')) $('xH').onclick = () => { cerrar(); $('fTabla').value = a.tabla; $('fTxt').value = a.registro_id; $('fDesde').value = $('fHasta').value = ''; pag = 1; buscar() };
       if ($('xR')) $('xR').onclick = async () => {
@@ -801,6 +497,11 @@
     $('tb').addEventListener('click', e => { const r = e.target.closest('tr[data-i]'); if (r) abrir(filas[r.dataset.i]) });
     $('tb').addEventListener('keydown', e => { if (e.key === 'Enter') { const r = e.target.closest('tr[data-i]'); if (r) abrir(filas[r.dataset.i]) } });
 
+    document.querySelectorAll('.q').forEach(b => b.onclick = () => {
+      const q = b.dataset.q; document.querySelectorAll('.filters input,.filters select').forEach(i => i.value = '');
+      $('fPend').checked = q === 'pend'; if (q === 'hoy') $('fDesde').value = ldate(0); if (q === '7') $('fDesde').value = ldate(6);
+      pag = 1; buscar();
+    });
     $('bBuscar').onclick = () => { pag = 1; buscar() };
     $('fTxt').addEventListener('keydown', e => { if (e.key === 'Enter') { pag = 1; buscar() } });
     $('bLimpiar').onclick = () => { document.querySelectorAll('.filters input,.filters select').forEach(i => i.value = ''); $('fPend').checked = false; pag = 1; buscar() };
@@ -813,9 +514,9 @@
       if (error || !data?.length) { alert(error ? error.message : 'No hay eventos con este filtro.'); return }
       const T = window.i18nTr || (x => x);
       const hoja = data.map(a => ({
-        [T('Fecha')]: fmt(a.creado_en), [T('Usuario')]: quien(a), [T('Correo')]: a.usuario_email || '', [T('Módulo')]: T(a.modulo || ''),
-        [T('Qué se modificó')]: T(tabla(a.tabla)), [T('Elemento')]: nombreDe(a), [T('Acción')]: T(ACC[a.accion] || a.accion),
-        [T('Campos cambiados')]: (a.campos_cambiados || []).map(c => T(campo(c))).join(', '),
+        [T('Fecha')]: fmt(a.creado_en), [T('Usuario')]: quien(a), [T('Correo')]: a.usuario_email || '', [T('Módulo')]: T(modulo(a)[0]),
+        [T('Qué se modificó')]: T(tabla(a.tabla)), [T('Elemento')]: nombreDe(a), [T('Acción')]: T((ACC[a.accion] || a.accion).replace(/^\S+\s/, '')),
+        [T('Campos cambiados')]: cambios(a).map(c => T(campo(c))).join(', '),
         [T('Antes')]: cut(a.antes ? JSON.stringify(a.antes) : '', 30000), [T('Después')]: cut(a.despues ? JSON.stringify(a.despues) : '', 30000),
         [T('Motivo')]: a.motivo || '', [T('Importancia')]: T(SEV[a.severidad] || a.severidad), IP: a.ip || '',
         [T('Revisado')]: a.revisado_en ? corto(a.revisado_por) + ' ' + fmt(a.revisado_en) : ''
