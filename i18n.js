@@ -525,6 +525,18 @@
     "+ Guardar Insumo": "+ 保存原料",
     "Jefferson": "杰斐逊",
     "jeffercvc@hipermarket.com": "jeffercvc@hipermarket.com",
+    "MINI LUNCH X UND": "迷你午餐",
+    "MANTEQUILLA DE MOSTAZA Y PEREJIL X KG": "芥末香菜黄油 X 公斤",
+    "MANTEQUILLA AL AJILLO":"蒜香黄油",
+    "JUGO 3 EN 1":"3合1果汁",
+    "TOPING DE FRUTAS":"水果浇头",
+    "MASA PARA HALLACAS": "哈拉卡面团",
+    "PAN DE GUAYABA UND":"番石榴面包 UND",
+    "MASA PARA PANCANILLA Y FRANCES X KG": "潘卡尼利亚和法式面包面团（每公斤）",
+    "PARRILLA X KG":"每公斤烤架",
+    "CHICHARRON X KG":"猪皮脆片（每公斤",
+    
+
 
     // ---- Auditoría ----
     "Auditoría - Hipergalerias": "审计 - Hipergalerias",
