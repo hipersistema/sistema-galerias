@@ -3968,6 +3968,83 @@
             ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
         })();
     </script>
+    <script>
+/* PARCHE-ESCANER-AUTOCOMPLETAR: resuelve el producto al salir del campo (Tab / clic / escáner) */
+(function () {
+    const lineas = document.getElementById('lineas');
+    const esCodigo = v => /^\d{6,}$/.test(String(v || '').trim());
+
+    // Misma función de siempre, pero cancela búsquedas pendientes y permite no mover el foco
+    window.seleccionarEnLinea = function (row, a, enfocar) {
+        if (enfocar === undefined) enfocar = true;
+        const cod = codigoDe(a);
+        cacheCodigos.set(String(a.descripcion).toLowerCase().trim(), cod);
+        clearTimeout(row._t); row._s = (row._s || 0) + 1;
+        row.querySelector('.l-buscar').value = a.descripcion;
+        row.querySelector('.l-cod').value = cod;
+        row.querySelector('.l-nom').value = a.descripcion;
+        row.querySelector('.ac').hidden = true;
+        const pr = row.querySelector('.l-precio');
+        if (enfocar) { pr.value = '0.00'; }
+        calcLinea(row);
+        if (enfocar) { pr.focus(); pr.select(); }
+    };
+
+    // Busca el artículo por el valor escrito/escaneado y rellena la línea
+    async function resolverLinea(row, enfocar) {
+        if (row._res) return row._res;
+        row._res = (async () => {
+            if (row.querySelector('.l-nom').value) return true;
+            const valor = extraerCodigo(row.querySelector('.l-buscar').value);
+            if (!valor) return false;
+            clearTimeout(row._t); row._s = (row._s || 0) + 1;
+            let a = await buscarArticuloExacto(valor);
+            if (!a) { const r = await buscarArticulosDB(valor, 1); a = r[0] || null; }
+            if (a) { seleccionarEnLinea(row, a, enfocar); return true; }
+            return false;
+        })();
+        try { return await row._res; } finally { row._res = null; }
+    }
+
+    // 1) El escáner suele terminar con TAB: se autocompleta y pasa al precio
+    lineas.addEventListener('keydown', async e => {
+        if (e.key !== 'Tab' || e.shiftKey) return;
+        const t = e.target;
+        if (!t.classList || !t.classList.contains('l-buscar')) return;
+        const row = t.closest('.lin');
+        if (!row || row.querySelector('.l-nom').value || !t.value.trim()) return;
+        e.preventDefault();
+        const ok = await resolverLinea(row, true);
+        if (!ok) toast('No se encontró ningún artículo con "' + extraerCodigo(t.value) + '". Regístralo en la pestaña Artículos.', true);
+    });
+
+    // 2) Si el foco sale del campo por otra vía (clic) con un código numérico, también se resuelve
+    lineas.addEventListener('focusout', e => {
+        const t = e.target;
+        if (!t.classList || !t.classList.contains('l-buscar')) return;
+        const row = t.closest('.lin');
+        if (!row || row.querySelector('.l-nom').value || !esCodigo(t.value)) return;
+        resolverLinea(row, false);
+    });
+
+    // 3) Red de seguridad: antes de guardar, ninguna línea puede quedar con un código como producto
+    const original = window.registrarDescuento;
+    window.registrarDescuento = async function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        const filas = [...document.querySelectorAll('#lineas .lin')];
+        for (const row of filas) {
+            const txt = row.querySelector('.l-buscar').value.trim();
+            if (!txt || row.querySelector('.l-nom').value) continue;
+            const ok = await resolverLinea(row, false);
+            if (!ok && esCodigo(txt)) {
+                toast('No se encontró ningún artículo con el código "' + txt + '". Regístralo en la pestaña Artículos.', true);
+                return;
+            }
+        }
+        return original(e);
+    };
+})();
+</script>
     <script src="sesion-usuario.js"></script>
     <script src="analisis.js"></script>
     <script src="i18n.js"></script>
