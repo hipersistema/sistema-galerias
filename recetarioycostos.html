@@ -611,7 +611,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
           </div>
 
           <div class="flex items-center gap-2 pt-2 border-t border-gray-100">
-            <input type="checkbox" id="esSubreceta" class="w-4 h-4 text-[#2e7d32] rounded focus:ring-[#2e7d32]">
+            <input type="checkbox" id="esSubreceta" onchange="ajustarFactorSegunBase()" class="w-4 h-4 text-[#2e7d32] rounded focus:ring-[#2e7d32]">
             <label for="esSubreceta" class="text-xs font-bold text-gray-700 cursor-pointer">
               ⭐ Registrar también como Producto Base / Sub-receta (Disponible para otras recetas)
             </label>
@@ -1455,7 +1455,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       if (!ings.length) return false;
       const costoBatch = ings.reduce((a, i) => a + i.costoTotal, 0);
       const costoUnitario = r.tipo === 'und' ? costoBatch / (r.piezas || 1) : costoBatch / (r.rendimiento || 1);
-      const nombre = nomN(r.nombre), factor = r.factor || 1.5;
+      const nombre = nomN(r.nombre), factor = r.esSubreceta ? 1 : (r.factor || 1.5);
       const previo = IDX.rec.get(nombre + '|' + r.categoria);
       const receta = { id: previo ? previo.id : 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6), nombre, categoria: r.categoria,
         tipo: r.tipo, rendimiento: r.rendimiento || 1, piezas: r.piezas || 1, factor, costoBatch, costoUnitario, pvp: costoUnitario * factor,
@@ -1516,7 +1516,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       document.getElementById('categoriaReceta').value = r.categoria;
       document.getElementById('tipoCalculo').value = r.tipo;
       document.getElementById('piezasCant').value = r.piezas || 1;
-      document.getElementById('margenUtilidad').value = r.factor || 1.5;
+      document.getElementById('margenUtilidad').value = r.esSubreceta ? 1 : (r.factor || 1.5);
       document.getElementById('esSubreceta').checked = !!r.esSubreceta;
       recetaActual.filas = ev.filas.filter(f => f.ins).map(f => ({ insumoId: f.ins.id, cantidad: f.cant, modo: 'und' }));
       if (!recetaActual.filas.length) recetaActual.filas = [{ insumoId: '', cantidad: 0, modo: 'und' }];
@@ -1662,6 +1662,17 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       } else if (!idRecetaEditando) {
         chk.checked = false;
       }
+      if (!idRecetaEditando) ajustarFactorSegunBase();
+    }
+
+    // Base / sub-receta => factor 1.00 (sin utilidad). Editable a mano después.
+    function ajustarFactorSegunBase() {
+      const cat = document.getElementById('categoriaReceta').value;
+      const esBase = document.getElementById('esSubreceta').checked || cat === 'MASAS' || cat === 'GUISOS';
+      const f = document.getElementById('margenUtilidad');
+      if (esBase) f.value = 1;
+      else if (parseFloat(f.value) === 1) f.value = 1.5;
+      recalcularEscandallo();
     }
 
     let datosCargadosPara = null;
