@@ -2237,8 +2237,8 @@
            tabla "stock_real" de Supabase cada pocos minutos. La web solo LEE esa
            tabla con la sesión del usuario. Si falla, solo esa celda muestra "—". */
         const cacheStock = new Map();          // codigo -> { inv: [...] | null, t: timestamp }
-        const STOCK_TTL = 60 * 1000;           // refresca cada 1 min
-        const STOCK_REINTENTO = 15 * 1000;     // si falló, reintenta a los 15 s
+        const STOCK_TTL = 5 * 60 * 1000;           // refresca cada 1 min
+        const STOCK_REINTENTO = 60 * 1000;     // si falló, reintenta a los 15 s
         let stockSeq = 0;
         let ultimaMuestra = [];
         let syncInfoT = 0;
@@ -2275,6 +2275,36 @@
             const html = htmlStock(cod);
             document.querySelectorAll('td.stk').forEach(td => { if (td.dataset.cod === cod) td.innerHTML = html; });
         }
+
+        let canalStock = null, consultaId = 0, consultaT;
+        function canalEnVivo() {
+            if (canalStock || typeof supabaseClient === 'undefined' || !supabaseClient) return canalStock;
+            canalStock = supabaseClient.channel('stock-consulta', { config: { broadcast: { self: false } } });
+            canalStock.on('broadcast', { event: 'respuesta' }, ({ payload }) => {
+                if (!payload || !Array.isArray(payload.codigos)) return;
+                const porItem = new Map(payload.codigos.map(c => [String(c), []]));
+                (payload.filas || []).forEach(r => {
+                    const a = porItem.get(String(r.item_id));
+                    if (a) a.push({ warehouseID: r.warehouse_id, almacen: r.almacen, cantidad: r.cantidad });
+                });
+                porItem.forEach((inv, c) => {
+                    inv.sort((x, y) => String(x.warehouseID).localeCompare(String(y.warehouseID)));
+                    cacheStock.set(c, { inv, t: Date.now() });
+                    pintarStock(c);
+                });
+            }).subscribe();
+            return canalStock;
+        }
+        function consultarEnVivo(lista) {
+            clearTimeout(consultaT);
+            consultaT = setTimeout(() => {
+                const codigos = [...new Set(lista.map(codigoStock).filter(Boolean))].slice(0, 10);
+                const ch = canalEnVivo();
+                if (!ch || !codigos.length) return;
+                ch.send({ type: 'broadcast', event: 'pedir', payload: { id: ++consultaId, codigos } });
+            }, 400);
+        }
+        setTimeout(canalEnVivo, 2000);
 
         // Indicador "Stock actualizado hace X min" (avisa si la sincronización se detuvo)
         async function actualizarInfoSync() {
@@ -2332,7 +2362,22 @@
                 syncInfoT = 0;
                 cargarStocksVisibles(ultimaMuestra).catch(e => console.warn('Stock:', e));
             }
-        }, 60000);
+        }, 300000);
+
+        /* ============ AVISO DE USO: el script de stock solo corre si el módulo está abierto ============ */
+        let ultimoAviso = 0;
+        function pedirSync() {
+            if (document.visibilityState !== 'visible') return;
+            if (Date.now() - ultimoAviso < 60000) return;
+            if (typeof supabaseClient === 'undefined' || !supabaseClient) return;
+            ultimoAviso = Date.now();
+            supabaseClient.rpc('pedir_sync').then(({ error }) => { if (error) console.warn('pedir_sync:', error.message); });
+        }
+        setTimeout(pedirSync, 4000);
+        setInterval(pedirSync, 2 * 60 * 1000);
+        document.addEventListener('visibilitychange', pedirSync);
+        $('inputBuscar').addEventListener('focus', pedirSync);
+        $('inputBuscar').addEventListener('input', pedirSync);
 
         /* ============ UI: ESTADO DEL SISTEMA, NOTIFICACIONES, MODALES ============ */
         let cargasActivas = 0;
@@ -2706,6 +2751,28 @@
         }
 
         /* ============ BASE DE DATOS (SUPABASE) ============ */
+        function normalizarRegistro(item) {
+            item.codBarra = item.codBarra || item.cod_barra || 'S/C';
+            item.codInterno = item.codInterno || item.codinterno || item.cod_interno || 'S/C';
+            item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion || item.fecha_recepcion);
+            item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento || item.fecha_vencimiento);
+            if (item.inhabilitado === undefined) item.inhabilitado = false;
+            return item;
+        }
+
+        function mezclarRegistros(filas) {
+            const nuevos = filas.map(normalizarRegistro);
+            const idx = new Map(registros.map((r, i) => [String(r.id), i]));
+            const inserts = [];
+            nuevos.forEach(n => {
+                const i = idx.get(String(n.id));
+                if (i === undefined) inserts.push(n); else registros[i] = n;
+            });
+            registros = inserts.concat(registros);
+            actualizarTodo();
+            sincronizarDashboardLocalStorage();
+        }
+
         async function cargarDatosDB() {
             if (typeof supabaseClient === 'undefined') return;
 
@@ -2723,15 +2790,7 @@
                     return;
                 }
 
-                registros = data || [];
-
-                registros.forEach(item => {
-                    item.codBarra = item.codBarra || item.cod_barra || 'S/C';
-                    item.codInterno = item.codInterno || item.codinterno || item.cod_interno || 'S/C';
-                    item.fechaRecepcion = normalizarFechaGuardada(item.fechaRecepcion || item.fecha_recepcion);
-                    item.fechaVencimiento = normalizarFechaGuardada(item.fechaVencimiento || item.fecha_vencimiento);
-                    if (item.inhabilitado === undefined) item.inhabilitado = false;
-                });
+                registros = (data || []).map(normalizarRegistro);
 
                 actualizarTodo();
                 sincronizarDashboardLocalStorage();
@@ -2750,20 +2809,21 @@
 
             setCargando(true);
             try {
-                const { error } = await supabaseClient
+                const { data: guardados, error } = await supabaseClient
                     .from('recepcion_fechas')
-                    .upsert(itemsFormateados);
+                    .upsert(itemsFormateados).select();
 
                 if (error) {
                     console.error("Error al guardar en Supabase:", error);
                     toast("No se pudo guardar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
+            if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB();
             } finally {
                 setCargando(false);
             }
 
-            await cargarDatosDB();
+            
             return true;
         }
 
@@ -2780,11 +2840,14 @@
                     toast("No se pudo eliminar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
+            registros = registros.filter(r => String(r.id) !== String(idItem));
+                actualizarTodo();
+                sincronizarDashboardLocalStorage();
             } finally {
                 setCargando(false);
             }
 
-            await cargarDatosDB();
+            
             return true;
         }
 
@@ -3112,6 +3175,8 @@
             // si la API falla, la pantalla y la sesión no se ven afectadas.
             ultimaMuestra = muestra;
             cargarStocksVisibles(muestra).catch(e => console.warn('Stock:', e));
+            const buscando = $('inputBuscar').value.trim().length > 0;
+            if (buscando && muestra.length <= 10) consultarEnVivo(muestra);
         }
 
         function renderizarPaginacion(total, pagina, totalPaginas) {

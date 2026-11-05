@@ -1153,7 +1153,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
         for (let i = 0; i < lista.length; i += 500) {
           const payload = lista.slice(i, i + 500).map(ins => ({
             id: String(ins.id), codigo: ins.codigo, tipo: ins.tipo, nombre: limpiarNombreBase(ins.nombre),
-            precio: ins.precio, costo_venta: ins.costoVenta, unidad: ins.unidad, historial: ins.historial || []
+            precio: ins.precio, costo_venta: ins.costoVenta, unidad: ins.unidad, ...(ins.historial !== undefined ? { historial: ins.historial } : {})
           }));
           const { error } = await supabaseClient.from('insumos').upsert(payload, { onConflict: 'id' });
           if (error) throw error;
@@ -1437,6 +1437,8 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
                 tipo: 'base', nombre, precio: costo, costoVenta: costo, unidad, historial: [h] };
         insumosBase.unshift(ins);
       } else {
+        await cargarHistorial(ins);
+        if (ins.historial === undefined) return { success: false, error: new Error('historial no leído') };
         h.costoAnt = ins.precio; h.costoVentaAnt = precioIns(ins);
         ins.tipo = 'base'; ins.precio = costo; ins.costoVenta = costo; (ins.historial = ins.historial || []).push(h);
       }
@@ -1905,7 +1907,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       try {
         const { data: insumosData, error: errInsumos } = await supabaseClient
           .from('insumos')
-          .select('*')
+          .select('id,codigo,tipo,nombre,precio,costo_venta,unidad')
           .order('nombre', { ascending: true });
 
         if (errInsumos) throw errInsumos;
@@ -1930,14 +1932,14 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
               precio: parseFloat(i.precio || 0),
               costoVenta: parseFloat(i.costo_venta || i.precio || 0),
               unidad: i.unidad ? i.unidad.toUpperCase() : 'KG',
-              historial: hist
+              historial: Array.isArray(i.historial) ? i.historial : undefined
             };
           });
         }
 
         const { data: recetasData, error: errRecetas } = await supabaseClient
           .from('recetas')
-          .select('*')
+          .select('id,nombre,categoria,tipo,rendimiento,piezas,factor,costo_batch,costo_unitario,pvp,es_subreceta,ingredientes,fecha,merma_kg')
           .order('created_at', { ascending: false });
 
         if (errRecetas) throw errRecetas;
@@ -1981,6 +1983,17 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       if (typeof renderPend === "function") renderPend();
     }
 
+    async function cargarHistorial(ins) {
+      if (ins.historial !== undefined) return;
+      try {
+        const { data, error } = await supabaseClient.from('insumos').select('historial').eq('id', String(ins.id)).maybeSingle();
+        if (error) throw error;
+        let h = data ? data.historial : [];
+        if (typeof h === 'string') { try { h = JSON.parse(h); } catch (e) { h = []; } }
+        ins.historial = Array.isArray(h) ? h : [];
+      } catch (e) { console.warn('No se pudo leer el histórico', e); }
+    }
+
     async function guardarInsumoSupabase(insumo) {
       try {
         const payload = {
@@ -1991,7 +2004,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
           precio: insumo.precio,
           costo_venta: insumo.costoVenta,
           unidad: insumo.unidad,
-          historial: insumo.historial || []
+          ...(insumo.historial !== undefined ? { historial: insumo.historial } : {})
         };
 
         const { error } = await supabaseClient
@@ -2162,7 +2175,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       });
     }
 
-    function abrirModalAccionesProtegidas(id) {
+    async function abrirModalAccionesProtegidas(id) {
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       if (!insumo) return;
 
@@ -2189,6 +2202,7 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       const tbody = document.getElementById('tablaHistoricoProtegidoBody');
       tbody.innerHTML = '';
 
+      await cargarHistorial(insumo);
       const historialList = insumo.historial || [];
 
       if (historialList.length > 0) {
@@ -2222,6 +2236,8 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
       const insumo = insumosBase.find(i => String(i.id) === String(id));
       if (!insumo) return;
 
+      await cargarHistorial(insumo);
+      if (insumo.historial === undefined) { alert('No se pudo leer el histórico. Reintenta.'); return; }
       const nuevoNombreRaw = document.getElementById('nombreInsumoProtegidoInput').value.trim();
       if (!nuevoNombreRaw) {
         alert("Por favor introduce un nombre válido para el insumo.");

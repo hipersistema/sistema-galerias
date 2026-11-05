@@ -2049,8 +2049,15 @@
 
                     if (hayDB) {
                         try {
-                            const filas = await leerTodo('descuento_empleados', 'id,cedula,total_deuda,monto_abonado,saldo_pendiente');
-                            r = resumirDescuentos(filas);
+                            const CK = 'hg_cache_descuentos';
+                            const c = JSON.parse(sessionStorage.getItem(CK) || 'null');
+                            if (c && Date.now() - c.t < 10 * 60 * 1000) {
+                                r = c.r;
+                            } else {
+                                const filas = await leerTodo('descuento_empleados', 'id,cedula,total_deuda,monto_abonado,saldo_pendiente');
+                                r = resumirDescuentos(filas);
+                                sessionStorage.setItem(CK, JSON.stringify({ t: Date.now(), r }));
+                            }
                         } catch (err) {
                             console.warn('Descuentos: no se pudo leer Supabase', err);
                         }
@@ -2193,9 +2200,13 @@
                 if (session) { await sincronizarDashboard(); cargarTasaBCV(); }
                 else document.getElementById('modulesGrid').classList.remove('is-loading');
 
-                supabaseClient.auth.onAuthStateChange((_event, session) => {
-                    gestionarEstadoSesion(session);
-                    if (session) { sincronizarDashboard(); cargarTasaBCV(); }
+                let uidPrev = session?.user?.id ?? null;
+                supabaseClient.auth.onAuthStateChange((evento, s) => {
+                    const uid = s?.user?.id ?? null;
+                    if (uid === uidPrev) return;
+                    uidPrev = uid;
+                    gestionarEstadoSesion(s);
+                    if (s) { sincronizarDashboard(); cargarTasaBCV(); }
                 });
             } else {
                 await sincronizarDashboard();
@@ -2203,8 +2214,8 @@
             }
         });
 
-        window.addEventListener('storage', function () {
-            sincronizarDashboard();
+        window.addEventListener('storage', e => {
+            if (e.key && /^(dashboard_|hipergalerias_(ti|dashboard_resumen|insumos_db|recetas_db))/.test(e.key)) sincronizarDashboard();
         });
 
         window.addEventListener('storage', e => {

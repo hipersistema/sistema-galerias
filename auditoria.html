@@ -223,7 +223,7 @@
   <script>
     const $ = id => document.getElementById(id);
     const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    const POR = 50, ACC = { insert: '➕ Creó', update: '✏️ Modificó', delete: '🗑️ Eliminó', evento: '⚡ Evento' };
+    const POR = 25, ACC = { insert: '➕ Creó', update: '✏️ Modificó', delete: '🗑️ Eliminó', evento: '⚡ Evento' };
     const SEV = { info: 'Normal', aviso: 'Atención', critico: 'Crítico' };
     let pag = 1, total = 0, filas = [];
     const loc = () => window.idiomaActual && idiomaActual() === 'zh' ? 'zh-CN' : 'es-VE';
@@ -288,7 +288,7 @@
     const fvH = (v, k) => { const t = fv(v, k); return t === 'Sin dato' || t === '(vacío)' ? `<span class="na">${t}</span>` : esc(t) };
     const fe = o => o && typeof o === 'object'
       ? Object.entries(o).filter(([k]) => !OCULTOS.includes(k)).map(([k, v]) => `<em>${esc(campo(k))}:</em> ${esc(fv(v, k))}`).join(' · ') : esc(fv(o));
-    const nombreDe = a => { const o = a.despues || a.antes || {}; return o.producto || o.nombre || o.descripcion || o.nombre_empleado || o.nombre_apellido || o.cedula || '' };
+    const nombreDe = a => { if (!a.antes && !a.despues) return a.nom1 || a.nom2 || a.nom3 || a.nom4 || a.nom5 || a.nom6 || a.nom7 || a.nom8 || ''; const o = a.despues || a.antes || {}; return o.producto || o.nombre || o.descripcion || o.nombre_empleado || o.nombre_apellido || o.cedula || '' };
     const cambios = a => (a.campos_cambiados || []).filter(c => !OCULTOS.includes(c));
     const esLista = (x, y) => Array.isArray(x) || Array.isArray(y);
     const nuevos = (x, y) => { const v = (x || []).map(j => JSON.stringify(j)); return (y || []).filter(j => !v.includes(JSON.stringify(j))) };
@@ -388,8 +388,9 @@
 
     /* Columna "Movimiento": qué elemento y, si se modificó, qué cambió (antes → después) */
     function resumen(a) {
+      if (a.accion === 'update' && !a.antes) return `<b>${esc(nombreDe(a) || (TABLAS[a.tabla] || [, 'un registro'])[1])}</b><div class="sm">Cambió: ${esc(cambios(a).map(campo).join(', '))}</div>`;
       const o = a.despues || a.antes || {};
-      if (a.accion === 'evento') return esc(`${o.tipo || 'Evento'}: ${o.detalle || ''}`);
+      if (a.accion === 'evento') return esc(`${o.tipo || a.ev_tipo || 'Evento'}: ${o.detalle || a.ev_det || ''}`);
       const nom = nombreDe(a) || (TABLAS[a.tabla] || [, 'un registro'])[1];
       let sub = a.accion === 'insert' ? 'Registro nuevo' : a.accion === 'delete' ? 'Registro eliminado' : '';
       if (a.accion === 'update') {
@@ -403,6 +404,7 @@
       return `<b>${esc(nom)}</b>${sub ? `<div class="sm">${sub}</div>` : ''}`;
     }
 
+    const LIST_COLS = 'id,creado_en,usuario_email,usuario_nombre,modulo,tabla,accion,registro_id,campos_cambiados,severidad,revisado_en,revisado_por,nom1:despues->>producto,nom2:despues->>nombre,nom3:despues->>descripcion,nom4:despues->>nombre_empleado,nom5:antes->>producto,nom6:antes->>nombre,nom7:antes->>descripcion,nom8:antes->>nombre_empleado,ev_tipo:despues->>tipo,ev_det:despues->>detalle';
     function consulta(sel, opts) {
       let q = supabaseClient.from('auditoria').select(sel, opts);
       const g = id => $(id).value.trim();
@@ -421,7 +423,7 @@
     async function buscar() {
       sincQ(); $('tb').innerHTML = '<tr class="sk"><td colspan="7"><i></i></td></tr>'.repeat(6);
       const d = (pag - 1) * POR;
-      const { data, count, error } = await consulta('*', { count: 'exact' }).order('creado_en', { ascending: false }).range(d, d + POR - 1);
+      const { data, count, error } = await consulta(LIST_COLS, { count: 'exact' }).order('creado_en', { ascending: false }).range(d, d + POR - 1);
       if (error) { $('tb').innerHTML = `<tr><td colspan="7" class="empty">No se pudo leer la auditoría: ${esc(error.message)}</td></tr>`; return }
       filas = data || []; total = count || 0;
       let ult = '';
@@ -491,11 +493,17 @@
         cerrar(); buscar(); kpis();
       };
     }
+    async function abrirFila(i) {
+      const f = filas[i]; if (!f) return;
+      const { data, error } = await supabaseClient.from('auditoria').select('*').eq('id', f.id).maybeSingle();
+      if (error || !data) { alert('No se pudo leer el detalle: ' + (error ? error.message : 'sin datos')); return }
+      abrir(data);
+    }
     const cerrar = () => $('ov').classList.remove('on');
     $('ov').onclick = e => { if (e.target === $('ov')) cerrar() };
     document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar() });
-    $('tb').addEventListener('click', e => { const r = e.target.closest('tr[data-i]'); if (r) abrir(filas[r.dataset.i]) });
-    $('tb').addEventListener('keydown', e => { if (e.key === 'Enter') { const r = e.target.closest('tr[data-i]'); if (r) abrir(filas[r.dataset.i]) } });
+    $('tb').addEventListener('click', e => { const r = e.target.closest('tr[data-i]'); if (r) abrirFila(r.dataset.i) });
+    $('tb').addEventListener('keydown', e => { if (e.key === 'Enter') { const r = e.target.closest('tr[data-i]'); if (r) abrirFila(r.dataset.i) } });
 
     document.querySelectorAll('.q').forEach(b => b.onclick = () => {
       const q = b.dataset.q; document.querySelectorAll('.filters input,.filters select').forEach(i => i.value = '');

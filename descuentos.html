@@ -2457,12 +2457,12 @@
 
         function buscarCodigo(desc) { return cacheCodigos.get(String(desc || '').toLowerCase().trim()) || 'S/C'; }
 
-        async function fetchAllSupabase(tableName) {
+        async function fetchAllSupabase(tableName, cols = '*') {
             if (!hayDB()) return null;
             const allData = [], step = 1000;
             try {
                 for (let from = 0; ; from += step) {
-                    const { data, error } = await supabaseClient.from(tableName).select('*').range(from, from + step - 1);
+                    const { data, error } = await supabaseClient.from(tableName).select(cols).range(from, from + step - 1);
                     if (error) { console.error("Error consultando " + tableName + ":", error); return null; }
                     if (!data || data.length === 0) break;
                     allData.push(...data);
@@ -2477,7 +2477,7 @@
             if (!silent) toast('Sincronizando con Supabase...');
             const fallos = [];
             try {
-                const rawEmp = await fetchAllSupabase('empleados');
+                const rawEmp = await fetchAllSupabase('empleados', 'cedula,nombre_apellido,cargo,fecha_ingreso');
                 if (rawEmp === null) fallos.push('empleados');
                 else if (rawEmp.length > 0) {
                     window.empleados = rawEmp.map(e => ({
@@ -2490,7 +2490,7 @@
                     window.empleados = uniqEmp(window.empleados);
                 }
 
-                const rawDesc = await fetchAllSupabase('descuento_empleados');
+                const rawDesc = await fetchAllSupabase('descuento_empleados', 'id,fecha,cedula,nombre_empleado,producto,total_deuda,monto_abonado,saldo_pendiente');
                 if (rawDesc === null) fallos.push('descuentos');
                 else {
                     // CORRECCIÓN: llenar el caché de códigos ANTES de armar los descuentos
@@ -3692,7 +3692,7 @@
             window.cargarHistorial = async function () {
                 if (!hayDB()) { renderHistorial(); return; }
                 const { data, error } = await supabaseClient.from('historial_descuentos').select('*')
-                    .order('creado_en', { ascending: false }).limit(300);
+                    .order('creado_en', { ascending: false }).limit(100);
                 if (error) {
                     console.error(error);
                     if (!tablaFalta) toast('No se pudo leer el historial de descuentos. ¿Ya ejecutaste el SQL de historial_descuentos? ' + error.message, true);
