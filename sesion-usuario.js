@@ -92,7 +92,7 @@
     canal.on('presence', { event: 'sync' }, pintar).subscribe(async s => {
       if (s === 'SUBSCRIBED') await canal.track({ nombre: nombreDe(user), email: user.email, modulo: modulo(), desde: new Date().toISOString() });
     });
-    vigia = setInterval(verificarSesion, 45000);
+    
   }
   function detener() {
     if (canal) { sb().removeChannel(canal); canal = null; }

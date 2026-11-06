@@ -2510,6 +2510,7 @@
         /* ============ AUTENTICACIÓN Y SESIÓN COMPARTIDA ============ */
         async function ejecutarLogout() {
             cerrarUserMenu();
+            try { localStorage.removeItem('recepcion_cache_v1'); } catch (e) { }
             if (typeof supabaseClient !== 'undefined') {
                 await supabaseClient.auth.signOut();
                 navegarSuave('index.html');
@@ -2771,17 +2772,48 @@
             registros = inserts.concat(registros);
             actualizarTodo();
             sincronizarDashboardLocalStorage();
+            guardarCache();
         }
 
-        async function cargarDatosDB() {
-            if (typeof supabaseClient === 'undefined') return;
+        const CACHE_KEY = 'recepcion_cache_v1';
+        const CACHE_COMPLETA_MAX = 6 * 3600 * 1000; // recarga completa cada 6 h
+        let cacheFullAt = 0;
 
+        function leerCache() {
+            try { return JSON.parse(localStorage.getItem(CACHE_KEY)); } catch (e) { return null; }
+        }
+        function guardarCache() {
+            try {
+                const last = registros.reduce((m, r) => (r.updated_at && r.updated_at > m ? r.updated_at : m), '');
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ rows: registros, last, fullAt: cacheFullAt }));
+            } catch (e) { try { localStorage.removeItem(CACHE_KEY); } catch (_) { } }
+        }
+
+        async function cargarDatosDB(forzarCompleta = false) {
+            if (typeof supabaseClient === 'undefined') return;
             setCargando(true);
             try {
+                const c = forzarCompleta ? null : leerCache();
+                const vigente = c && c.rows && c.last && (Date.now() - c.fullAt) < CACHE_COMPLETA_MAX;
+
+                if (vigente) {
+                    // 1) Pinta al instante desde el caché
+                    registros = c.rows;
+                    cacheFullAt = c.fullAt;
+                    actualizarTodo();
+                    sincronizarDashboardLocalStorage();
+                    // 2) Pide solo lo que cambió desde la última vez
+                    const { data, error } = await supabaseClient
+                        .from('recepcion_fechas').select('*')
+                        .gt('updated_at', c.last).order('updated_at', { ascending: true });
+                    if (!error && data && data.length) mezclarRegistros(data);
+                    guardarCache();
+                    return;
+                }
+
+                // Carga completa (primera vez, cada 6 h, o si se fuerza)
                 const { data, error } = await supabaseClient
-                    .from('recepcion_fechas')
-                    .select('*')
-                    .order('id', { ascending: false });
+                    .from('recepcion_fechas').select('*').order('id', { ascending: false });
 
                 if (error) {
                     console.error("Error al consultar Supabase:", error);
@@ -2789,11 +2821,11 @@
                     $('tablaRegistros').innerHTML = `<tr><td colspan="9"><div class="empty"><strong>No se pudieron cargar los datos</strong>Revisa tu conexión e intenta de nuevo.<br><button class="btn btn-ghost" onclick="cargarDatosDB()">Reintentar</button></div></td></tr>`;
                     return;
                 }
-
                 registros = (data || []).map(normalizarRegistro);
-
+                cacheFullAt = Date.now();
                 actualizarTodo();
                 sincronizarDashboardLocalStorage();
+                guardarCache();
             } finally {
                 setCargando(false);
             }
@@ -2818,7 +2850,7 @@
                     toast("No se pudo guardar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
-            if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB();
+            if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB(true);
             } finally {
                 setCargando(false);
             }
@@ -2843,6 +2875,7 @@
             registros = registros.filter(r => String(r.id) !== String(idItem));
                 actualizarTodo();
                 sincronizarDashboardLocalStorage();
+                guardarCache();
             } finally {
                 setCargando(false);
             }
