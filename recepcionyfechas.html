@@ -1959,7 +1959,8 @@
         <section class="card" aria-labelledby="tituloForm">
             <h2 class="card-title" id="tituloForm">📥 Registrar recepción de producto</h2>
             <p class="form-help">Los campos con * son obligatorios. Atajos: <kbd>/</kbd> buscar ·
-                <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guardar · <kbd>Esc</kbd> cerrar o cancelar.</p>
+                <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guardar · <kbd>Esc</kbd> cerrar o cancelar.
+            </p>
             <div class="edit-banner" id="bannerEdicion" role="status"></div>
 
             <form id="formRecepcion" onsubmit="registrarProducto(event)" style="margin-top: 16px;">
@@ -2125,7 +2126,8 @@
                 <p class="table-hint">💡 Haz clic (o pulsa Enter) en una fila para ver sus acciones. Ordena con los
                     encabezados <strong>F. recepción</strong>, <strong>F. vencimiento</strong> o
                     <strong>Estatus</strong>. La columna <strong>Cant. (Stock Real)</strong> suma Piso de Venta +
-                    Depósito desde el sistema NewPosline.<span id="stockSyncInfo"></span></p>
+                    Depósito desde el sistema NewPosline.<span id="stockSyncInfo"></span>
+                </p>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -2851,12 +2853,12 @@
                     toast("No se pudo guardar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
-            if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB(true);
+                if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB(true);
             } finally {
                 setCargando(false);
             }
 
-            
+
             return true;
         }
 
@@ -2873,7 +2875,7 @@
                     toast("No se pudo eliminar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
-            registros = registros.filter(r => String(r.id) !== String(idItem));
+                registros = registros.filter(r => String(r.id) !== String(idItem));
                 actualizarTodo();
                 sincronizarDashboardLocalStorage();
                 guardarCache();
@@ -2881,7 +2883,7 @@
                 setCargando(false);
             }
 
-            
+
             return true;
         }
 
