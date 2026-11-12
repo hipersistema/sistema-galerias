@@ -1888,24 +1888,65 @@
             background: #101a14;
         }
     </style>
-<style>
-/* PARCHE-TABLAS-COMPACTAS: RRHH DESC sin scroll horizontal */
-#tab-rrhh .tw table { font-size: .84rem }
-#tab-rrhh .tw th,
-#tab-rrhh .tw td { padding: 9px 10px; white-space: normal; line-height: 1.25 }
-#tab-rrhh .tw th { font-size: .78rem; line-height: 1.2 }
-#tab-rrhh #tablaRrhh td:first-child { white-space: nowrap }
-#tab-rrhh .tw .badge { padding: 3px 9px; font-size: .7rem }
-#tab-rrhh .tw .saldo,
-#tab-rrhh .tw .count { padding: 2px 8px; font-size: .8rem; white-space: nowrap }
-#tab-rrhh .tw .btn-sm { padding: 6px 10px; font-size: .74rem; white-space: normal; text-align: left; line-height: 1.2; margin: 1px 0 }
-#tab-rrhh .hist-sub { max-width: 220px }
-</style>
-<style>
-/* PARCHE-TABLAS-AJUSTES */
-.tw { overflow-y: hidden }
-#tab-rrhh .tw .btn-sm { white-space: nowrap; text-align: center; justify-content: center }
-</style>
+    <style>
+        /* PARCHE-TABLAS-COMPACTAS: RRHH DESC sin scroll horizontal */
+        #tab-rrhh .tw table {
+            font-size: .84rem
+        }
+
+        #tab-rrhh .tw th,
+        #tab-rrhh .tw td {
+            padding: 9px 10px;
+            white-space: normal;
+            line-height: 1.25
+        }
+
+        #tab-rrhh .tw th {
+            font-size: .78rem;
+            line-height: 1.2
+        }
+
+        #tab-rrhh #tablaRrhh td:first-child {
+            white-space: nowrap
+        }
+
+        #tab-rrhh .tw .badge {
+            padding: 3px 9px;
+            font-size: .7rem
+        }
+
+        #tab-rrhh .tw .saldo,
+        #tab-rrhh .tw .count {
+            padding: 2px 8px;
+            font-size: .8rem;
+            white-space: nowrap
+        }
+
+        #tab-rrhh .tw .btn-sm {
+            padding: 6px 10px;
+            font-size: .74rem;
+            white-space: normal;
+            text-align: left;
+            line-height: 1.2;
+            margin: 1px 0
+        }
+
+        #tab-rrhh .hist-sub {
+            max-width: 220px
+        }
+    </style>
+    <style>
+        /* PARCHE-TABLAS-AJUSTES */
+        .tw {
+            overflow-y: hidden
+        }
+
+        #tab-rrhh .tw .btn-sm {
+            white-space: nowrap;
+            text-align: center;
+            justify-content: center
+        }
+    </style>
 </head>
 
 <body>
@@ -3987,137 +4028,146 @@
         })();
     </script>
     <script>
-/* PARCHE-ESCANER-AUTOCOMPLETAR: resuelve el producto al salir del campo (Tab / clic / escáner) */
-(function () {
-    const lineas = document.getElementById('lineas');
-    const esCodigo = v => /^\d{6,}$/.test(String(v || '').trim());
+        /* PARCHE-ESCANER-AUTOCOMPLETAR: resuelve el producto al salir del campo (Tab / clic / escáner) */
+        (function () {
+            const lineas = document.getElementById('lineas');
+            const esCodigo = v => /^\d{6,}$/.test(String(v || '').trim());
 
-    // Misma función de siempre, pero cancela búsquedas pendientes y permite no mover el foco
-    window.seleccionarEnLinea = function (row, a, enfocar) {
-        if (enfocar === undefined) enfocar = true;
-        const cod = codigoDe(a);
-        cacheCodigos.set(String(a.descripcion).toLowerCase().trim(), cod);
-        clearTimeout(row._t); row._s = (row._s || 0) + 1;
-        row.querySelector('.l-buscar').value = a.descripcion;
-        row.querySelector('.l-cod').value = cod;
-        row.querySelector('.l-nom').value = a.descripcion;
-        row.querySelector('.ac').hidden = true;
-        const pr = row.querySelector('.l-precio');
-        if (enfocar) { pr.value = '0.00'; }
-        calcLinea(row);
-        if (enfocar) { pr.focus(); pr.select(); }
-    };
+            // Misma función de siempre, pero cancela búsquedas pendientes y permite no mover el foco
+            window.seleccionarEnLinea = function (row, a, enfocar) {
+                if (enfocar === undefined) enfocar = true;
+                const cod = codigoDe(a);
+                cacheCodigos.set(String(a.descripcion).toLowerCase().trim(), cod);
+                clearTimeout(row._t); row._s = (row._s || 0) + 1;
+                row.querySelector('.l-buscar').value = a.descripcion;
+                row.querySelector('.l-cod').value = cod;
+                row.querySelector('.l-nom').value = a.descripcion;
+                row.querySelector('.ac').hidden = true;
+                const pr = row.querySelector('.l-precio');
+                if (enfocar) { pr.value = '0.00'; }
+                calcLinea(row);
+                if (enfocar) { pr.focus(); pr.select(); }
+            };
 
-    // Busca el artículo por el valor escrito/escaneado y rellena la línea
-    async function resolverLinea(row, enfocar) {
-        if (row._res) return row._res;
-        row._res = (async () => {
-            if (row.querySelector('.l-nom').value) return true;
-            const valor = extraerCodigo(row.querySelector('.l-buscar').value);
-            if (!valor) return false;
-            clearTimeout(row._t); row._s = (row._s || 0) + 1;
-            let a = await buscarArticuloExacto(valor);
-            if (!a) { const r = await buscarArticulosDB(valor, 1); a = r[0] || null; }
-            if (a) { seleccionarEnLinea(row, a, enfocar); return true; }
-            return false;
-        })();
-        try { return await row._res; } finally { row._res = null; }
-    }
-
-    // 1) El escáner suele terminar con TAB: se autocompleta y pasa al precio
-    lineas.addEventListener('keydown', async e => {
-        if (e.key !== 'Tab' || e.shiftKey) return;
-        const t = e.target;
-        if (!t.classList || !t.classList.contains('l-buscar')) return;
-        const row = t.closest('.lin');
-        if (!row || row.querySelector('.l-nom').value || !t.value.trim()) return;
-        e.preventDefault();
-        const ok = await resolverLinea(row, true);
-        if (!ok) toast('No se encontró ningún artículo con "' + extraerCodigo(t.value) + '". Regístralo en la pestaña Artículos.', true);
-    });
-
-    // 2) Si el foco sale del campo por otra vía (clic) con un código numérico, también se resuelve
-    lineas.addEventListener('focusout', e => {
-        const t = e.target;
-        if (!t.classList || !t.classList.contains('l-buscar')) return;
-        const row = t.closest('.lin');
-        if (!row || row.querySelector('.l-nom').value || !esCodigo(t.value)) return;
-        resolverLinea(row, false);
-    });
-
-    // 3) Red de seguridad: antes de guardar, ninguna línea puede quedar con un código como producto
-    const original = window.registrarDescuento;
-    window.registrarDescuento = async function (e) {
-        if (e && e.preventDefault) e.preventDefault();
-        const filas = [...document.querySelectorAll('#lineas .lin')];
-        for (const row of filas) {
-            const txt = row.querySelector('.l-buscar').value.trim();
-            if (!txt || row.querySelector('.l-nom').value) continue;
-            const ok = await resolverLinea(row, false);
-            if (!ok && esCodigo(txt)) {
-                toast('No se encontró ningún artículo con el código "' + txt + '". Regístralo en la pestaña Artículos.', true);
-                return;
+            // Busca el artículo por el valor escrito/escaneado y rellena la línea
+            async function resolverLinea(row, enfocar) {
+                if (row._res) return row._res;
+                row._res = (async () => {
+                    if (row.querySelector('.l-nom').value) return true;
+                    const valor = extraerCodigo(row.querySelector('.l-buscar').value);
+                    if (!valor) return false;
+                    clearTimeout(row._t); row._s = (row._s || 0) + 1;
+                    let a = await buscarArticuloExacto(valor);
+                    if (!a) { const r = await buscarArticulosDB(valor, 1); a = r[0] || null; }
+                    if (a) { seleccionarEnLinea(row, a, enfocar); return true; }
+                    return false;
+                })();
+                try { return await row._res; } finally { row._res = null; }
             }
-        }
-        return original(e);
-    };
-})();
-</script>
+
+            // 1) El escáner suele terminar con TAB: se autocompleta y pasa al precio
+            lineas.addEventListener('keydown', async e => {
+                if (e.key !== 'Tab' || e.shiftKey) return;
+                const t = e.target;
+                if (!t.classList || !t.classList.contains('l-buscar')) return;
+                const row = t.closest('.lin');
+                if (!row || row.querySelector('.l-nom').value || !t.value.trim()) return;
+                e.preventDefault();
+                const ok = await resolverLinea(row, true);
+                if (!ok) toast('No se encontró ningún artículo con "' + extraerCodigo(t.value) + '". Regístralo en la pestaña Artículos.', true);
+            });
+
+            // 2) Si el foco sale del campo por otra vía (clic) con un código numérico, también se resuelve
+            lineas.addEventListener('focusout', e => {
+                const t = e.target;
+                if (!t.classList || !t.classList.contains('l-buscar')) return;
+                const row = t.closest('.lin');
+                if (!row || row.querySelector('.l-nom').value || !esCodigo(t.value)) return;
+                resolverLinea(row, false);
+            });
+
+            // 3) Red de seguridad: antes de guardar, ninguna línea puede quedar con un código como producto
+            const original = window.registrarDescuento;
+            window.registrarDescuento = async function (e) {
+                if (e && e.preventDefault) e.preventDefault();
+                const filas = [...document.querySelectorAll('#lineas .lin')];
+                for (const row of filas) {
+                    const txt = row.querySelector('.l-buscar').value.trim();
+                    if (!txt || row.querySelector('.l-nom').value) continue;
+                    const ok = await resolverLinea(row, false);
+                    if (!ok && esCodigo(txt)) {
+                        toast('No se encontró ningún artículo con el código "' + txt + '". Regístralo en la pestaña Artículos.', true);
+                        return;
+                    }
+                }
+                return original(e);
+            };
+        })();
+    </script>
     <script>
-/* PARCHE-SIN-RECARGA-AL-FOCO: ignora el SIGNED_IN repetido del mismo usuario al volver a la pestaña */
-(function () {
-    const original = window.gestionarEstadoSesion;
-    let uidActual = null;
-    window.gestionarEstadoSesion = async function (session, eventName) {
-        const uid = session && session.user ? session.user.id : null;
-        if (uid && uid === uidActual && eventName === 'SIGNED_IN') return;
-        uidActual = uid;
-        return original(session, eventName);
-    };
-})();
-</script>
+        /* PARCHE-SIN-RECARGA-AL-FOCO: ignora el SIGNED_IN repetido del mismo usuario al volver a la pestaña */
+        (function () {
+            const original = window.gestionarEstadoSesion;
+            let uidActual = null;
+            window.gestionarEstadoSesion = async function (session, eventName) {
+                const uid = session && session.user ? session.user.id : null;
+                if (uid && uid === uidActual && eventName === 'SIGNED_IN') return;
+                uidActual = uid;
+                return original(session, eventName);
+            };
+        })();
+    </script>
     <style>
-/* PARCHE-TARJETAS-RRHH */
-#tab-rrhh .stat em.rh-sub { display: block; font-style: normal; font-size: .74rem; font-weight: 600; color: var(--muted); line-height: 1.25; margin-top: 3px }
-</style>
-<script>
-(function () {
-    const g = id => document.getElementById(id);
-    const sec = document.querySelector('#tab-rrhh .stats');
-    if (!sec || g('rrhhTodo')) return;
+        /* PARCHE-TARJETAS-RRHH */
+        #tab-rrhh .stat em.rh-sub {
+            display: block;
+            font-style: normal;
+            font-size: .74rem;
+            font-weight: 600;
+            color: var(--muted);
+            line-height: 1.25;
+            margin-top: 3px
+        }
+    </style>
+    <script>
+        (function () {
+            const g = id => document.getElementById(id);
+            const sec = document.querySelector('#tab-rrhh .stats');
+            if (!sec || g('rrhhTodo')) return;
 
-    sec.innerHTML =
-        '<div class="stat"><i>👥</i><div><small>Trabajadores a descontar</small><b id="rrhhN">0</b><em class="rh-sub" id="rrhhSubN"></em></div></div>' +
-        '<div class="stat"><i>💵</i><div><small>A descontar esta nómina</small><b id="rrhhTotal">$0.00</b><em class="rh-sub" id="rrhhSubTotal"></em></div></div>' +
-        '<div class="stat"><i>⏭️</i><div><small>Pasa a la siguiente nómina</small><b id="rrhhNext">$0.00</b><em class="rh-sub" id="rrhhSubNext"></em></div></div>' +
-        '<div class="stat"><i>🧮</i><div><small>Deuda pendiente total</small><b id="rrhhTodo">$0.00</b><em class="rh-sub">Esta nómina + la siguiente</em></div></div>';
+            sec.innerHTML =
+                '<div class="stat"><i>👥</i><div><small>Trabajadores a descontar</small><b id="rrhhN">0</b><em class="rh-sub" id="rrhhSubN"></em></div></div>' +
+                '<div class="stat"><i>💵</i><div><small>A descontar esta nómina</small><b id="rrhhTotal">$0.00</b><em class="rh-sub" id="rrhhSubTotal"></em></div></div>' +
+                '<div class="stat"><i>⏭️</i><div><small>Pasa a la siguiente nómina</small><b id="rrhhNext">$0.00</b><em class="rh-sub" id="rrhhSubNext"></em></div></div>' +
+                '<div class="stat"><i>🧮</i><div><small>Deuda pendiente total</small><b id="rrhhTodo">$0.00</b><em class="rh-sub">Esta nómina + la siguiente</em></div></div>';
 
-    function actualizar() {
-        const sel = g('selNomina');
-        if (!sel || !sel.value || !g('rrhhTodo')) return;
-        // Las fechas de corte y de la nómina siguiente salen del texto que ya muestra la página
-        const fs = g('rrhhInfo').querySelectorAll('strong');
-        const corte = fs[0] ? fs[0].textContent : '';
-        const sig = fs[1] ? fs[1].textContent : '';
-        const pago = sel.value.split('-').reverse().join('/');
-        const m = id => parseFloat(String(g(id).textContent).replace('$', '')) || 0;
-        g('rrhhSubN').textContent = 'En la nómina del ' + pago;
-        g('rrhhSubTotal').textContent = 'Nómina del ' + pago + ' · compras hasta el ' + corte;
-        g('rrhhSubNext').textContent = 'Compras después del ' + corte + ' · se descuentan el ' + sig;
-        g('rrhhTodo').textContent = '$' + (m('rrhhTotal') + m('rrhhNext')).toFixed(2);
-    }
+            function actualizar() {
+                const sel = g('selNomina');
+                if (!sel || !sel.value || !g('rrhhTodo')) return;
+                // Las fechas de corte y de la nómina siguiente salen del texto que ya muestra la página
+                const fs = g('rrhhInfo').querySelectorAll('strong');
+                const corte = fs[0] ? fs[0].textContent : '';
+                const sig = fs[1] ? fs[1].textContent : '';
+                const pago = sel.value.split('-').reverse().join('/');
+                const m = id => parseFloat(String(g(id).textContent).replace('$', '')) || 0;
+                g('rrhhSubN').textContent = 'En la nómina del ' + pago;
+                g('rrhhSubTotal').textContent = 'Nómina del ' + pago + ' · compras hasta el ' + corte;
+                g('rrhhSubNext').textContent = 'Compras después del ' + corte + ' · se descuentan el ' + sig;
+                g('rrhhTodo').textContent = '$' + (m('rrhhTotal') + m('rrhhNext')).toFixed(2);
+            }
 
-    const original = window.renderRrhh;
-    if (typeof original === 'function') {
-        window.renderRrhh = function () {
-            const r = original.apply(this, arguments);
+            const original = window.renderRrhh;
+            if (typeof original === 'function') {
+                window.renderRrhh = function () {
+                    const r = original.apply(this, arguments);
+                    actualizar();
+                    return r;
+                };
+            }
             actualizar();
-            return r;
-        };
-    }
-    actualizar();
-})();
-</script>
+        })();
+    </script>
+    <script src="editar-productos-cuenta.js"></script>
     <script src="sesion-usuario.js"></script>
     <script src="analisis.js"></script>
     <script src="i18n.js"></script>
