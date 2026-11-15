@@ -1,0 +1,16 @@
+{
+  "name": "bot-ofertas",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node bot.js",
+    "grupos": "node bot.js grupos"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "@whiskeysockets/baileys": "^7.0.0-rc14",
+    "dotenv": "^18.0.10",
+    "pino": "^10.4.0"
+  }
+}

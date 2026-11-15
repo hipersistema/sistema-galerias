@@ -1,0 +1,6 @@
+{
+    "liveServer.settings.ignoreFiles": [
+    ".vscode/**", "**/*.scss", "**/*.sass", "**/*.ts",
+    "**/bot-ofertas/**", "**/auth/**", "**/node_modules/**"
+]
+}

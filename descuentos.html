@@ -2176,6 +2176,8 @@
                         <div class="f"><label for="ofStock">Cantidad total</label><input type="number" id="ofStock" min="0" step="1" value="0"></div>
                         <div class="f"><label for="ofPrecio">Precio oferta ($)</label><input type="number" id="ofPrecio" min="0" step="0.01" required></div>
                         <div class="f wide"><label for="ofNota">Nota (opcional)</label><input id="ofNota" autocomplete="off"></div>
+                        <div class="f"><label for="ofImagen">Imagen (opcional)</label><input type="file" id="ofImagen" accept="image/*"></div>
+                        <label class="chk" style="align-self:end;padding-bottom:12px"><input type="checkbox" id="ofAvisar" checked style="width:16px;height:16px;padding:0;accent-color:var(--g)"> 📣 Avisar en el grupo</label>
                         <div class="row">
                             <button type="submit" class="btn btn-dark" id="btnOferta">💾 Guardar oferta</button>
                             <button type="button" class="btn btn-gray" id="btnOfertaCancel" onclick="cancelarEdicionOferta()" hidden>Cancelar</button>
@@ -4325,7 +4327,7 @@
     <script>
         /* PARCHE-OFERTAS: pestaña Ofertas sobre la tabla productos_descuento */
         (function () {
-            const TABLA = 'productos_descuento', COLS = 'id,codigo,descripcion,precio,stock,nota,creado_en';
+            const TABLA = 'productos_descuento', COLS = 'id,codigo,descripcion,precio,stock,nota,creado_en,imagen_url';
             const usd = n => '$' + Number(n).toFixed(2);
             let ofertas = [], editId = null, guardando = false, seq = 0, tSug;
             const inp = $('ofBuscar'), box = $('ofSugerencias');
@@ -4414,7 +4416,12 @@
 
                 guardando = true; $('btnOferta').disabled = true;
                 try {
-                    const fila = { codigo, descripcion, precio, stock, nota };
+                    const fila = { codigo, descripcion, precio, stock, nota, enviado: !$('ofAvisar').checked };
+                    const archivo = $('ofImagen').files[0];
+                    if (archivo) {
+                        try { fila.imagen_url = await subirImagenOferta(archivo); }
+                        catch (er) { console.error(er); toast('No se pudo subir la imagen: ' + er.message, true); return; }
+                    }
                     const editando = editId !== null;
                     const q = editando
                         ? supabaseClient.from(TABLA).update(fila).eq('id', editId).select()
@@ -4462,6 +4469,7 @@
                     inp.value = o.descripcion || ''; $('ofCodigo').value = o.codigo || '';
                     $('ofStock').value = num(o.stock); $('ofPrecio').value = num(o.precio).toFixed(2); $('ofNota').value = o.nota || '';
                     $('ofTitulo').textContent = '✏️ Editando oferta';
+                    $('ofAvisar').checked = false;
                     $('btnOferta').textContent = '💾 Guardar cambios';
                     $('btnOfertaCancel').hidden = false;
                     $('formOferta').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -4495,6 +4503,28 @@
                 return r;
             };
         })();
+    </script>
+    <script>
+        /* PARCHE-OFERTAS-IMAGEN: sube la imagen de la oferta al bucket "ofertas" */
+        async function subirImagenOferta(file) {
+            const blob = await new Promise((res, rej) => {
+                const img = new Image(), u = URL.createObjectURL(file);
+                img.onload = () => {
+                    const k = Math.min(1, 1000 / Math.max(img.width, img.height));
+                    const c = document.createElement('canvas');
+                    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+                    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+                    URL.revokeObjectURL(u);
+                    c.toBlob(b => b ? res(b) : rej(new Error('No se pudo procesar la imagen')), 'image/jpeg', 0.82);
+                };
+                img.onerror = () => rej(new Error('Imagen no válida'));
+                img.src = u;
+            });
+            const ruta = Date.now() + '_' + Math.random().toString(36).slice(2, 8) + '.jpg';
+            const { error } = await supabaseClient.storage.from('ofertas').upload(ruta, blob, { contentType: 'image/jpeg' });
+            if (error) throw error;
+            return supabaseClient.storage.from('ofertas').getPublicUrl(ruta).data.publicUrl;
+        }
     </script>
     <script src="editar-productos-cuenta.js"></script>
     <script src="sesion-usuario.js"></script>
