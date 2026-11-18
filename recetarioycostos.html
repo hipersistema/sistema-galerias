@@ -661,8 +661,8 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
               <thead class="bg-[#e8f5e9] text-[#123e1b] font-semibold border-b border-[#2e7d32]/20">
                 <tr>
                   <th class="p-3 w-1/3">Ingrediente / Base</th>
-                  <th class="p-3 w-24 text-center">Cant. Bruta</th>
                   <th class="p-3 w-24 text-center">Peso (kg)</th>
+                  <th class="p-3 w-24 text-center">Cant. Bruta</th>
                   <th class="p-3 w-28 text-right">P. Venta Usado ($)</th>
                   <th class="p-3 w-28 text-right">Total ($)</th>
                   <th class="p-3 w-10"></th>
@@ -2389,13 +2389,13 @@ body,header,.bg-white,.user-panel,.user-trigger,.btn-back,th{transition:backgrou
             </div>
           </td>
           <td class="p-2 align-top">
-            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" id="input-cant-${idx}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="${esHuevo(insumoObj) ? 'gramos' : '0.00'}" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
-            ${esHuevo(insumoObj) ? `<div id="equivRow-${idx}" class="text-[10px] text-gray-500 font-mono mt-0.5 text-center">${textoEquivalencia(fila, insumoObj)}</div>` : ''}
-          </td>
-          <td class="p-2 align-top">
             <input type="number" step="any" min="0" value="${fila.peso ?? ''}" placeholder="auto"
                    oninput="actualizarPesoFila(${idx}, this.value)"
                    class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
+          </td>
+          <td class="p-2 align-top">
+            <input type="number" step="any" min="0" value="${fila.cantidad || ''}" id="input-cant-${idx}" oninput="actualizarCantidadFila(${idx}, this.value)" placeholder="${esHuevo(insumoObj) ? 'gramos' : '0.00'}" class="w-full p-2 border border-gray-300 rounded text-xs text-center font-bold outline-none">
+            ${esHuevo(insumoObj) ? `<div id="equivRow-${idx}" class="text-[10px] text-gray-500 font-mono mt-0.5 text-center">${textoEquivalencia(fila, insumoObj)}</div>` : ''}
           </td>
           <td class="p-2 pt-[18px] align-top text-right font-bold text-gray-700 font-mono text-xs" id="costoVentaUsadoRow-${idx}">$${costoVentaUsado.toFixed(4)}</td>
           <td class="p-2 pt-[18px] align-top text-right font-black text-[#123e1b] font-mono text-xs" id="totalRow-${idx}">$${totalFila.toFixed(4)}</td>
