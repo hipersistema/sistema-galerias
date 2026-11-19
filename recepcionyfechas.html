@@ -74,8 +74,7 @@
         <section class="card" aria-labelledby="tituloForm">
             <h2 class="card-title" id="tituloForm">📥 Registrar recepción de producto</h2>
             <p class="form-help">Los campos con * son obligatorios. Atajos: <kbd>/</kbd> buscar ·
-                <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guardar · <kbd>Esc</kbd> cerrar o cancelar.
-            </p>
+                <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guardar · <kbd>Esc</kbd> cerrar o cancelar.</p>
             <div class="edit-banner" id="bannerEdicion" role="status"></div>
 
             <form id="formRecepcion" onsubmit="registrarProducto(event)" style="margin-top: 16px;">
@@ -241,8 +240,7 @@
                 <p class="table-hint">💡 Haz clic (o pulsa Enter) en una fila para ver sus acciones. Ordena con los
                     encabezados <strong>F. recepción</strong>, <strong>F. vencimiento</strong> o
                     <strong>Estatus</strong>. La columna <strong>Cant. (Stock Real)</strong> suma Piso de Venta +
-                    Depósito desde el sistema NewPosline.<span id="stockSyncInfo"></span>
-                </p>
+                    Depósito desde el sistema NewPosline.<span id="stockSyncInfo"></span></p>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -274,105 +272,34 @@
     <!-- MODAL DE ACCIONES AL HACER CLIC EN UNA FILA -->
     <div class="modal-overlay" id="modalAcciones" role="dialog" aria-modal="true" aria-labelledby="modalTituloProducto"
         onclick="cerrarModalFuera(event)">
-        <div class="modal-card modal-art">
+        <div class="modal-card">
             <div class="modal-header">
                 <h3 id="modalTituloProducto">Detalle del producto</h3>
-                <span class="ma-chip" id="maChip"></span>
                 <button class="modal-close-btn" onclick="cerrarModal()" aria-label="Cerrar">✕</button>
             </div>
-
-            <div class="ma-tabs" role="tablist" id="maTabs" aria-label="Secciones del artículo">
-                <button class="ma-tab" role="tab" data-p="art" aria-selected="true">Artículo</button>
-                <button class="ma-tab" role="tab" data-p="rec" aria-selected="false">Recepción</button>
-                <button class="ma-tab" role="tab" data-p="stk" aria-selected="false">Stock</button>
-                <button class="ma-tab" role="tab" data-p="lot" aria-selected="false">Lotes <span class="ma-count"
-                        id="maLotCount">0</span></button>
-            </div>
-
-            <div class="ma-body">
-                <section class="ma-panel on" id="maP-art" role="tabpanel">
-                    <div class="ma-caja">
-                        <div class="ma-grid">
-                            <div class="ma-f full"><label>Descripción</label>
-                                <div id="maDesc"></div>
-                            </div>
-                            <div class="ma-f"><label>Cód. interno</label>
-                                <div id="maInt" class="num"></div>
-                            </div>
-                            <div class="ma-f"><label>Cód. barra</label>
-                                <div id="maBar" class="num"></div>
-                            </div>
-                            <div class="ma-f"><label>Departamento</label>
-                                <div id="maDpto"></div>
-                            </div>
-                            <div class="ma-f"><label>Estatus</label>
-                                <div id="maEstado"></div>
-                            </div>
-                            <div class="ma-f"><label>F. recepción</label>
-                                <div id="maFrec"></div>
-                            </div>
-                            <div class="ma-f"><label>F. vencimiento</label>
-                                <div id="maFven"></div>
-                            </div>
-                            <div class="ma-f full"><label>Observaciones</label>
-                                <div id="maObs"></div>
-                            </div>
-                        </div>
+            <div class="modal-body">
+                <div class="modal-info-grid">
+                    <div class="modal-info-item"><label>Cód. barra / interno</label><span id="modalCodigos">-</span>
                     </div>
-                </section>
-
-                <section class="ma-panel" id="maP-rec" role="tabpanel">
-                    <div class="ma-caja">
-                        <div class="ma-grid">
-                            <div class="ma-f"><label>Proveedor</label>
-                                <div id="maProv"></div>
-                            </div>
-                            <div class="ma-f"><label>Recibe</label>
-                                <div id="maRecibe"></div>
-                            </div>
-                            <div class="ma-f"><label>N° factura</label>
-                                <div id="maFac" class="num"></div>
-                            </div>
-                            <div class="ma-f"><label>N° lote</label>
-                                <div id="maLote" class="num"></div>
-                            </div>
-                        </div>
+                    <div class="modal-info-item"><label>Departamento</label><span id="modalDpto">-</span></div>
+                    <div class="modal-info-item"><label>Proveedor</label><span id="modalProveedor">-</span></div>
+                    <div class="modal-info-item"><label>N° factura / lote</label><span id="modalFacturaLote">-</span>
                     </div>
-                    <table class="ma-precios">
-                        <thead>
-                            <tr>
-                                <th>Cantidad recibida</th>
-                                <th>Costo unitario</th>
-                                <th>Costo total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="maCant"></td>
-                                <td id="maUnit"></td>
-                                <td id="maTot"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </section>
-
-                <section class="ma-panel" id="maP-stk" role="tabpanel">
-                    <div id="maStk"></div>
-                </section>
-                <section class="ma-panel" id="maP-lot" role="tabpanel">
-                    <div id="maLot"></div>
-                </section>
-            </div>
-
-            <div class="modal-actions ma-foot">
-                <button class="btn-modal-delete" id="btnModalEliminar">🗑️ Eliminar</button>
-                <button class="btn-modal-inhabilitar" id="btnModalInhabilitar">🚫 Inhabilitar</button>
-                <button class="btn-modal-kardex" id="btnModalKardex">📘 Kardex</button>
-                <button class="btn-modal-edit" id="btnModalEditar">✏️ Editar</button>
+                    <div class="modal-info-item"><label>Cantidad y costos</label><span id="modalCantCostos">-</span>
+                    </div>
+                    <div class="modal-info-item"><label>Recibe</label><span id="modalRecibe">-</span></div>
+                    <div class="modal-info-item" style="grid-column: span 2;"><label>Observaciones</label><span
+                            id="modalObservaciones">-</span></div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-modal-delete" id="btnModalEliminar">🗑️ Eliminar</button>
+                    <button class="btn-modal-inhabilitar" id="btnModalInhabilitar">🚫 Inhabilitar</button>
+                    <button class="btn-modal-kardex" id="btnModalKardex">📘 Kardex</button>
+                    <button class="btn-modal-edit" id="btnModalEditar">✏️ Editar</button>
+                </div>
             </div>
         </div>
     </div>
-
 
     <!-- MODAL DE CLAVE DE SEGURIDAD -->
     <div class="modal-overlay" id="modalClaveSeguridad" role="dialog" aria-modal="true" aria-labelledby="tituloClave"
