@@ -900,7 +900,26 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .stock-filter-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
             margin-bottom: 12px;
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+        }
+
+        .stock-filter-label {
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-right: 4px;
         }
 
         .filter-pills,
@@ -942,6 +961,18 @@
             background: var(--mint);
             border-color: var(--leaf);
             color: var(--ok);
+        }
+
+        .pill-btn.pill-negativos.active {
+            background: var(--red-soft);
+            border-color: var(--red);
+            color: var(--red-text);
+        }
+
+        .pill-btn.pill-pedido.active {
+            background: var(--warn-soft);
+            border-color: var(--amber);
+            color: var(--warn);
         }
 
         .pill-btn.pill-inhabilitados {
@@ -1015,7 +1046,7 @@
             background: var(--border-strong);
         }
 
-        /* ============ TABLA ============ */
+        /* ============ TABLA (8 columnas sin Lote) ============ */
         .table-card {
             padding: 16px;
         }
@@ -1088,6 +1119,7 @@
             color: var(--text);
         }
 
+        /* Columna 3 = Producto */
         td:nth-child(3),
         th:nth-child(3) {
             white-space: normal;
@@ -1096,15 +1128,14 @@
             word-break: break-word;
         }
 
-        td:nth-child(6) {
+        /* Columna 5 = Cant. (Stock Real) */
+        td:nth-child(5),
+        th:nth-child(5) {
             text-align: center;
         }
 
-        th:nth-child(6) {
-            text-align: center;
-        }
-
-        td:nth-child(9) {
+        /* Columna 8 = Estatus */
+        td:nth-child(8) {
             text-align: center;
         }
 
@@ -1898,8 +1929,48 @@
                 transform: scale(1.06);
             }
         }
-    
-</style>
+
+        /* ===== Registro compacto ===== */
+        .reg-card { padding: 16px 22px; }
+        .reg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .reg-head kbd { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); color: #fff; margin-left: 4px; }
+        .reg-panel { margin-top: 14px; animation: riseIn .3s var(--ease); }
+        .reg-panel[hidden] { display: none; }
+        .reg-fila { display: grid; grid-template-columns: 1.1fr 1fr 2.4fr .7fr 1fr; gap: 12px; align-items: start; }
+        .reg-mas { margin-top: 12px; }
+        .reg-mas summary { cursor: pointer; width: max-content; padding: 6px 0; list-style: none; font-size: .8rem; font-weight: 700; color: var(--muted); }
+        .reg-mas summary::-webkit-details-marker { display: none; }
+        .reg-mas summary::before { content: '＋ '; }
+        .reg-mas[open] summary::before { content: '－ '; }
+        .reg-mas summary:hover { color: var(--text); }
+        .reg-mas .form-grid { margin-top: 10px; padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r); }
+        .reg-panel .form-actions { margin-top: 14px; }
+        @media (max-width: 900px) {
+            .reg-fila { grid-template-columns: 1fr 1fr; }
+            .reg-prod { grid-column: 1 / -1; }
+        }
+
+        /* ===== Filtro de stock desplegable ===== */
+        .pill-sep { width: 1px; height: 22px; background: var(--border-strong); margin: 0 4px; }
+        .stock-menu { position: relative; }
+        .stock-trigger[aria-expanded="true"] .chev { transform: rotate(180deg); }
+        .stock-pop {
+            position: absolute; top: calc(100% + 8px); left: 0; z-index: 40; min-width: 280px;
+            display: flex; flex-direction: column; gap: 2px; padding: 6px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(0,0,0,.28); animation: cardIn .18s var(--ease); transform-origin: top left;
+        }
+        .stock-pop[hidden] { display: none; }
+        .menu-opt {
+            display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%;
+            padding: 9px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--text);
+            font-size: .84rem; font-weight: 700; text-align: left; cursor: pointer;
+            transition: background-color .15s ease;
+        }
+        .menu-opt small { font-size: .72rem; font-weight: 500; color: var(--muted); }
+        .menu-opt:hover, .menu-opt:focus-visible { background: var(--mint); outline: none; }
+        .menu-opt.active { background: var(--mint); box-shadow: inset 3px 0 0 var(--leaf); color: var(--ok); }
+    </style>
 </head>
 
 <body>
@@ -1957,115 +2028,102 @@
 
     <main class="container">
         <!-- FORMULARIO DE REGISTRO / EDICIÓN -->
-        <section class="card" aria-labelledby="tituloForm">
-            <h2 class="card-title" id="tituloForm">📥 Registrar recepción de producto</h2>
-            <p class="form-help">Los campos con * son obligatorios. Atajos: <kbd>/</kbd> buscar ·
-                <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guardar · <kbd>Esc</kbd> cerrar o cancelar.</p>
+        <section class="card reg-card" aria-labelledby="tituloForm">
+            <div class="reg-head">
+                <h2 class="card-title" id="tituloForm">📥 Recepción de producto</h2>
+                <button type="button" class="btn btn-save" id="btnAbrirRegistro" onclick="abrirPanelRegistro()"
+                    aria-expanded="false" aria-controls="regPanel">＋ Nueva recepción <kbd>N</kbd></button>
+            </div>
             <div class="edit-banner" id="bannerEdicion" role="status"></div>
 
-            <form id="formRecepcion" onsubmit="registrarProducto(event)" style="margin-top: 16px;">
-                <input type="hidden" id="editId" value="">
+            <div class="reg-panel" id="regPanel" hidden>
+                <form id="formRecepcion" onsubmit="registrarProducto(event)">
+                    <input type="hidden" id="editId" value="">
 
-                <fieldset>
-                    <legend>Producto</legend>
-                    <div class="form-grid">
+                    <div class="reg-fila">
                         <div class="form-group">
                             <label for="codBarra">Cód. barra</label>
-                            <input type="text" id="codBarra" placeholder="750123456789" autocomplete="off"
+                            <input type="text" id="codBarra" placeholder="Escanea aquí" autocomplete="off"
                                 onkeypress="if(event.key === 'Enter'){ event.preventDefault(); buscarYAutocompletarPorCodigo(this.value, 'codBarra'); }"
                                 onblur="buscarYAutocompletarPorCodigo(this.value, 'codBarra')">
                         </div>
                         <div class="form-group">
                             <label for="codInterno">Cód. interno</label>
-                            <input type="text" id="codInterno" placeholder="INT-001" autocomplete="off"
+                            <input type="text" id="codInterno" placeholder="031381" autocomplete="off"
                                 onkeypress="if(event.key === 'Enter'){ event.preventDefault(); buscarYAutocompletarPorCodigo(this.value, 'codInterno'); }"
                                 onblur="buscarYAutocompletarPorCodigo(this.value, 'codInterno')">
                         </div>
-                        <div class="form-group span-large">
-                            <label for="producto">Descripción del producto</label>
-                            <input type="text" id="producto" placeholder="Ej. MARGARINA MAVESA 500G" required
-                                autocomplete="off">
+                        <div class="form-group reg-prod">
+                            <label for="producto">Producto</label>
+                            <input type="text" id="producto" placeholder="Ej. MARGARINA MAVESA 500G" required autocomplete="off">
                         </div>
-                        <div class="form-group">
-                            <label for="departamento">Departamento</label>
-                            <input type="text" id="departamento" placeholder="Ej. VÍVERES" list="dlDptos"
-                                autocomplete="off">
-                        </div>
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Compra y recepción</legend>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="proveedor">Proveedor</label>
-                            <input type="text" id="proveedor" placeholder="Ej. ALFONZO RIVAS" list="dlProveedores"
-                                autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="numFactura">N° de factura</label>
-                            <input type="text" id="numFactura" placeholder="FAC-9921" autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="personaRecibe">Recibe</label>
-                            <input type="text" id="personaRecibe" placeholder="Nombre de quien recibe"
-                                autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="lote">N° de lote</label>
-                            <input type="text" id="lote" placeholder="LOTE-100" autocomplete="off">
-                        </div>
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend>Cantidades, costos y fechas</legend>
-                    <div class="form-grid">
                         <div class="form-group">
                             <label for="cantidad">Cantidad</label>
-                            <input type="number" id="cantidad" min="1" value="1" oninput="calcularCostoTotalAuto()"
-                                required>
+                            <input type="number" id="cantidad" min="1" value="1" oninput="calcularCostoTotalAuto()" required>
                         </div>
                         <div class="form-group">
-                            <label for="costoUnitario">Costo unitario ($)</label>
-                            <input type="number" id="costoUnitario" step="0.01" min="0" placeholder="0.00"
-                                oninput="calcularCostoTotalAuto()">
-                        </div>
-                        <div class="form-group">
-                            <label for="costoTotal">Costo total ($)</label>
-                            <input type="number" id="costoTotal" step="0.01" min="0" placeholder="0.00"
-                                oninput="calcularCostoUnitarioAuto()">
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaRecepcion">Fecha de recepción</label>
-                            <input type="date" id="fechaRecepcion" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="fechaCaducidad">Fecha de caducidad</label>
+                            <label for="fechaCaducidad">Vence</label>
                             <input type="date" id="fechaCaducidad" aria-describedby="hintFechas">
                             <div class="field-hint" id="hintFechas" role="status"></div>
                         </div>
-                        <div class="form-group span-large">
-                            <label for="observaciones">Observaciones</label>
-                            <input type="text" id="observaciones" placeholder="Detalles o novedades de la mercancía..."
-                                autocomplete="off">
-                        </div>
                     </div>
-                </fieldset>
 
-                <datalist id="dlDptos"></datalist>
-                <datalist id="dlProveedores"></datalist>
+                    <details class="reg-mas" id="regMas">
+                        <summary>Más detalles (proveedor, factura, lote, costos…)</summary>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="departamento">Departamento</label>
+                                <input type="text" id="departamento" placeholder="Ej. VÍVERES" list="dlDptos" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="proveedor">Proveedor</label>
+                                <input type="text" id="proveedor" placeholder="Ej. ALFONZO RIVAS" list="dlProveedores" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="numFactura">N° de factura</label>
+                                <input type="text" id="numFactura" placeholder="FAC-9921" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="personaRecibe">Recibe</label>
+                                <input type="text" id="personaRecibe" placeholder="Quien recibe" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="lote">N° de lote</label>
+                                <input type="text" id="lote" placeholder="LOTE-100" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="costoUnitario">Costo unitario ($)</label>
+                                <input type="number" id="costoUnitario" step="0.01" min="0" placeholder="0.00" oninput="calcularCostoTotalAuto()">
+                            </div>
+                            <div class="form-group">
+                                <label for="costoTotal">Costo total ($)</label>
+                                <input type="number" id="costoTotal" step="0.01" min="0" placeholder="0.00" oninput="calcularCostoUnitarioAuto()">
+                            </div>
+                            <div class="form-group">
+                                <label for="fechaRecepcion">Fecha de recepción</label>
+                                <input type="date" id="fechaRecepcion">
+                            </div>
+                            <div class="form-group span-large">
+                                <label for="observaciones">Observaciones</label>
+                                <input type="text" id="observaciones" placeholder="Novedades de la mercancía…" autocomplete="off">
+                            </div>
+                        </div>
+                    </details>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-save" id="btnGuardar"><span id="btnGuardarTxt">Guardar
-                            registro</span></button>
-                    <button type="button" id="btnCancelarEdicion" class="btn btn-ghost" style="display:none;"
-                        onclick="cancelarEdicionForm()">Cancelar edición</button>
-                    <button type="button" id="btnEliminarForm" class="btn btn-delete"
-                        style="display:none; margin-left:auto;" onclick="eliminarItemActualForm()">🗑️ Eliminar este
-                        registro</button>
-                </div>
-            </form>
+                    <datalist id="dlDptos"></datalist>
+                    <datalist id="dlProveedores"></datalist>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-save" id="btnGuardar"><span id="btnGuardarTxt">Guardar registro</span></button>
+                        <button type="button" class="btn btn-ghost" id="btnCancelarEdicion" style="display:none;"
+                            onclick="cancelarEdicionForm(); cerrarPanelRegistro();">Cancelar edición</button>
+                        <button type="button" class="btn btn-ghost" onclick="cerrarPanelRegistro()">Cerrar</button>
+                        <button type="button" id="btnEliminarForm" class="btn btn-delete" style="display:none; margin-left:auto;"
+                            onclick="eliminarItemActualForm()">🗑️ Eliminar este registro</button>
+                    </div>
+                    <p class="form-help">Enter avanza al siguiente campo · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guarda · <kbd>Esc</kbd> cierra</p>
+                </form>
+            </div>
         </section>
 
         <!-- DASHBOARD (clic para filtrar) -->
@@ -2102,6 +2160,33 @@
                     <button class="pill-btn pill-inhabilitados" data-filter="inhabilitados"
                         onclick="filtrarEstado('inhabilitados', this)">🚫 Inhabilitados <span class="pill-count"
                             id="contadorInhabilitados">0</span></button>
+                    <span class="pill-sep" aria-hidden="true"></span>
+                    <div class="stock-menu" id="stockMenu">
+                        <button type="button" class="pill-btn stock-trigger" id="stockTrigger" aria-haspopup="true"
+                            aria-expanded="false" aria-controls="stockPop" onclick="toggleStockMenu()">
+                            📊 <span id="stockTriggerTxt">Stock</span> <span class="chev">▾</span>
+                        </button>
+                        <div class="stock-pop" id="stockPop" role="menu" hidden>
+                            <button type="button" class="menu-opt active" role="menuitemradio" aria-checked="true"
+                                data-stock-filter="todos" onclick="filtrarStock('todos')">
+                                <span>Todo stock</span><small>Sin filtro de stock</small></button>
+                            <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
+                                data-stock-filter="negativos" onclick="filtrarStock('negativos')">
+                                <span>📉 Negativos (ajuste)</span><small>Stock negativo o diferencia piso/depósito</small></button>
+                            <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
+                                data-stock-filter="piso_cero" onclick="filtrarStock('piso_cero')">
+                                <span>🛑 Piso en 0</span><small>Sin existencia en Piso de Venta</small></button>
+                            <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
+                                data-stock-filter="deposito_cero" onclick="filtrarStock('deposito_cero')">
+                                <span>📦 Depósito en 0</span><small>Sin existencia en Depósito</small></button>
+                            <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
+                                data-stock-filter="pedir_proveedor" onclick="filtrarStock('pedir_proveedor')">
+                                <span>🛒 Pedir a proveedor</span><small>Candidatos a pedido (excluye vencidos)</small></button>
+                            <div class="usep"></div>
+                            <button type="button" class="menu-opt" onclick="precargarStockTodos(); cerrarStockMenu();">
+                                <span>🔄 Consultar stock</span><small>Carga el stock de todos los códigos</small></button>
+                        </div>
+                    </div>
                 </div>
                 <div class="filter-tools">
                     <div class="search-box">
@@ -2121,12 +2206,13 @@
                 </div>
             </div>
 
-            <!-- TABLA -->
+
+            <!-- TABLA (8 columnas) -->
             <div class="card table-card">
                 <p class="table-hint">💡 Haz clic (o pulsa Enter) en una fila para ver sus acciones. Ordena con los
                     encabezados <strong>F. recepción</strong>, <strong>F. vencimiento</strong> o
-                    <strong>Estatus</strong>. La columna <strong>Cant. (Stock Real)</strong> suma Piso de Venta +
-                    Depósito desde el sistema NewPosline.<span id="stockSyncInfo"></span></p>
+                    <strong>Estatus</strong>. La columna <strong>Cant. (Stock Real)</strong> muestra Piso de Venta y
+                    Depósito desde NewPosline.<span id="stockSyncInfo"></span></p>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -2135,7 +2221,6 @@
                                 <th>Cód. interno</th>
                                 <th>Producto</th>
                                 <th>Dpto.</th>
-                                <th>Lote</th>
                                 <th>Cant. (Stock Real)</th>
                                 <th class="sortable" tabindex="0" onclick="sortTable('recepcion', this)"
                                     onkeydown="if(event.key==='Enter')sortTable('recepcion', this)">F. recepción</th>
@@ -2217,6 +2302,7 @@
     <script>
         let registros = [];
         let filtroEstadoActual = 'todos';
+        let filtroStockActual = 'todos';
         let itemSeleccionadoActual = null;
         let sortDirections = {};
         let timeoutBusqueda = null;
@@ -2239,8 +2325,8 @@
            tabla "stock_real" de Supabase cada pocos minutos. La web solo LEE esa
            tabla con la sesión del usuario. Si falla, solo esa celda muestra "—". */
         const cacheStock = new Map();          // codigo -> { inv: [...] | null, t: timestamp }
-        const STOCK_TTL = 5 * 60 * 1000;           // refresca cada 1 min
-        const STOCK_REINTENTO = 60 * 1000;     // si falló, reintenta a los 15 s
+        const STOCK_TTL = 5 * 60 * 1000;
+        const STOCK_REINTENTO = 60 * 1000;
         let stockSeq = 0;
         let ultimaMuestra = [];
         let syncInfoT = 0;
@@ -2255,6 +2341,87 @@
         function codigoStock(item) {
             const c = String((item && item.codInterno) || '').trim();
             return (c && c !== 'S/C') ? c : '';
+        }
+
+        function resumenStockItem(item) {
+            const cod = codigoStock(item);
+            if (!cod) return null;
+            const entry = cacheStock.get(cod);
+            if (!entry || !Array.isArray(entry.inv) || !entry.inv.length) return null;
+
+            let piso = 0;
+            let deposito = 0;
+            let tienePiso = false;
+            let tieneDeposito = false;
+            let total = 0;
+            let tieneNegativoAlmacen = false;
+
+            entry.inv.forEach(r => {
+                const q = Number(r.cantidad) || 0;
+                total += q;
+                if (q < 0) tieneNegativoAlmacen = true;
+
+                const nombre = String(r.almacen || '').toLowerCase();
+                const wid = String(r.warehouseID ?? '').trim();
+
+                if (nombre.includes('piso') || nombre.includes('venta') || wid === '1') {
+                    piso += q;
+                    tienePiso = true;
+                } else if (nombre.includes('depos') || nombre.includes('depós') || nombre.includes('almac') || wid === '2') {
+                    deposito += q;
+                    tieneDeposito = true;
+                }
+            });
+
+            // Si no se identificó por nombre/ID pero hay 2 almacenes, asume el primero como piso y el segundo como depósito
+            if (!tienePiso && !tieneDeposito && entry.inv.length >= 2) {
+                piso = Number(entry.inv[0].cantidad) || 0;
+                deposito = Number(entry.inv[1].cantidad) || 0;
+                tienePiso = true;
+                tieneDeposito = true;
+            } else if (!tienePiso && !tieneDeposito && entry.inv.length === 1) {
+                piso = Number(entry.inv[0].cantidad) || 0;
+                tienePiso = true;
+            }
+
+            return {
+                cod,
+                total,
+                piso,
+                deposito,
+                tienePiso,
+                tieneDeposito,
+                tieneNegativo: total < 0 || tieneNegativoAlmacen
+            };
+        }
+
+        function coincideFiltroStock(item) {
+            if (filtroStockActual === 'todos') return true;
+
+            const info = resumenStockItem(item);
+            if (!info) return false;
+
+            const estadoVenc = calcularEstado(item.fechaVencimiento).status;
+            const noVencido = estadoVenc !== 'vencido';
+
+            if (filtroStockActual === 'negativos') {
+                return info.tieneNegativo;
+            }
+            if (filtroStockActual === 'piso_cero') {
+                return info.tienePiso && info.piso <= 0;
+            }
+            if (filtroStockActual === 'deposito_cero') {
+                return info.tieneDeposito && info.deposito <= 0;
+            }
+            if (filtroStockActual === 'pedir_proveedor') {
+                if (!noVencido) return false;
+                const sinTotal = info.total <= 0;
+                const sinPiso = info.tienePiso && info.piso <= 0;
+                const sinDeposito = info.tieneDeposito && info.deposito <= 0;
+                return sinTotal || sinPiso || sinDeposito;
+            }
+
+            return true;
         }
 
         function htmlStock(cod) {
@@ -2294,6 +2461,7 @@
                     cacheStock.set(c, { inv, t: Date.now() });
                     pintarStock(c);
                 });
+                if (filtroStockActual !== 'todos') actualizarTabla();
             }).subscribe();
             return canalStock;
         }
@@ -2329,9 +2497,10 @@
                 const x = cacheStock.get(c);
                 return !x || Date.now() - x.t > STOCK_TTL;
             });
-            if (!pendientes.length) { actualizarInfoSync(); return; }
+            if (!pendientes.length) { actualizarInfoSync(); return false; }
 
             const miSeq = ++stockSeq;
+            let huboActualizacion = false;
             try {
                 if (typeof supabaseClient === 'undefined' || !supabaseClient) throw new Error('Sin conexión a Supabase');
                 for (let i = 0; i < pendientes.length; i += 100) {
@@ -2340,13 +2509,17 @@
                         .select('item_id,warehouse_id,almacen,cantidad')
                         .in('item_id', lote).order('warehouse_id');
                     if (error) throw error;
-                    if (miSeq !== stockSeq) return; // cambió la página: esta respuesta ya no sirve
+                    if (miSeq !== stockSeq) return false;
                     const porItem = new Map(lote.map(c => [c, []]));
                     (data || []).forEach(r => {
                         const arr = porItem.get(String(r.item_id));
                         if (arr) arr.push({ warehouseID: r.warehouse_id, almacen: r.almacen, cantidad: r.cantidad });
                     });
-                    porItem.forEach((inv, c) => { cacheStock.set(c, { inv, t: Date.now() }); pintarStock(c); });
+                    porItem.forEach((inv, c) => {
+                        cacheStock.set(c, { inv, t: Date.now() });
+                        pintarStock(c);
+                    });
+                    huboActualizacion = true;
                 }
             } catch (e) {
                 console.warn('No se pudo leer el stock:', e);
@@ -2356,6 +2529,38 @@
                 });
             }
             actualizarInfoSync();
+            return huboActualizacion;
+        }
+
+        async function precargarStockTodos() {
+            const activos = registros.filter(r => !r.inhabilitado);
+            const codigos = [...new Set(activos.map(codigoStock).filter(Boolean))];
+            if (!codigos.length) {
+                toast('No hay códigos internos válidos para consultar stock.', { type: 'warn' });
+                return;
+            }
+            toast(`Consultando stock real de ${codigos.length.toLocaleString()} códigos…`, { type: 'info', duration: 2500 });
+            await cargarStocksVisibles(activos);
+            actualizarTabla();
+            toast('Stock real actualizado para el filtro.');
+        }
+
+        function filtrarStock(tipoStock) {
+            paginaActual = 1;
+            filtroStockActual = tipoStock;
+            marcarStockUI(tipoStock);
+            cerrarStockMenu();
+
+            if (tipoStock !== 'todos') {
+                const activos = registros.filter(r => !r.inhabilitado);
+                const sinCache = [...new Set(activos.map(codigoStock).filter(Boolean))].filter(c => !cacheStock.has(c));
+                if (sinCache.length) {
+                    cargarStocksVisibles(activos).then(hubo => {
+                        if (hubo) actualizarTabla();
+                    });
+                }
+            }
+            actualizarTabla();
         }
 
         // Refresca solo las celdas de stock de la página visible (sin repintar la tabla)
@@ -2722,7 +2927,7 @@
                 }
 
                 toast(`Producto reconocido: ${existente.producto}. Se completaron sus datos.`, { type: 'info', duration: 3500 });
-                setTimeout(() => $('numFactura').focus(), 50);
+                setTimeout(() => { $('cantidad').focus(); $('cantidad').select(); }, 50);
             }
         }
 
@@ -2778,7 +2983,7 @@
         }
 
         const CACHE_KEY = 'recepcion_cache_v1';
-        const CACHE_COMPLETA_MAX = 6 * 3600 * 1000; // recarga completa cada 6 h
+        const CACHE_COMPLETA_MAX = 6 * 3600 * 1000;
         let cacheFullAt = 0;
 
         function leerCache() {
@@ -2799,12 +3004,10 @@
                 const vigente = c && c.rows && c.last && (Date.now() - c.fullAt) < CACHE_COMPLETA_MAX;
 
                 if (vigente) {
-                    // 1) Pinta al instante desde el caché
                     registros = c.rows;
                     cacheFullAt = c.fullAt;
                     actualizarTodo();
                     sincronizarDashboardLocalStorage();
-                    // 2) Pide solo lo que cambió desde la última vez
                     const { data, error } = await supabaseClient
                         .from('recepcion_fechas').select('*')
                         .gt('updated_at', c.last).order('updated_at', { ascending: true });
@@ -2813,14 +3016,13 @@
                     return;
                 }
 
-                // Carga completa (primera vez, cada 6 h, o si se fuerza)
                 const { data, error } = await supabaseClient
                     .from('recepcion_fechas').select('*').order('id', { ascending: false });
 
                 if (error) {
                     console.error("Error al consultar Supabase:", error);
                     toast("No se pudieron cargar los datos desde la nube: " + error.message, { type: 'error', duration: 7000 });
-                    $('tablaRegistros').innerHTML = `<tr><td colspan="9"><div class="empty"><strong>No se pudieron cargar los datos</strong>Revisa tu conexión e intenta de nuevo.<br><button class="btn btn-ghost" onclick="cargarDatosDB()">Reintentar</button></div></td></tr>`;
+                    $('tablaRegistros').innerHTML = `<tr><td colspan="8"><div class="empty"><strong>No se pudieron cargar los datos</strong>Revisa tu conexión e intenta de nuevo.<br><button class="btn btn-ghost" onclick="cargarDatosDB()">Reintentar</button></div></td></tr>`;
                     return;
                 }
                 registros = (data || []).map(normalizarRegistro);
@@ -2852,12 +3054,11 @@
                     toast("No se pudo guardar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
-            if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB(true);
+                if (guardados && guardados.length) mezclarRegistros(guardados); else await cargarDatosDB(true);
             } finally {
                 setCargando(false);
             }
 
-            
             return true;
         }
 
@@ -2874,7 +3075,7 @@
                     toast("No se pudo eliminar en la nube: " + error.message, { type: 'error', duration: 7000 });
                     return false;
                 }
-            registros = registros.filter(r => String(r.id) !== String(idItem));
+                registros = registros.filter(r => String(r.id) !== String(idItem));
                 actualizarTodo();
                 sincronizarDashboardLocalStorage();
                 guardarCache();
@@ -2882,7 +3083,6 @@
                 setCargando(false);
             }
 
-            
             return true;
         }
 
@@ -2938,7 +3138,7 @@
 
                 cancelarEdicionForm();
                 toast(editId ? 'Registro actualizado.' : `Registro guardado: ${itemData.producto}.`);
-                if (!editId) $('codBarra').focus();
+                if (editId) cerrarPanelRegistro(); else $('codBarra').focus();
             } finally {
                 guardando = false;
                 btn.classList.remove('loading');
@@ -2956,6 +3156,7 @@
             $('bannerEdicion').classList.remove('show');
             ultimoAutocompletado = '';
             validarFechas();
+            $('regMas').open = false;
         }
 
         function eliminarItemActualForm() {
@@ -2966,7 +3167,7 @@
 
             verificarClaveAdmin(async () => {
                 const ok = await confirmarUI('Eliminar registro', `Se eliminará "${item.producto}" (lote ${item.lote || 'S/L'}). Podrás deshacerlo unos segundos después.`, { textoOk: 'Sí, eliminar', peligro: true });
-                if (ok && await ejecutarEliminacion(item)) cancelarEdicionForm();
+                if (ok && await ejecutarEliminacion(item)) { cancelarEdicionForm(); cerrarPanelRegistro(); }
             });
         }
 
@@ -3047,6 +3248,8 @@
         function limpiarFiltros() {
             $('inputBuscar').value = '';
             $('btnLimpiar').classList.remove('show');
+            filtroStockActual = 'todos';
+            marcarStockUI('todos');
             filtrarEstado('todos');
         }
 
@@ -3069,6 +3272,8 @@
                     const st = calcularEstado(item.fechaVencimiento).status;
                     if (filtroEstadoActual !== 'todos' && st !== filtroEstadoActual) return false;
                 }
+
+                if (!coincideFiltroStock(item)) return false;
 
                 if (!busqueda) return true;
 
@@ -3142,7 +3347,7 @@
             return Math.ceil((fechaVenc - hoy) / (1000 * 60 * 60 * 24));
         }
 
-        /* ============ TABLA ============ */
+        /* ============ TABLA (8 columnas) ============ */
         function actualizarTabla() {
             const tbody = $('tablaRegistros');
             tbody.innerHTML = '';
@@ -3155,10 +3360,10 @@
             if (paginaActual < 1) paginaActual = 1;
 
             if (totalRegistros === 0) {
-                const hayFiltros = $('inputBuscar').value.trim() || filtroEstadoActual !== 'todos';
-                tbody.innerHTML = `<tr><td colspan="9"><div class="empty">
+                const hayFiltros = $('inputBuscar').value.trim() || filtroEstadoActual !== 'todos' || filtroStockActual !== 'todos';
+                tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
                     <strong>${hayFiltros ? 'Sin resultados para este filtro' : 'Aún no hay registros'}</strong>
-                    ${hayFiltros ? 'Prueba con otro término o quita los filtros.' : 'Completa el formulario de arriba para registrar la primera recepción.'}
+                    ${hayFiltros ? 'Prueba con otro término, consulta el stock o quita los filtros.' : 'Completa el formulario de arriba para registrar la primera recepción.'}
                     ${hayFiltros ? '<br><button class="btn btn-ghost" onclick="limpiarFiltros()">Limpiar filtros</button>' : ''}
                 </div></td></tr>`;
                 renderizarPaginacion(0, 1, 1);
@@ -3195,7 +3400,6 @@
                     <td><code>${esc(item.codInterno || 'S/C')}</code></td>
                     <td><strong>${esc(item.producto)}</strong></td>
                     <td>${esc((item.departamento || 'GENERAL').toUpperCase())}</td>
-                    <td>${esc(item.lote || 'S/L')}</td>
                     <td class="stk" data-cod="${esc(codStock)}">${htmlStock(codStock)}</td>
                     <td>${formatearFechaMostrar(item.fechaRecepcion)}</td>
                     <td>${formatearFechaMostrar(item.fechaVencimiento)}</td>
@@ -3206,10 +3410,10 @@
 
             renderizarPaginacion(totalRegistros, paginaActual, totalPaginas);
 
-            // El stock se consulta DESPUÉS de pintar la tabla y sin esperar el resultado:
-            // si la API falla, la pantalla y la sesión no se ven afectadas.
             ultimaMuestra = muestra;
-            cargarStocksVisibles(muestra).catch(e => console.warn('Stock:', e));
+            cargarStocksVisibles(muestra).then(hubo => {
+                if (hubo && filtroStockActual !== 'todos') actualizarTabla();
+            }).catch(e => console.warn('Stock:', e));
             const buscando = $('inputBuscar').value.trim().length > 0;
             if (buscando && muestra.length <= 10) consultarEnVivo(muestra);
         }
@@ -3255,29 +3459,36 @@
                 return;
             }
 
-            const datosParaExcel = datosFiltrados.map(item => ({
-                "Cód. Barra": item.codBarra || 'S/C',
-                "Cód. Interno": item.codInterno || 'S/C',
-                "Descripción del Producto": item.producto,
-                "Departamento": (item.departamento || 'GENERAL').toUpperCase(),
-                "Proveedor": (item.proveedor || 'S/P').toUpperCase(),
-                "N° Factura": item.numFactura || 'S/F',
-                "N° Lote": item.lote || 'S/L',
-                "Cantidad": item.cantidad || 0,
-                "Costo Unitario ($)": item.costoUnitario || 0,
-                "Costo Total ($)": item.costoTotal || 0,
-                "Fecha Recepción": formatearFechaMostrar(item.fechaRecepcion),
-                "Fecha Vencimiento": formatearFechaMostrar(item.fechaVencimiento),
-                "Estatus": item.inhabilitado ? 'INHABILITADO' : calcularEstado(item.fechaVencimiento).texto,
-                "Recibe": item.personaRecibe || 'S/N',
-                "Observaciones": item.observaciones || ''
-            }));
+            const datosParaExcel = datosFiltrados.map(item => {
+                const stk = resumenStockItem(item);
+                return {
+                    "Cód. Barra": item.codBarra || 'S/C',
+                    "Cód. Interno": item.codInterno || 'S/C',
+                    "Descripción del Producto": item.producto,
+                    "Departamento": (item.departamento || 'GENERAL').toUpperCase(),
+                    "Proveedor": (item.proveedor || 'S/P').toUpperCase(),
+                    "N° Factura": item.numFactura || 'S/F',
+                    "N° Lote": item.lote || 'S/L',
+                    "Cantidad Recibida": item.cantidad || 0,
+                    "Stock Piso": stk ? stk.piso : '',
+                    "Stock Depósito": stk ? stk.deposito : '',
+                    "Stock Total": stk ? stk.total : '',
+                    "Costo Unitario ($)": item.costoUnitario || 0,
+                    "Costo Total ($)": item.costoTotal || 0,
+                    "Fecha Recepción": formatearFechaMostrar(item.fechaRecepcion),
+                    "Fecha Vencimiento": formatearFechaMostrar(item.fechaVencimiento),
+                    "Estatus": item.inhabilitado ? 'INHABILITADO' : calcularEstado(item.fechaVencimiento).texto,
+                    "Recibe": item.personaRecibe || 'S/N',
+                    "Observaciones": item.observaciones || ''
+                };
+            });
 
             const worksheet = XLSX.utils.json_to_sheet(datosParaExcel);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte Filtrado");
 
-            XLSX.writeFile(workbook, `reporte_productos_${filtroEstadoActual}_${hoyISO()}.xlsx`);
+            const sufijoStock = filtroStockActual !== 'todos' ? `_${filtroStockActual}` : '';
+            XLSX.writeFile(workbook, `reporte_productos_${filtroEstadoActual}${sufijoStock}_${hoyISO()}.xlsx`);
             toast(`Excel descargado con ${datosFiltrados.length.toLocaleString()} registros.`);
         }
 
@@ -3379,6 +3590,8 @@
             $('bannerEdicion').classList.add('show');
             validarFechas();
 
+            abrirPanelRegistro(false);
+            $('regMas').open = true;
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setTimeout(() => $('producto').focus(), 300);
         }
@@ -3614,20 +3827,69 @@
         document.addEventListener('keydown', e => {
             const enCampo = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
             const modalAbierto = document.querySelector('.modal-overlay[style*="flex"]');
+            const panelAbierto = !$('regPanel').hidden;
 
             if (e.key === 'Escape') {
                 if (!$('userDropdown').hidden) cerrarUserMenu();
+                else if (!$('stockPop').hidden) cerrarStockMenu();
                 else if ($('modalClaveSeguridad').style.display === 'flex') cerrarModalClave(false);
                 else if ($('modalAcciones').style.display === 'flex') cerrarModal();
-                else if ($('editId').value) cancelarEdicionForm();
+                else if ($('editId').value) { cancelarEdicionForm(); cerrarPanelRegistro(); }
+                else if (panelAbierto) cerrarPanelRegistro();
             } else if (e.key === '/' && !enCampo && !modalAbierto) {
                 e.preventDefault();
                 $('inputBuscar').focus();
-            } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !modalAbierto) {
+            } else if ((e.key === 'n' || e.key === 'N') && !enCampo && !modalAbierto && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                abrirPanelRegistro();
+            } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !modalAbierto && panelAbierto) {
                 e.preventDefault();
                 $('formRecepcion').requestSubmit();
             }
         });
+
+        /* ============ PANEL DE REGISTRO RÁPIDO ============ */
+        function abrirPanelRegistro(enfocar = true) {
+            $('regPanel').hidden = false;
+            const b = $('btnAbrirRegistro');
+            b.style.display = 'none';
+            b.setAttribute('aria-expanded', 'true');
+            if (enfocar) setTimeout(() => $('codBarra').focus(), 60);
+        }
+
+        function cerrarPanelRegistro() {
+            $('regPanel').hidden = true;
+            const b = $('btnAbrirRegistro');
+            b.style.display = '';
+            b.setAttribute('aria-expanded', 'false');
+        }
+
+        // Enter en Cantidad pasa a Vencimiento; Enter en Vencimiento guarda
+        $('cantidad').addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); $('fechaCaducidad').focus(); }
+        });
+
+        /* ============ MENÚ DESPLEGABLE DE STOCK ============ */
+        const ETIQ_STOCK = { todos: 'Stock', negativos: 'Negativos', piso_cero: 'Piso en 0', deposito_cero: 'Depósito en 0', pedir_proveedor: 'Pedir a proveedor' };
+
+        function toggleStockMenu(forzar) {
+            const pop = $('stockPop');
+            const abrir = typeof forzar === 'boolean' ? forzar : pop.hidden;
+            pop.hidden = !abrir;
+            $('stockTrigger').setAttribute('aria-expanded', abrir);
+        }
+        function cerrarStockMenu() { toggleStockMenu(false); }
+        document.addEventListener('click', e => { if (!e.target.closest('#stockMenu')) cerrarStockMenu(); });
+
+        function marcarStockUI(tipo) {
+            document.querySelectorAll('#stockPop .menu-opt[data-stock-filter]').forEach(b => {
+                const on = b.dataset.stockFilter === tipo;
+                b.classList.toggle('active', on);
+                b.setAttribute('aria-checked', on);
+            });
+            $('stockTriggerTxt').textContent = tipo === 'todos' ? 'Stock' : 'Stock: ' + ETIQ_STOCK[tipo];
+            $('stockTrigger').classList.toggle('active', tipo !== 'todos');
+        }
 
         /* ============ INICIO ============
            Orden a prueba de bucles:
@@ -3639,7 +3901,7 @@
             try { inicializarTema(); } catch (e) { console.error(e); }
 
             $('tablaRegistros').innerHTML = Array.from({ length: 8 }, () =>
-                `<tr>${Array.from({ length: 9 }, (_, i) => `<td><span class="skel" style="width:${i === 2 ? 180 : 60}px"></span></td>`).join('')}</tr>`
+                `<tr>${Array.from({ length: 8 }, (_, i) => `<td><span class="skel" style="width:${i === 2 ? 180 : 60}px"></span></td>`).join('')}</tr>`
             ).join('');
 
             $('fechaRecepcion').addEventListener('change', validarFechas);
@@ -3685,8 +3947,7 @@
             // Seguro anti-bucle: pase lo que pase, la pantalla de carga se quita a los 6 s
             setTimeout(abrir, 6000);
         })();
-    
-</script>
+    </script>
     <script src="sesion-usuario.js"></script>
     <script src="i18n.js"></script>
 </body>
