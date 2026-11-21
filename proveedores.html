@@ -1,0 +1,635 @@
+<!-- ================================================================= -->
+<!-- MÓDULO INTEGRADO DE AVERÍAS CON DATOS REALES DE PROVEEDORES.XLS -->
+<!-- ================================================================= -->
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+  .hg-scope * {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    box-sizing: border-box;
+  }
+
+  .hg-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+    margin-bottom: 20px;
+  }
+
+  /* KPI CARDS */
+  .hg-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .hg-kpi-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hg-kpi-card.pending::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #f59e0b;
+  }
+
+  .hg-kpi-card.success::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #16a34a;
+  }
+
+  .hg-kpi-val {
+    font-size: 1.8rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-top: 6px;
+  }
+
+  .hg-kpi-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+  }
+
+  /* BOTONES Y FORMS */
+  .hg-btn-primary {
+    background: linear-gradient(135deg, #15803d, #14532d);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+    transition: all 0.2s ease;
+  }
+
+  .hg-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.35);
+  }
+
+  .hg-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: #1e293b;
+    outline: none;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+  }
+
+  .hg-input:focus {
+    background: #ffffff;
+    border-color: #16a34a;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+  }
+
+  /* TABLAS PROFESIONALES */
+  .hg-table-container {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px -4px rgba(0,0,0,0.03);
+    margin-bottom: 24px;
+  }
+
+  .hg-table-header {
+    background: #123e1b;
+    color: #ffffff;
+    padding: 14px 20px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hg-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+    text-align: left;
+  }
+
+  .hg-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    padding: 12px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.5px;
+  }
+
+  .hg-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+  }
+
+  .hg-table tbody tr {
+    transition: background-color 0.15s ease;
+  }
+
+  .hg-table tbody tr:hover {
+    background-color: #f8fbf9;
+  }
+
+  /* BADGES */
+  .hg-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .badge-fisico { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .badge-nc { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+  .badge-desc { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+  .badge-destruccion { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .badge-no { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+  .badge-pend { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+  .badge-done { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+  /* MODALES Y VISORES */
+  .hg-modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+  }
+
+  .hg-modal-backdrop.oculto { display: none !important; }
+
+  .hg-modal-card {
+    background: #ffffff;
+    width: 100%; max-width: 520px;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalPop 0.25s cubic-bezier(0.22, 0.8, 0.3, 1);
+  }
+
+  @keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .hg-upload-zone {
+    border: 2px dashed #bbf7d0;
+    background: #f0fdf4;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .hg-upload-zone:hover {
+    background: #dcfce7;
+    border-color: #16a34a;
+  }
+</style>
+
+<div class="hg-scope" style="padding: 6px;">
+
+  <!-- CABECERA DE MÓDULO -->
+  <div class="hg-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 18px;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 1.25rem;">🔄</span>
+        <h2 style="margin: 0; font-size: 1.15rem; color: #123e1b; font-weight: 800;">Gestión de Averías y Políticas de Proveedores</h2>
+      </div>
+      <p style="margin: 3px 0 0 32px; font-size: 0.8rem; color: #64748b;">Base de proveedores actualizada con control de mermas y evidencias.</p>
+    </div>
+    <button onclick="abrirModalReportarAveria()" class="hg-btn-primary">
+      <span style="font-size: 1.1rem; line-height: 1;">+</span>
+      <span>Registrar Avería / Vencido</span>
+    </button>
+  </div>
+
+  <!-- KPIS / INDICADORES -->
+  <div class="hg-kpi-grid">
+    <div class="hg-kpi-card pending">
+      <div>
+        <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Reclamos Pendientes</span>
+        <div id="lblTotalPendientes" class="hg-kpi-val" style="color: #d97706;">0</div>
+        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">En espera de cambio/N/C</span>
+      </div>
+      <div class="hg-kpi-icon" style="background: #fffbeb; color: #d97706;">⏳</div>
+    </div>
+
+    <div class="hg-kpi-card success">
+      <div>
+        <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Reclamos Procesados</span>
+        <div id="lblTotalConcluidos" class="hg-kpi-val" style="color: #16a34a;">0</div>
+        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">Resueltos exitosamente</span>
+      </div>
+      <div class="hg-kpi-icon" style="background: #f0fdf4; color: #16a34a;">✅</div>
+    </div>
+  </div>
+
+  <!-- FILTROS Y BUSCADOR -->
+  <div class="hg-card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; align-items: flex-end; padding: 16px;">
+    <div>
+      <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">🔍 Buscar por Empresa, RIF o Contacto</label>
+      <input type="text" id="buscadorAverias" oninput="filtrarAveriasYProveedores()" placeholder="Ej. Milano, Drolanca, Pepsi, Drosucre, Victor..." class="hg-input">
+    </div>
+    <div>
+      <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">🏷️ Modalidad Aceptada</label>
+      <select id="filtroModalidadCambio" onchange="filtrarAveriasYProveedores()" class="hg-input" style="font-weight: 700; cursor: pointer;">
+        <option value="todos">Todas las modalidades</option>
+        <option value="Nota de Crédito">📄 Nota de Crédito (N/C)</option>
+        <option value="Producto por Producto">📦 Cambio Físico (1 a 1)</option>
+        <option value="Descuento Próxima Factura">🏷️ Descuento en Factura</option>
+        <option value="Destrucción Autorizada">🔨 Destrucción Autorizada</option>
+        <option value="No Acepta">❌ No Acepta Cambios</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- TABLA 1: DIRECTORIO DE PROVEEDORES (CARGADO DESDE PROVEEDORES.XLS) -->
+  <div class="hg-table-container">
+    <div class="hg-table-header">
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span>🏢</span> Directorio General de Proveedores (Data Base Hipergalerías)
+      </span>
+      <span id="contadorProveedoresAverias" style="background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 99px; font-size: 0.72rem;">0 Proveedores</span>
+    </div>
+    <div style="max-height: 360px; overflow-y: auto;">
+      <table class="hg-table">
+        <thead>
+          <tr>
+            <th>RIF</th>
+            <th>Razón Social</th>
+            <th>Teléfonos / Contacto / Correo</th>
+            <th style="text-align: center;">Forma Reembolso</th>
+            <th>Condiciones de Compras</th>
+            <th style="text-align: center;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tablaProveedoresPoliticasBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TABLA 2: REGISTRO DE AVERÍAS Y PASILLOS -->
+  <div class="hg-table-container">
+    <div class="hg-table-header" style="background: #1e293b;">
+      <span style="display: flex; align-items: center; gap: 8px;">
+        <span>📦</span> Registro Operativo de Averías (Pasillos & Recepción)
+      </span>
+      <span id="contadorAveriasReg" style="background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 99px; font-size: 0.72rem;">0 Registros</span>
+    </div>
+    <div style="max-height: 350px; overflow-y: auto;">
+      <table class="hg-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Producto & Evidencia</th>
+            <th style="text-align: center;">Cant.</th>
+            <th>Proveedor Responsable</th>
+            <th style="text-align: center;">Modalidad</th>
+            <th>Motivo / Pasillo</th>
+            <th style="text-align: center;">Estatus Reclamo</th>
+            <th style="text-align: center;">Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaHistorialAveriasBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL: REGISTRAR NUEVA AVERÍA -->
+<div id="modalAveria" class="hg-modal-backdrop oculto">
+  <div class="hg-modal-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
+      <h3 style="margin:0; font-size: 1rem; color: #123e1b; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+        <span>📝</span> Reportar Producto Averiado o Vencido
+      </h3>
+      <button onclick="cerrarModalAveria()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; font-weight: bold;">✕</button>
+    </div>
+    
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px;">
+        <div>
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Producto o Código</label>
+          <input type="text" id="inputAveriaProducto" placeholder="Ej. Harina Pan 1kg / Leche 1L" class="hg-input">
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Cant.</label>
+          <input type="number" id="inputAveriaCantidad" value="1" min="1" class="hg-input" style="text-align: center; font-weight: 800;">
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Motivo Principal</label>
+          <select id="inputAveriaMotivo" class="hg-input" style="cursor: pointer;">
+            <option value="Fecha Vencida">Fecha Vencida</option>
+            <option value="Defecto de Fábrica">Defecto de Fábrica</option>
+            <option value="Maltrato en Transporte">Maltrato / Transporte</option>
+            <option value="Manipulación Interna">Daño Operativo (Pasillo)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Modalidad Acordada</label>
+          <select id="inputAveriaModalidad" class="hg-input" style="font-weight: 700; cursor: pointer;">
+            <option value="Nota de Crédito">📄 Nota de Crédito (N/C)</option>
+            <option value="Producto por Producto">📦 Cambio Físico (1 a 1)</option>
+            <option value="Descuento Próxima Factura">🏷️ Descuento en Factura</option>
+            <option value="Destrucción Autorizada">🔨 Destrucción Autorizada</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Proveedor Responsable</label>
+        <select id="selectAveriaProveedor" onchange="actualizarModalidadSegunProveedor()" class="hg-input" style="font-weight: 700; color: #123e1b; cursor: pointer;"></select>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">📸 Adjuntar Foto Evidencia</label>
+        <div class="hg-upload-zone" onclick="document.getElementById('fileAveriaFoto').click()">
+          <input type="file" id="fileAveriaFoto" accept="image/*" style="display: none;" onchange="previsualizarFotoAveria(event)">
+          <div id="previewFotoArea">
+            <div style="font-size: 1.5rem;">📷</div>
+            <p style="margin: 4px 0 0; font-size: 0.78rem; font-weight: 800; color: #15803d;">Haz clic aquí para tomar o subir foto</p>
+            <span style="color: #94a3b8; font-size: 0.68rem;">Soporta fotos desde teléfono o PC</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Observaciones / Pasillo de Origen</label>
+        <textarea id="inputAveriaObs" rows="2" placeholder="Ej. Pasillo 3, bulto húmedo al desembalar..." class="hg-input"></textarea>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+      <button onclick="cerrarModalAveria()" style="padding: 9px 16px; background: #f1f5f9; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; color: #64748b; font-size: 0.8rem;">Cancelar</button>
+      <button onclick="guardarAveriaReporte()" class="hg-btn-primary">Guardar Registro</button>
+    </div>
+  </div>
+</div>
+
+<!-- VISOR DE FOTO EMERGENTE (POPUP MODAL) -->
+<div id="modalVisorFoto" class="hg-modal-backdrop oculto" onclick="cerrarVisorFoto()">
+  <div style="background: #ffffff; padding: 18px; border-radius: 16px; max-width: 90vw; max-height: 88vh; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
+      <strong style="color: #123e1b; font-size: 0.9rem;">📷 Evidencia Fotográfica Registrada</strong>
+      <button onclick="cerrarVisorFoto()" style="background:none; border:none; font-size:1.2rem; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
+    </div>
+    <img id="imagenVisorGrande" src="" style="max-width: 100%; max-height: 72vh; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+  </div>
+</div>
+
+<!-- SCRIPT COMPLETO CON PROVEEDORES REALES -->
+<script>
+  let fotoAveriaBase64 = '';
+  
+  // Lista extraída directamente de tu archivo proveedores.xls
+  let proveedoresPoliticas = [
+    { rif: "J301105028", razon: "PRODUCTOS MILANO, C.A", contacto: "Sin contacto registrado", modalidad: "Producto por Producto", condicion: "Cambio directo con preventista." },
+    { rif: "J500624816", razon: "DROSUCRE, C.A.", contacto: "ALEJANDRO / 0424-8036005 / drosucreca@gmail.com", modalidad: "Nota de Crédito", condicion: "Nota de Crédito previa revisión en 48h." },
+    { rif: "J295377116", razon: "DROGUERIA DROTACA, C.A.", contacto: "CLARIANNYS COVA / 0283-4006314 / contacto@drotaca.com", modalidad: "Nota de Crédito", condicion: "Aplica N/C descontable en estado de cuenta." },
+    { rif: "J090066462", razon: "CORPORACION DROLANCA, C.A.", contacto: "VICTOR VIELMA / 0275-8811884 / victorvielma30@gmail.com", modalidad: "Descuento Próxima Factura", condicion: "Descuento aplicado en orden de compra posterior." },
+    { rif: "J502302450", razon: "DROGUERIA CER ORIENTE, C.A.", contacto: "ERIKA RONDON / 0412-3451883 / info@drocerca.com", modalidad: "No Acepta", condicion: "No acepta devoluciones por vencimiento en anaquel." },
+    { rif: "J-50360355-0", razon: "PEPSI-COLA VENEZUELA C.A", contacto: "Central / Preventa Polar", modalidad: "Producto por Producto", condicion: "Sustitución por chofer de despacho." },
+    { rif: "J085189777", razon: "DROGUERIA NENA, C.A.", contacto: "MIGUEL FARIAS / 0251-2690111", modalidad: "Nota de Crédito", condicion: "Planilla de reclamo firmada requerida." },
+    { rif: "J300666204", razon: "DROGUERIA COBECA ORIENTE, C.A.", contacto: "ANDRES RODRIGUEZ / 0281-3710401", modalidad: "Nota de Crédito", condicion: "Nota de crédito válida por 30 días." },
+    { rif: "J412413740", razon: "INSUAMINCA, C.A.", contacto: "RICARDO / 0424-9463925 / insuaminca@gmail.com", modalidad: "Nota de Crédito", condicion: "Cruce directo con nota de entrega." },
+    { rif: "J405857889", razon: "INVERSIONES OZAINNKH, C.A.", contacto: "0212-4433026 / invozainnkh@gmail.com", modalidad: "Nota de Crédito", condicion: "Evaluación previa de compras." },
+    { rif: "J301310187", razon: "MONDELEZ VZ C.A", contacto: "0212-6009111", modalidad: "Destrucción Autorizada", condicion: "N/C mediante acta de destrucción." },
+    { rif: "J075893867", razon: "ALIMENTOS BERRIOS, ALBECA, C.A", contacto: "0241-8780391", modalidad: "Producto por Producto", condicion: "Cambio directo en almacén." },
+    { rif: "J310314959", razon: "EUROPASTAS C.A", contacto: "Sucursal Cariaco, Cumaná", modalidad: "Nota de Crédito", condicion: "Reemplazo de lote defectuoso." },
+    { rif: "J000413126", razon: "ALIMENTOS POLAR COMERCIAL C.A", contacto: "RAMOS AYALA FRANCISCO LUIS / 0212-2033111", modalidad: "Producto por Producto", condicion: "Canje 1 a 1 por transportista." },
+    { rif: "J315230445", razon: "DISTRIBUIDORA GOMEZ Y HERNANDEZ, C.A", contacto: "Barcelona, Anzoátegui", modalidad: "Nota de Crédito", condicion: "Revisión previa por vendedor." }
+  ];
+
+  let historialAverias = JSON.parse(localStorage.getItem('hipergalerias_averias_v7') || '[]');
+
+  function inicializarModuloAverias() {
+    renderizarProveedoresPoliticas(proveedoresPoliticas);
+    renderizarHistorialAverias();
+    llenarSelectProveedoresModal();
+    actualizarContadoresAverias();
+  }
+
+  function getBadgeModalidad(modalidad) {
+    switch (modalidad) {
+      case 'Producto por Producto': return `<span class="hg-badge badge-fisico">📦 Cambio Físico</span>`;
+      case 'Nota de Crédito': return `<span class="hg-badge badge-nc">📄 Nota de Crédito</span>`;
+      case 'Descuento Próxima Factura': return `<span class="hg-badge badge-desc">🏷️ Desc. Factura</span>`;
+      case 'Destrucción Autorizada': return `<span class="hg-badge badge-destruccion">🔨 Destrucción</span>`;
+      default: return `<span class="hg-badge badge-no">❌ No Acepta</span>`;
+    }
+  }
+
+  function renderizarProveedoresPoliticas(lista) {
+    const tbody = document.getElementById('tablaProveedoresPoliticasBody');
+    if (!tbody) return;
+    document.getElementById('contadorProveedoresAverias').textContent = `${lista.length} Proveedores`;
+    tbody.innerHTML = lista.map(p => `
+      <tr>
+        <td style="font-family: monospace; font-weight: 700; color: #475569;">${p.rif}</td>
+        <td style="font-weight: 800; color: #123e1b;">${p.razon}</td>
+        <td style="color: #64748b; font-size: 0.78rem;">${p.contacto}</td>
+        <td style="text-align: center;">${getBadgeModalidad(p.modalidad)}</td>
+        <td style="color: #64748b; font-size: 0.78rem;">${p.condicion}</td>
+        <td style="text-align: center;">
+          <button onclick="editarPoliticaProveedor('${p.rif}')" style="padding: 5px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; color: #334155;">Editar</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function filtrarAveriasYProveedores() {
+    const query = document.getElementById('buscadorAverias').value.toLowerCase();
+    const modalidadSel = document.getElementById('filtroModalidadCambio').value;
+    const filtrados = proveedoresPoliticas.filter(p => {
+      const matchTexto = p.razon.toLowerCase().includes(query) || p.rif.toLowerCase().includes(query) || p.contacto.toLowerCase().includes(query);
+      const matchMod = (modalidadSel === 'todos' || p.modalidad === modalidadSel);
+      return matchTexto && matchMod;
+    });
+    renderizarProveedoresPoliticas(filtrados);
+  }
+
+  function llenarSelectProveedoresModal() {
+    const select = document.getElementById('selectAveriaProveedor');
+    if (!select) return;
+    select.innerHTML = proveedoresPoliticas.map(p => `<option value="${p.razon}" data-modalidad="${p.modalidad}">${p.razon} (${p.modalidad})</option>`).join('');
+  }
+
+  function actualizarModalidadSegunProveedor() {
+    const select = document.getElementById('selectAveriaProveedor');
+    const mod = select.options[select.selectedIndex]?.getAttribute('data-modalidad');
+    if (mod && mod !== 'No Acepta') document.getElementById('inputAveriaModalidad').value = mod;
+  }
+
+  function previsualizarFotoAveria(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        fotoAveriaBase64 = e.target.result;
+        document.getElementById('previewFotoArea').innerHTML = `
+          <img src="${fotoAveriaBase64}" style="max-height: 80px; margin: 0 auto; border-radius: 8px; border: 2px solid #16a34a; object-fit: contain;">
+          <p style="margin: 4px 0 0; font-size: 0.72rem; color: #16a34a; font-weight: 800;">✓ Foto cargada con éxito</p>
+        `;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function abrirModalReportarAveria() {
+    fotoAveriaBase64 = '';
+    document.getElementById('previewFotoArea').innerHTML = `
+      <div style="font-size: 1.5rem;">📷</div>
+      <p style="margin: 4px 0 0; font-size: 0.78rem; font-weight: 800; color: #15803d;">Haz clic aquí para subir o tomar foto</p>
+      <span style="color: #94a3b8; font-size: 0.68rem;">Formatos soportados: JPG, PNG, WEBP</span>
+    `;
+    document.getElementById('modalAveria').classList.remove('oculto');
+    actualizarModalidadSegunProveedor();
+  }
+
+  function cerrarModalAveria() {
+    document.getElementById('modalAveria').classList.add('oculto');
+  }
+
+  function abrirVisorFoto(base64Foto) {
+    document.getElementById('imagenVisorGrande').src = base64Foto;
+    document.getElementById('modalVisorFoto').classList.remove('oculto');
+  }
+
+  function cerrarVisorFoto() {
+    document.getElementById('modalVisorFoto').classList.add('oculto');
+  }
+
+  function guardarAveriaReporte() {
+    const producto = document.getElementById('inputAveriaProducto').value.trim();
+    if (!producto) { alert('Por favor ingrese el nombre del producto.'); return; }
+    const cantidad = parseFloat(document.getElementById('inputAveriaCantidad').value) || 1;
+
+    historialAverias.unshift({
+      fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+      producto,
+      cantidad,
+      foto: fotoAveriaBase64,
+      motivo: document.getElementById('inputAveriaMotivo').value,
+      modalidad: document.getElementById('inputAveriaModalidad').value,
+      proveedor: document.getElementById('selectAveriaProveedor').value,
+      obs: document.getElementById('inputAveriaObs').value.trim(),
+      estatus: 'Pendiente Reclamo / N/C'
+    });
+
+    localStorage.setItem('hipergalerias_averias_v7', JSON.stringify(historialAverias));
+    renderizarHistorialAverias();
+    actualizarContadoresAverias();
+    cerrarModalAveria();
+    document.getElementById('inputAveriaProducto').value = '';
+    document.getElementById('inputAveriaObs').value = '';
+  }
+
+  function renderizarHistorialAverias() {
+    const tbody = document.getElementById('tablaHistorialAveriasBody');
+    if (!tbody) return;
+    document.getElementById('contadorAveriasReg').textContent = `${historialAverias.length} Registros`;
+    
+    if (historialAverias.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">No hay averías registradas actualmente.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = historialAverias.map((a, idx) => `
+      <tr>
+        <td style="color: #64748b; font-size: 0.78rem;">${a.fecha}</td>
+        <td style="font-weight: 800; color: #123e1b;">
+          ${a.producto}
+          ${a.foto ? `<br><a href="javascript:void(0)" onclick="abrirVisorFoto('${a.foto}')" style="color: #16a34a; text-decoration: underline; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; margin-top: 3px;">🖼️ Ver Evidencia</a>` : '<br><span style="color:#cbd5e1; font-size:0.68rem;">Sin foto</span>'}
+        </td>
+        <td style="text-align: center; font-weight: 900; font-size: 1rem; color: #0f172a;">${a.cantidad}</td>
+        <td style="font-weight: 700; color: #334155;">${a.proveedor}</td>
+        <td style="text-align: center;">${getBadgeModalidad(a.modalidad)}</td>
+        <td style="color: #475569; font-size: 0.8rem;">${a.motivo}<br><small style="color:#94a3b8; font-weight:600;">${a.obs || 'Sin observaciones'}</small></td>
+        <td style="text-align: center;">
+          ${a.estatus.includes('✅') 
+            ? `<span class="hg-badge badge-done">Compensado / Resuelto ✅</span>` 
+            : `<span class="hg-badge badge-pend">Pendiente Reclamo ⏳</span>`}
+        </td>
+        <td style="text-align: center;">
+          ${!a.estatus.includes('✅') ? `<button onclick="marcarAveriaCompensada(${idx})" style="padding: 6px 12px; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.73rem;">Procesar ✅</button>` : `<span style="color:#94a3b8; font-size:0.75rem; font-weight:700;">Concluido</span>`}
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function marcarAveriaCompensada(idx) {
+    historialAverias[idx].estatus = 'Compensado / Resuelto ✅';
+    localStorage.setItem('hipergalerias_averias_v7', JSON.stringify(historialAverias));
+    renderizarHistorialAverias();
+    actualizarContadoresAverias();
+  }
+
+  function actualizarContadoresAverias() {
+    let pendientes = 0, concluidos = 0;
+    historialAverias.forEach(a => {
+      if (a.estatus.includes('✅')) concluidos++;
+      else pendientes++;
+    });
+    document.getElementById('lblTotalPendientes').textContent = pendientes;
+    document.getElementById('lblTotalConcluidos').textContent = concluidos;
+  }
+
+  function editarPoliticaProveedor(rif) {
+    const prov = proveedoresPoliticas.find(p => p.rif === rif);
+    if (!prov) return;
+    const nuevaMod = prompt(`Modalidad para [${prov.razon}]:\n1. Nota de Crédito\n2. Producto por Producto\n3. Descuento Próxima Factura\n4. Destrucción Autorizada\n5. No Acepta`, prov.modalidad);
+    if (nuevaMod) {
+      if (nuevaMod === '1') prov.modalidad = 'Nota de Crédito';
+      else if (nuevaMod === '2') prov.modalidad = 'Producto por Producto';
+      else if (nuevaMod === '3') prov.modalidad = 'Descuento Próxima Factura';
+      else if (nuevaMod === '4') prov.modalidad = 'Destrucción Autorizada';
+      else if (nuevaMod === '5') prov.modalidad = 'No Acepta';
+      else prov.modalidad = nuevaMod;
+      renderizarProveedoresPoliticas(proveedoresPoliticas);
+      llenarSelectProveedoresModal();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => { inicializarModuloAverias(); });
+</script>
