@@ -334,6 +334,10 @@
       background: rgba(125, 125, 125, .16)
     }
 
+    .pill-cnt[hidden] {
+      display: none
+    }
+
     .tab.active .pill-cnt {
       background: rgba(255, 255, 255, .24)
     }
@@ -972,7 +976,7 @@
         📦 Averías y Destinos <span class="pill-cnt" id="badgePend">0</span>
       </button>
       <button class="tab" data-tab="dir" onclick="irTab('dir')">
-        🏢 Directorio de Políticas <span class="pill-cnt" id="badgeSinPol">0</span>
+        🏢 Directorio de Políticas <span class="pill-cnt" id="badgeSinPol" hidden>0</span>
       </button>
     </nav>
 
@@ -1109,6 +1113,8 @@
       fecha = f => f ? f.split('-').reverse().join('/') : 'Sin fecha',
       hoyISO = () => { const h = new Date(); return new Date(h - h.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) };
 
+    const COLS_PROV = 'supply_id,nombre,rif,telefono,correo,contacto,contacto_dev,modalidad,condiciones,validado_por,validado_en';
+
     const MOD = {
       'Nota de Crédito': ['📄', 'Nota de Crédito', 'ok'],
       'Producto por Producto': ['📦', 'Cambio físico (1 a 1)', 'ok'],
@@ -1136,6 +1142,8 @@
     let puedeEditar = false,
       provs = new Map(),
       dev = new Map(),
+      dirCargado = false,
+      promDir = null,
       foto = '',
       filtroAv = 'todos',
       K = 'hipergalerias_averias_v7',
@@ -1175,11 +1183,39 @@
       location.href = 'index.html';
     }
 
+    /* ---------- Carga diferida del directorio (ahorra egress al entrar solo a escanear) ---------- */
+    async function cargarDirectorio() {
+      if (dirCargado) return;
+      if (promDir) return promDir;
+      promDir = (async () => {
+        try {
+          const [rProv, rDev] = await Promise.all([
+            supabaseClient.from('proveedores').select(COLS_PROV).order('nombre').limit(3000),
+            supabaseClient.from('devoluciones_por_proveedor').select('supply_id,ajustes,articulos,unidades,ultima_fecha').limit(3000)
+          ]);
+          if (rProv.error) toast('No se pudo cargar el directorio: ' + rProv.error.message, 1);
+          (rProv.data || []).forEach(p => provs.set(p.supply_id, p));
+          if (!rDev.error) (rDev.data || []).forEach(d => dev.set(d.supply_id, d));
+          dirCargado = true;
+          actualizarBadgesGlobales();
+        } finally {
+          promDir = null;
+        }
+      })();
+      return promDir;
+    }
+
     /* ---------- Navegación por pestañas ---------- */
-    function irTab(t) {
+    async function irTab(t) {
       document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
       document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + t));
-      if (t === 'scan') setTimeout(() => { $('q').focus(); $('q').select(); }, 40);
+      if (t === 'scan') {
+        setTimeout(() => { $('q').focus(); $('q').select(); }, 40);
+      } else if (t === 'dir' && !dirCargado) {
+        $('tp').innerHTML = '<tr><td colspan="7" class="mu" style="text-align:center;padding:24px">Cargando directorio de proveedores…</td></tr>';
+        await cargarDirectorio();
+        pintarDir();
+      }
     }
 
     /* ---------- Guardado rápido de política (desde Escáner o Directorio) ---------- */
@@ -1197,7 +1233,7 @@
       if (error) { toast('Error al guardar política: ' + error.message, 1); return; }
       Object.assign(p, u);
       actualizarBadgesGlobales();
-      pintarDir();
+      if (dirCargado) pintarDir();
       toast(`Política guardada: ${p.nombre} → ${modalidad || 'Sin política'}`);
       if (artRef) mostrar(artRef);
     }
@@ -1255,7 +1291,7 @@
 
         const miss = asc.map(r => r.supply_id).filter(i => !provs.has(i));
         if (miss.length) {
-          const { data: ps } = await supabaseClient.from('proveedores').select('*').in('supply_id', miss);
+          const { data: ps } = await supabaseClient.from('proveedores').select(COLS_PROV).in('supply_id', miss);
           (ps || []).forEach(p => provs.set(p.supply_id, p));
         }
 
@@ -1493,7 +1529,7 @@
         Object.assign(p, u);
         cerrar();
         actualizarBadgesGlobales();
-        pintarDir();
+        if (dirCargado) pintarDir();
         toast('Política actualizada.');
         if (art) mostrar(art);
       };
@@ -1514,7 +1550,7 @@
     async function cargarAv() {
       const { data, error } = await supabaseClient.from('averias')
         .select('id,creado_en,creado_por,producto,cantidad,motivo,modalidad,proveedor,obs,foto_path,estatus')
-        .order('creado_en', { ascending: false }).limit(500);
+        .order('creado_en', { ascending: false }).limit(200);
       if (error) { toast('No se pudieron cargar las averías: ' + error.message, 1); return; }
       av = data || []; pintarAv();
     }
@@ -1568,10 +1604,13 @@
       localStorage.removeItem(K); await cargarAv(); toast('Averías migradas a Supabase.');
     }
 
-    function abrirAveria(prod, p, destinoPre) {
+    async function abrirAveria(prod, p, destinoPre) {
       foto = '';
-      const ps = [...provs.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
       const esInterno = Boolean(destinoPre);
+      const renderOpcionesProv = () => [...provs.values()]
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .map(x => `<option value="${esc(x.nombre)}" data-m="${esc(x.modalidad || '')}" ${p && p.supply_id === x.supply_id ? 'selected' : ''}>${esc(x.nombre)}${x.modalidad ? ' (' + esc(x.modalidad) + ')' : ''}</option>`)
+        .join('');
 
       abrir(`
         <h3 style="margin:0">📝 Registrar mercancía averiada / vencida</h3>
@@ -1605,7 +1644,7 @@
         <label>Proveedor asociado</label>
         <select id="aV">
           <option value="Gestión Interna / Sin proveedor">— Gestión Interna (Sin reclamo a proveedor) —</option>
-          ${ps.map(x => `<option value="${esc(x.nombre)}" data-m="${esc(x.modalidad || '')}" ${p && p.supply_id === x.supply_id ? 'selected' : ''}>${esc(x.nombre)}${x.modalidad ? ' (' + esc(x.modalidad) + ')' : ''}</option>`).join('')}
+          ${renderOpcionesProv()}
         </select>
         <label>📸 Foto de evidencia (opcional)</label>
         <div class="up" onclick="$('aF').click()"><input type="file" id="aF" accept="image/*" hidden><div id="aPv">📷 Toca para tomar o subir foto</div></div>
@@ -1616,13 +1655,21 @@
           <button class="btn" id="aG">Guardar registro</button>
         </div>`);
 
-      if (!esInterno) {
-        const sync = () => {
-          const m = $('aV').selectedOptions[0]?.dataset.m;
-          if (m && m !== 'No Acepta') $('aD').value = m;
-        };
-        sync();
-        $('aV').onchange = sync;
+      const sync = () => {
+        if (esInterno) return;
+        const m = $('aV')?.selectedOptions[0]?.dataset.m;
+        if (m && m !== 'No Acepta') $('aD').value = m;
+      };
+      sync();
+      $('aV').onchange = sync;
+
+      if (!dirCargado) {
+        await cargarDirectorio();
+        const selV = $('aV');
+        if (selV) {
+          selV.innerHTML = `<option value="Gestión Interna / Sin proveedor">— Gestión Interna (Sin reclamo a proveedor) —</option>` + renderOpcionesProv();
+          sync();
+        }
       }
 
       $('aF').onchange = e => {
@@ -1662,9 +1709,11 @@
     }
 
     function actualizarBadgesGlobales() {
+      if (!dirCargado) return;
       let sinPolConHist = 0;
       provs.forEach(p => { if (!p.modalidad && dev.has(p.supply_id)) sinPolConHist++; });
       $('badgeSinPol').textContent = sinPolConHist;
+      $('badgeSinPol').hidden = false;
     }
 
     /* ---------- Sesión y control de acceso por rol ---------- */
@@ -1693,18 +1742,6 @@
       await cargarAv();
       migrarLocal();
       fin();
-
-      const { data, error } = await supabaseClient.from('proveedores').select('*').order('nombre').limit(3000);
-      if (error) toast('No se pudo cargar el directorio: ' + error.message, 1);
-      (data || []).forEach(p => provs.set(p.supply_id, p));
-
-      try {
-        const { data: dv2, error: e2 } = await supabaseClient.from('devoluciones_por_proveedor').select('supply_id,ajustes,articulos,unidades,ultima_fecha').limit(3000);
-        if (!e2) (dv2 || []).forEach(d => dev.set(d.supply_id, d));
-      } catch (e) { }
-
-      actualizarBadgesGlobales();
-      pintarDir();
       $('q').focus();
     })();
   </script>
