@@ -1588,7 +1588,7 @@
                     al Módulo <span>➔</span></a>
             </article>
 
-            <article class="module-card disabled" style="--i:4" aria-disabled="true">
+            <article class="module-card disabled" id="slotPendiente5" style="--i:4" aria-disabled="true">
                 <div>
                     <div class="module-header">
                         <div class="module-icon" aria-hidden="true">📑</div>
@@ -1607,7 +1607,7 @@
                 <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
             </article>
 
-            <article class="module-card disabled" style="--i:5" aria-disabled="true">
+            <article class="module-card disabled" id="slotPendiente6" style="--i:5" aria-disabled="true">
                 <div>
                     <div class="module-header">
                         <div class="module-icon" aria-hidden="true">📊</div>
@@ -1764,7 +1764,7 @@
             const t = document.getElementById('welcomeToast');
             t.innerHTML = '<span aria-hidden="true">👋</span><span>Bienvenido, <strong>' + esc(nombre) + '</strong></span>';
             clearTimeout(bienvenidaTimer);
-            void t.offsetWidth; // fuerza el reflow para que la animación de entrada se ejecute
+            void t.offsetWidth;
             t.classList.add('show');
             bienvenidaTimer = setTimeout(() => t.classList.remove('show'), 1500);
         }
@@ -1790,7 +1790,6 @@
                 card.addEventListener('focusout', detener);
             });
 
-            // Respaldo: si el reproductor no carga, se muestran los emojis originales
             setTimeout(() => {
                 if (!customElements.get('dotlottie-wc')) {
                     document.querySelectorAll('.lottie-icon').forEach(el => {
@@ -1860,7 +1859,7 @@
 
             if (session && session.user) {
                 cerrarModalLogin();
-                configurarAuditoria(session);
+                configurarModulosPorRol(session);
 
                 const metadata = session.user.user_metadata || {};
                 const nombre = metadata.display_name || metadata.full_name || session.user.email.split('@')[0];
@@ -1882,7 +1881,7 @@
                 document.getElementById('umEmail').textContent = session.user.email || '';
                 mostrarBienvenida(nombreFormateado, session.user.id);
             } else {
-                configurarAuditoria(null);
+                configurarModulosPorRol(null);
                 cerrarUserMenu();
                 limpiarBienvenida();
                 abrirModalLogin();
@@ -1894,8 +1893,8 @@
             }
         }
 
-        // --- TARJETA DE AUDITORÍA (solo auditor / admin) ---
-        let pend5Original = null, configurandoAud = false;
+        // --- MÓDULOS RESTRINGIDOS POR ROL (5: Auditoría | 6: Proveedores y Devoluciones) ---
+        let pend5Original = null, pend6Original = null, configurandoRoles = false;
 
         async function metricasAuditoria() {
             try {
@@ -1915,43 +1914,119 @@
             } catch (e) { console.warn('Auditoría: no se pudieron leer las métricas', e); }
         }
 
-        async function configurarAuditoria(session) {
-            if (configurandoAud) return;
-            configurandoAud = true;
+        async function metricasProveedores() {
             try {
-                const quitar = () => {
+                // Reclamos pendientes desde localStorage
+                const DESTINOS_INT = [
+                    '❄️ Cava / Cocina Gourmet',
+                    '🥖 Panadería / Pastelería',
+                    '🥩 Carnicería / Charcutería',
+                    '🏷️ Descuento Empleados',
+                    '🗑️ Merma / Desecho'
+                ];
+                const averias = leerLocal('hipergalerias_averias_v7');
+                const pendN = averias.filter(a => !String(a.estatus || '').includes('✅') && !DESTINOS_INT.includes(a.modalidad)).length;
+                const pendEl = document.getElementById('val-mod6-pend');
+                if (pendEl) pendEl.innerText = pendN.toLocaleString('es-ES');
+                actualizarColorMetrica('box-mod6-pend', pendN, 'orange');
+
+                // Proveedores con política configurada en Supabase
+                const { count, error } = await supabaseClient
+                    .from('proveedores')
+                    .select('supply_id', { count: 'exact', head: true })
+                    .not('modalidad', 'is', null);
+                if (!error) {
+                    const polN = count ?? 0;
+                    const polEl = document.getElementById('val-mod6-pol');
+                    if (polEl) polEl.innerText = polN.toLocaleString('es-ES');
+                    actualizarColorMetrica('box-mod6-pol', polN, 'green');
+                }
+            } catch (e) { console.warn('Proveedores: no se pudieron leer las métricas', e); }
+        }
+
+        async function configurarModulosPorRol(session) {
+            if (configurandoRoles) return;
+            configurandoRoles = true;
+            try {
+                const quitarMod5 = () => {
                     const c = document.getElementById('cardAuditoria');
                     if (c && pend5Original) { c.replaceWith(pend5Original); pend5Original = null; }
                 };
-                if (!session || typeof supabaseClient === 'undefined') { quitar(); return; }
+                const quitarMod6 = () => {
+                    const c = document.getElementById('cardProveedores');
+                    if (c && pend6Original) { c.replaceWith(pend6Original); pend6Original = null; }
+                };
+
+                if (!session || typeof supabaseClient === 'undefined') {
+                    quitarMod5();
+                    quitarMod6();
+                    return;
+                }
 
                 const { data: p } = await supabaseClient.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle();
-                if (!p || !['auditor', 'admin'].includes(p.rol)) { quitar(); return; }
+                const rol = p && p.rol;
 
-                if (document.getElementById('cardAuditoria')) { metricasAuditoria(); return; }
+                // Módulo 5: Auditoría (solo auditor / admin)
+                if (rol && ['auditor', 'admin'].includes(rol)) {
+                    if (document.getElementById('cardAuditoria')) {
+                        metricasAuditoria();
+                    } else {
+                        const slot5 = document.getElementById('slotPendiente5');
+                        if (slot5) {
+                            pend5Original = slot5;
+                            const card5 = document.createElement('article');
+                            card5.className = 'module-card';
+                            card5.id = 'cardAuditoria';
+                            card5.style.setProperty('--i', 4);
+                            card5.innerHTML = `
+                                <div>
+                                    <div class="module-header"><div class="module-icon" aria-hidden="true">🛡️</div>
+                                        <div class="module-title-zone"><h3>Auditoría</h3><p class="module-desc">Quién cambió qué, cuándo y por qué en todos los módulos.</p></div></div>
+                                    <div class="dashboard-metrics">
+                                        <div class="metric-box" id="box-mod5-hoy" title="Cambios registrados hoy"><span class="metric-title">Cambios hoy</span><span class="metric-value" id="val-mod5-hoy">0</span></div>
+                                        <div class="metric-box" id="box-mod5-pend" title="Eventos críticos o de atención sin revisar"><span class="metric-title">Sin revisar</span><span class="metric-value" id="val-mod5-pend">0</span></div>
+                                    </div>
+                                </div>
+                                <a href="auditoria.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'auditoria.html')">Ingresar al Módulo <span>➔</span></a>`;
+                            slot5.replaceWith(card5);
+                            metricasAuditoria();
+                        }
+                    }
+                } else {
+                    quitarMod5();
+                }
 
-                const slot = document.querySelector('#modulesGrid .module-card.disabled');
-                if (!slot) return;
-                pend5Original = slot;
-
-                const card = document.createElement('article');
-                card.className = 'module-card';
-                card.id = 'cardAuditoria';
-                card.style.setProperty('--i', 4);
-                card.innerHTML = `
-            <div>
-                <div class="module-header"><div class="module-icon" aria-hidden="true">🛡️</div>
-                    <div class="module-title-zone"><h3>Auditoría</h3><p class="module-desc">Quién cambió qué, cuándo y por qué en todos los módulos.</p></div></div>
-                <div class="dashboard-metrics">
-                    <div class="metric-box" id="box-mod5-hoy" title="Cambios registrados hoy"><span class="metric-title">Cambios hoy</span><span class="metric-value" id="val-mod5-hoy">0</span></div>
-                    <div class="metric-box" id="box-mod5-pend" title="Eventos críticos o de atención sin revisar"><span class="metric-title">Sin revisar</span><span class="metric-value" id="val-mod5-pend">0</span></div>
-                </div>
-            </div>
-            <a href="auditoria.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'auditoria.html')">Ingresar al Módulo <span>➔</span></a>`;
-                slot.replaceWith(card);
-                metricasAuditoria();
+                // Módulo 6: Proveedores y Devoluciones (solo admin / compras / sistemas)
+                if (rol && ['admin', 'compras', 'sistemas'].includes(rol)) {
+                    if (document.getElementById('cardProveedores')) {
+                        metricasProveedores();
+                    } else {
+                        const slot6 = document.getElementById('slotPendiente6');
+                        if (slot6) {
+                            pend6Original = slot6;
+                            const card6 = document.createElement('article');
+                            card6.className = 'module-card';
+                            card6.id = 'cardProveedores';
+                            card6.style.setProperty('--i', 5);
+                            card6.innerHTML = `
+                                <div>
+                                    <div class="module-header"><div class="module-icon" aria-hidden="true">🚚</div>
+                                        <div class="module-title-zone"><h3>Proveedores y Devoluciones</h3><p class="module-desc">Escáner de políticas de devolución, proveedores y averías.</p></div></div>
+                                    <div class="dashboard-metrics">
+                                        <div class="metric-box" id="box-mod6-pol" title="Proveedores con política de devolución configurada"><span class="metric-title">Con Política</span><span class="metric-value" id="val-mod6-pol">0</span></div>
+                                        <div class="metric-box" id="box-mod6-pend" title="Reclamos de averías pendientes por resolver"><span class="metric-title">Reclamos Pend.</span><span class="metric-value" id="val-mod6-pend">0</span></div>
+                                    </div>
+                                </div>
+                                <a href="proveedores.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'proveedores.html')">Ingresar al Módulo <span>➔</span></a>`;
+                            slot6.replaceWith(card6);
+                            metricasProveedores();
+                        }
+                    }
+                } else {
+                    quitarMod6();
+                }
             } finally {
-                configurandoAud = false;
+                configurandoRoles = false;
             }
         }
 
@@ -2127,7 +2202,7 @@
             }
         }
 
-        // ===== TASA BCV (lee la tabla tasas_bcv; la key de dolarvzla vive solo en la Edge Function) =====
+        // ===== TASA BCV =====
         function fmtBs(n) {
             return Number(n).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
@@ -2135,8 +2210,6 @@
             const [y, m, d] = String(iso).split('-');
             return d + '/' + m;
         }
-        // Lee current.json (trae la tasa vigente y la anterior). Si el navegador no puede
-        // (CORS/red), usa la tabla tasas_bcv de Supabase como respaldo.
         async function obtenerTasasBCV() {
             try {
                 const r = await fetch('https://rates.dolarvzla.com/bcv/current.json', { cache: 'no-cache' });
@@ -2217,6 +2290,7 @@
 
         window.addEventListener('storage', e => {
             if (e.key && /^(dashboard_|hipergalerias_(ti|dashboard_resumen|insumos_db|recetas_db))/.test(e.key)) sincronizarDashboard();
+            if (e.key === 'hipergalerias_averias_v7' && document.getElementById('cardProveedores')) metricasProveedores();
         });
 
         window.addEventListener('storage', e => {
@@ -2327,7 +2401,6 @@
                 }
             };
 
-            // Aviso de Bloq Mayús y limpieza del borde rojo al escribir
             const pass = $('loginPassword');
             const caps = e => $('capsHint').classList.toggle('show', !!(e.getModifierState && e.getModifierState('CapsLock')));
             pass.addEventListener('keydown', caps);
