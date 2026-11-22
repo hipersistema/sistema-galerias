@@ -1,635 +1,913 @@
-<!-- ================================================================= -->
-<!-- MÓDULO INTEGRADO DE AVERÍAS CON DATOS REALES DE PROVEEDORES.XLS -->
-<!-- ================================================================= -->
+<!DOCTYPE html>
+<html lang="es">
 
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proveedores y devoluciones - GALERIA HIPERMARKET 1 C.A</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="conexion.js"></script>
+  <script src="inactividad.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-  .hg-scope * {
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-    box-sizing: border-box;
-  }
-
-  .hg-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
-    margin-bottom: 20px;
-  }
-
-  /* KPI CARDS */
-  .hg-kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  .hg-kpi-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    padding: 18px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .hg-kpi-card.pending::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #f59e0b;
-  }
-
-  .hg-kpi-card.success::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: #16a34a;
-  }
-
-  .hg-kpi-val {
-    font-size: 1.8rem;
-    font-weight: 900;
-    line-height: 1;
-    margin-top: 6px;
-  }
-
-  .hg-kpi-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-  }
-
-  /* BOTONES Y FORMS */
-  .hg-btn-primary {
-    background: linear-gradient(135deg, #15803d, #14532d);
-    color: #ffffff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
-    transition: all 0.2s ease;
-  }
-
-  .hg-btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(21, 128, 61, 0.35);
-  }
-
-  .hg-input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    color: #1e293b;
-    outline: none;
-    background: #f8fafc;
-    transition: all 0.2s ease;
-  }
-
-  .hg-input:focus {
-    background: #ffffff;
-    border-color: #16a34a;
-    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
-  }
-
-  /* TABLAS PROFESIONALES */
-  .hg-table-container {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 4px 16px -4px rgba(0,0,0,0.03);
-    margin-bottom: 24px;
-  }
-
-  .hg-table-header {
-    background: #123e1b;
-    color: #ffffff;
-    padding: 14px 20px;
-    font-size: 0.82rem;
-    font-weight: 800;
-    letter-spacing: 0.3px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .hg-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.83rem;
-    text-align: left;
-  }
-
-  .hg-table th {
-    background: #f8fafc;
-    color: #475569;
-    font-weight: 700;
-    padding: 12px 16px;
-    border-bottom: 1px solid #e2e8f0;
-    text-transform: uppercase;
-    font-size: 0.72rem;
-    letter-spacing: 0.5px;
-  }
-
-  .hg-table td {
-    padding: 14px 16px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    vertical-align: middle;
-  }
-
-  .hg-table tbody tr {
-    transition: background-color 0.15s ease;
-  }
-
-  .hg-table tbody tr:hover {
-    background-color: #f8fbf9;
-  }
-
-  /* BADGES */
-  .hg-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 0.73rem;
-    font-weight: 700;
-    white-space: nowrap;
-  }
-
-  .badge-fisico { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-  .badge-nc { background: #faf5ff; color: #7e22ce; border: 1px solid #e9d5ff; }
-  .badge-desc { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-  .badge-destruccion { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-  .badge-no { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
-
-  .badge-pend { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-  .badge-done { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-
-  /* MODALES Y VISORES */
-  .hg-modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(6px);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999;
-    padding: 16px;
-  }
-
-  .hg-modal-backdrop.oculto { display: none !important; }
-
-  .hg-modal-card {
-    background: #ffffff;
-    width: 100%; max-width: 520px;
-    border-radius: 18px;
-    padding: 24px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    animation: modalPop 0.25s cubic-bezier(0.22, 0.8, 0.3, 1);
-  }
-
-  @keyframes modalPop {
-    from { opacity: 0; transform: scale(0.95) translateY(10px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-
-  .hg-upload-zone {
-    border: 2px dashed #bbf7d0;
-    background: #f0fdf4;
-    border-radius: 12px;
-    padding: 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .hg-upload-zone:hover {
-    background: #dcfce7;
-    border-color: #16a34a;
-  }
-</style>
-
-<div class="hg-scope" style="padding: 6px;">
-
-  <!-- CABECERA DE MÓDULO -->
-  <div class="hg-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 18px;">
-    <div>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <span style="font-size: 1.25rem;">🔄</span>
-        <h2 style="margin: 0; font-size: 1.15rem; color: #123e1b; font-weight: 800;">Gestión de Averías y Políticas de Proveedores</h2>
-      </div>
-      <p style="margin: 3px 0 0 32px; font-size: 0.8rem; color: #64748b;">Base de proveedores actualizada con control de mermas y evidencias.</p>
-    </div>
-    <button onclick="abrirModalReportarAveria()" class="hg-btn-primary">
-      <span style="font-size: 1.1rem; line-height: 1;">+</span>
-      <span>Registrar Avería / Vencido</span>
-    </button>
-  </div>
-
-  <!-- KPIS / INDICADORES -->
-  <div class="hg-kpi-grid">
-    <div class="hg-kpi-card pending">
-      <div>
-        <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Reclamos Pendientes</span>
-        <div id="lblTotalPendientes" class="hg-kpi-val" style="color: #d97706;">0</div>
-        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">En espera de cambio/N/C</span>
-      </div>
-      <div class="hg-kpi-icon" style="background: #fffbeb; color: #d97706;">⏳</div>
-    </div>
-
-    <div class="hg-kpi-card success">
-      <div>
-        <span style="font-size: 0.72rem; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Reclamos Procesados</span>
-        <div id="lblTotalConcluidos" class="hg-kpi-val" style="color: #16a34a;">0</div>
-        <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 600;">Resueltos exitosamente</span>
-      </div>
-      <div class="hg-kpi-icon" style="background: #f0fdf4; color: #16a34a;">✅</div>
-    </div>
-  </div>
-
-  <!-- FILTROS Y BUSCADOR -->
-  <div class="hg-card" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; align-items: flex-end; padding: 16px;">
-    <div>
-      <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">🔍 Buscar por Empresa, RIF o Contacto</label>
-      <input type="text" id="buscadorAverias" oninput="filtrarAveriasYProveedores()" placeholder="Ej. Milano, Drolanca, Pepsi, Drosucre, Victor..." class="hg-input">
-    </div>
-    <div>
-      <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">🏷️ Modalidad Aceptada</label>
-      <select id="filtroModalidadCambio" onchange="filtrarAveriasYProveedores()" class="hg-input" style="font-weight: 700; cursor: pointer;">
-        <option value="todos">Todas las modalidades</option>
-        <option value="Nota de Crédito">📄 Nota de Crédito (N/C)</option>
-        <option value="Producto por Producto">📦 Cambio Físico (1 a 1)</option>
-        <option value="Descuento Próxima Factura">🏷️ Descuento en Factura</option>
-        <option value="Destrucción Autorizada">🔨 Destrucción Autorizada</option>
-        <option value="No Acepta">❌ No Acepta Cambios</option>
-      </select>
-    </div>
-  </div>
-
-  <!-- TABLA 1: DIRECTORIO DE PROVEEDORES (CARGADO DESDE PROVEEDORES.XLS) -->
-  <div class="hg-table-container">
-    <div class="hg-table-header">
-      <span style="display: flex; align-items: center; gap: 8px;">
-        <span>🏢</span> Directorio General de Proveedores (Data Base Hipergalerías)
-      </span>
-      <span id="contadorProveedoresAverias" style="background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 99px; font-size: 0.72rem;">0 Proveedores</span>
-    </div>
-    <div style="max-height: 360px; overflow-y: auto;">
-      <table class="hg-table">
-        <thead>
-          <tr>
-            <th>RIF</th>
-            <th>Razón Social</th>
-            <th>Teléfonos / Contacto / Correo</th>
-            <th style="text-align: center;">Forma Reembolso</th>
-            <th>Condiciones de Compras</th>
-            <th style="text-align: center;">Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="tablaProveedoresPoliticasBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- TABLA 2: REGISTRO DE AVERÍAS Y PASILLOS -->
-  <div class="hg-table-container">
-    <div class="hg-table-header" style="background: #1e293b;">
-      <span style="display: flex; align-items: center; gap: 8px;">
-        <span>📦</span> Registro Operativo de Averías (Pasillos & Recepción)
-      </span>
-      <span id="contadorAveriasReg" style="background: rgba(255,255,255,0.15); padding: 3px 10px; border-radius: 99px; font-size: 0.72rem;">0 Registros</span>
-    </div>
-    <div style="max-height: 350px; overflow-y: auto;">
-      <table class="hg-table">
-        <thead>
-          <tr>
-            <th>Fecha</th>
-            <th>Producto & Evidencia</th>
-            <th style="text-align: center;">Cant.</th>
-            <th>Proveedor Responsable</th>
-            <th style="text-align: center;">Modalidad</th>
-            <th>Motivo / Pasillo</th>
-            <th style="text-align: center;">Estatus Reclamo</th>
-            <th style="text-align: center;">Acción</th>
-          </tr>
-        </thead>
-        <tbody id="tablaHistorialAveriasBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
-
-<!-- MODAL: REGISTRAR NUEVA AVERÍA -->
-<div id="modalAveria" class="hg-modal-backdrop oculto">
-  <div class="hg-modal-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 16px;">
-      <h3 style="margin:0; font-size: 1rem; color: #123e1b; font-weight: 800; display: flex; align-items: center; gap: 8px;">
-        <span>📝</span> Reportar Producto Averiado o Vencido
-      </h3>
-      <button onclick="cerrarModalAveria()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8; font-weight: bold;">✕</button>
-    </div>
-    
-    <div style="display: flex; flex-direction: column; gap: 14px;">
-      <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 10px;">
-        <div>
-          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Producto o Código</label>
-          <input type="text" id="inputAveriaProducto" placeholder="Ej. Harina Pan 1kg / Leche 1L" class="hg-input">
-        </div>
-        <div>
-          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Cant.</label>
-          <input type="number" id="inputAveriaCantidad" value="1" min="1" class="hg-input" style="text-align: center; font-weight: 800;">
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div>
-          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Motivo Principal</label>
-          <select id="inputAveriaMotivo" class="hg-input" style="cursor: pointer;">
-            <option value="Fecha Vencida">Fecha Vencida</option>
-            <option value="Defecto de Fábrica">Defecto de Fábrica</option>
-            <option value="Maltrato en Transporte">Maltrato / Transporte</option>
-            <option value="Manipulación Interna">Daño Operativo (Pasillo)</option>
-          </select>
-        </div>
-        <div>
-          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Modalidad Acordada</label>
-          <select id="inputAveriaModalidad" class="hg-input" style="font-weight: 700; cursor: pointer;">
-            <option value="Nota de Crédito">📄 Nota de Crédito (N/C)</option>
-            <option value="Producto por Producto">📦 Cambio Físico (1 a 1)</option>
-            <option value="Descuento Próxima Factura">🏷️ Descuento en Factura</option>
-            <option value="Destrucción Autorizada">🔨 Destrucción Autorizada</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Proveedor Responsable</label>
-        <select id="selectAveriaProveedor" onchange="actualizarModalidadSegunProveedor()" class="hg-input" style="font-weight: 700; color: #123e1b; cursor: pointer;"></select>
-      </div>
-
-      <div>
-        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">📸 Adjuntar Foto Evidencia</label>
-        <div class="hg-upload-zone" onclick="document.getElementById('fileAveriaFoto').click()">
-          <input type="file" id="fileAveriaFoto" accept="image/*" style="display: none;" onchange="previsualizarFotoAveria(event)">
-          <div id="previewFotoArea">
-            <div style="font-size: 1.5rem;">📷</div>
-            <p style="margin: 4px 0 0; font-size: 0.78rem; font-weight: 800; color: #15803d;">Haz clic aquí para tomar o subir foto</p>
-            <span style="color: #94a3b8; font-size: 0.68rem;">Soporta fotos desde teléfono o PC</span>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Observaciones / Pasillo de Origen</label>
-        <textarea id="inputAveriaObs" rows="2" placeholder="Ej. Pasillo 3, bulto húmedo al desembalar..." class="hg-input"></textarea>
-      </div>
-    </div>
-
-    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
-      <button onclick="cerrarModalAveria()" style="padding: 9px 16px; background: #f1f5f9; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; color: #64748b; font-size: 0.8rem;">Cancelar</button>
-      <button onclick="guardarAveriaReporte()" class="hg-btn-primary">Guardar Registro</button>
-    </div>
-  </div>
-</div>
-
-<!-- VISOR DE FOTO EMERGENTE (POPUP MODAL) -->
-<div id="modalVisorFoto" class="hg-modal-backdrop oculto" onclick="cerrarVisorFoto()">
-  <div style="background: #ffffff; padding: 18px; border-radius: 16px; max-width: 90vw; max-height: 88vh; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-      <strong style="color: #123e1b; font-size: 0.9rem;">📷 Evidencia Fotográfica Registrada</strong>
-      <button onclick="cerrarVisorFoto()" style="background:none; border:none; font-size:1.2rem; font-weight:bold; cursor:pointer; color:#64748b;">✕</button>
-    </div>
-    <img id="imagenVisorGrande" src="" style="max-width: 100%; max-height: 72vh; border-radius: 10px; object-fit: contain; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-  </div>
-</div>
-
-<!-- SCRIPT COMPLETO CON PROVEEDORES REALES -->
-<script>
-  let fotoAveriaBase64 = '';
-  
-  // Lista extraída directamente de tu archivo proveedores.xls
-  let proveedoresPoliticas = [
-    { rif: "J301105028", razon: "PRODUCTOS MILANO, C.A", contacto: "Sin contacto registrado", modalidad: "Producto por Producto", condicion: "Cambio directo con preventista." },
-    { rif: "J500624816", razon: "DROSUCRE, C.A.", contacto: "ALEJANDRO / 0424-8036005 / drosucreca@gmail.com", modalidad: "Nota de Crédito", condicion: "Nota de Crédito previa revisión en 48h." },
-    { rif: "J295377116", razon: "DROGUERIA DROTACA, C.A.", contacto: "CLARIANNYS COVA / 0283-4006314 / contacto@drotaca.com", modalidad: "Nota de Crédito", condicion: "Aplica N/C descontable en estado de cuenta." },
-    { rif: "J090066462", razon: "CORPORACION DROLANCA, C.A.", contacto: "VICTOR VIELMA / 0275-8811884 / victorvielma30@gmail.com", modalidad: "Descuento Próxima Factura", condicion: "Descuento aplicado en orden de compra posterior." },
-    { rif: "J502302450", razon: "DROGUERIA CER ORIENTE, C.A.", contacto: "ERIKA RONDON / 0412-3451883 / info@drocerca.com", modalidad: "No Acepta", condicion: "No acepta devoluciones por vencimiento en anaquel." },
-    { rif: "J-50360355-0", razon: "PEPSI-COLA VENEZUELA C.A", contacto: "Central / Preventa Polar", modalidad: "Producto por Producto", condicion: "Sustitución por chofer de despacho." },
-    { rif: "J085189777", razon: "DROGUERIA NENA, C.A.", contacto: "MIGUEL FARIAS / 0251-2690111", modalidad: "Nota de Crédito", condicion: "Planilla de reclamo firmada requerida." },
-    { rif: "J300666204", razon: "DROGUERIA COBECA ORIENTE, C.A.", contacto: "ANDRES RODRIGUEZ / 0281-3710401", modalidad: "Nota de Crédito", condicion: "Nota de crédito válida por 30 días." },
-    { rif: "J412413740", razon: "INSUAMINCA, C.A.", contacto: "RICARDO / 0424-9463925 / insuaminca@gmail.com", modalidad: "Nota de Crédito", condicion: "Cruce directo con nota de entrega." },
-    { rif: "J405857889", razon: "INVERSIONES OZAINNKH, C.A.", contacto: "0212-4433026 / invozainnkh@gmail.com", modalidad: "Nota de Crédito", condicion: "Evaluación previa de compras." },
-    { rif: "J301310187", razon: "MONDELEZ VZ C.A", contacto: "0212-6009111", modalidad: "Destrucción Autorizada", condicion: "N/C mediante acta de destrucción." },
-    { rif: "J075893867", razon: "ALIMENTOS BERRIOS, ALBECA, C.A", contacto: "0241-8780391", modalidad: "Producto por Producto", condicion: "Cambio directo en almacén." },
-    { rif: "J310314959", razon: "EUROPASTAS C.A", contacto: "Sucursal Cariaco, Cumaná", modalidad: "Nota de Crédito", condicion: "Reemplazo de lote defectuoso." },
-    { rif: "J000413126", razon: "ALIMENTOS POLAR COMERCIAL C.A", contacto: "RAMOS AYALA FRANCISCO LUIS / 0212-2033111", modalidad: "Producto por Producto", condicion: "Canje 1 a 1 por transportista." },
-    { rif: "J315230445", razon: "DISTRIBUIDORA GOMEZ Y HERNANDEZ, C.A", contacto: "Barcelona, Anzoátegui", modalidad: "Nota de Crédito", condicion: "Revisión previa por vendedor." }
-  ];
-
-  let historialAverias = JSON.parse(localStorage.getItem('hipergalerias_averias_v7') || '[]');
-
-  function inicializarModuloAverias() {
-    renderizarProveedoresPoliticas(proveedoresPoliticas);
-    renderizarHistorialAverias();
-    llenarSelectProveedoresModal();
-    actualizarContadoresAverias();
-  }
-
-  function getBadgeModalidad(modalidad) {
-    switch (modalidad) {
-      case 'Producto por Producto': return `<span class="hg-badge badge-fisico">📦 Cambio Físico</span>`;
-      case 'Nota de Crédito': return `<span class="hg-badge badge-nc">📄 Nota de Crédito</span>`;
-      case 'Descuento Próxima Factura': return `<span class="hg-badge badge-desc">🏷️ Desc. Factura</span>`;
-      case 'Destrucción Autorizada': return `<span class="hg-badge badge-destruccion">🔨 Destrucción</span>`;
-      default: return `<span class="hg-badge badge-no">❌ No Acepta</span>`;
-    }
-  }
-
-  function renderizarProveedoresPoliticas(lista) {
-    const tbody = document.getElementById('tablaProveedoresPoliticasBody');
-    if (!tbody) return;
-    document.getElementById('contadorProveedoresAverias').textContent = `${lista.length} Proveedores`;
-    tbody.innerHTML = lista.map(p => `
-      <tr>
-        <td style="font-family: monospace; font-weight: 700; color: #475569;">${p.rif}</td>
-        <td style="font-weight: 800; color: #123e1b;">${p.razon}</td>
-        <td style="color: #64748b; font-size: 0.78rem;">${p.contacto}</td>
-        <td style="text-align: center;">${getBadgeModalidad(p.modalidad)}</td>
-        <td style="color: #64748b; font-size: 0.78rem;">${p.condicion}</td>
-        <td style="text-align: center;">
-          <button onclick="editarPoliticaProveedor('${p.rif}')" style="padding: 5px 12px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.75rem; color: #334155;">Editar</button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function filtrarAveriasYProveedores() {
-    const query = document.getElementById('buscadorAverias').value.toLowerCase();
-    const modalidadSel = document.getElementById('filtroModalidadCambio').value;
-    const filtrados = proveedoresPoliticas.filter(p => {
-      const matchTexto = p.razon.toLowerCase().includes(query) || p.rif.toLowerCase().includes(query) || p.contacto.toLowerCase().includes(query);
-      const matchMod = (modalidadSel === 'todos' || p.modalidad === modalidadSel);
-      return matchTexto && matchMod;
-    });
-    renderizarProveedoresPoliticas(filtrados);
-  }
-
-  function llenarSelectProveedoresModal() {
-    const select = document.getElementById('selectAveriaProveedor');
-    if (!select) return;
-    select.innerHTML = proveedoresPoliticas.map(p => `<option value="${p.razon}" data-modalidad="${p.modalidad}">${p.razon} (${p.modalidad})</option>`).join('');
-  }
-
-  function actualizarModalidadSegunProveedor() {
-    const select = document.getElementById('selectAveriaProveedor');
-    const mod = select.options[select.selectedIndex]?.getAttribute('data-modalidad');
-    if (mod && mod !== 'No Acepta') document.getElementById('inputAveriaModalidad').value = mod;
-  }
-
-  function previsualizarFotoAveria(event) {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        fotoAveriaBase64 = e.target.result;
-        document.getElementById('previewFotoArea').innerHTML = `
-          <img src="${fotoAveriaBase64}" style="max-height: 80px; margin: 0 auto; border-radius: 8px; border: 2px solid #16a34a; object-fit: contain;">
-          <p style="margin: 4px 0 0; font-size: 0.72rem; color: #16a34a; font-weight: 800;">✓ Foto cargada con éxito</p>
-        `;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  function abrirModalReportarAveria() {
-    fotoAveriaBase64 = '';
-    document.getElementById('previewFotoArea').innerHTML = `
-      <div style="font-size: 1.5rem;">📷</div>
-      <p style="margin: 4px 0 0; font-size: 0.78rem; font-weight: 800; color: #15803d;">Haz clic aquí para subir o tomar foto</p>
-      <span style="color: #94a3b8; font-size: 0.68rem;">Formatos soportados: JPG, PNG, WEBP</span>
-    `;
-    document.getElementById('modalAveria').classList.remove('oculto');
-    actualizarModalidadSegunProveedor();
-  }
-
-  function cerrarModalAveria() {
-    document.getElementById('modalAveria').classList.add('oculto');
-  }
-
-  function abrirVisorFoto(base64Foto) {
-    document.getElementById('imagenVisorGrande').src = base64Foto;
-    document.getElementById('modalVisorFoto').classList.remove('oculto');
-  }
-
-  function cerrarVisorFoto() {
-    document.getElementById('modalVisorFoto').classList.add('oculto');
-  }
-
-  function guardarAveriaReporte() {
-    const producto = document.getElementById('inputAveriaProducto').value.trim();
-    if (!producto) { alert('Por favor ingrese el nombre del producto.'); return; }
-    const cantidad = parseFloat(document.getElementById('inputAveriaCantidad').value) || 1;
-
-    historialAverias.unshift({
-      fecha: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-      producto,
-      cantidad,
-      foto: fotoAveriaBase64,
-      motivo: document.getElementById('inputAveriaMotivo').value,
-      modalidad: document.getElementById('inputAveriaModalidad').value,
-      proveedor: document.getElementById('selectAveriaProveedor').value,
-      obs: document.getElementById('inputAveriaObs').value.trim(),
-      estatus: 'Pendiente Reclamo / N/C'
-    });
-
-    localStorage.setItem('hipergalerias_averias_v7', JSON.stringify(historialAverias));
-    renderizarHistorialAverias();
-    actualizarContadoresAverias();
-    cerrarModalAveria();
-    document.getElementById('inputAveriaProducto').value = '';
-    document.getElementById('inputAveriaObs').value = '';
-  }
-
-  function renderizarHistorialAverias() {
-    const tbody = document.getElementById('tablaHistorialAveriasBody');
-    if (!tbody) return;
-    document.getElementById('contadorAveriasReg').textContent = `${historialAverias.length} Registros`;
-    
-    if (historialAverias.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #94a3b8; padding: 24px;">No hay averías registradas actualmente.</td></tr>`;
-      return;
+    :root {
+      --font: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+      --bg: #f4f6f3;
+      --surface: #fff;
+      --surface-2: #f7f9f6;
+      --border: #dfe6e0;
+      --border-strong: #c3cfc6;
+      --text: #17231b;
+      --muted: #5d6f63;
+      --pine: #123e1b;
+      --leaf: #1f8a4c;
+      --mint: #e8f4ec;
+      --btn: #166534;
+      --gold: #f4b400;
+      --red: #c8372d;
+      --red-text: #b42318;
+      --red-soft: #fceceb;
+      --warn: #8f5600;
+      --warn-soft: #fff3d6;
+      --ok: #17703d;
+      --ok-soft: #e3f3e9;
+      --info: #0b6aa8;
+      --shadow: 0 6px 20px rgba(18, 62, 27, .07);
+      --ease: cubic-bezier(.22, .8, .3, 1)
     }
 
-    tbody.innerHTML = historialAverias.map((a, idx) => `
-      <tr>
-        <td style="color: #64748b; font-size: 0.78rem;">${a.fecha}</td>
-        <td style="font-weight: 800; color: #123e1b;">
-          ${a.producto}
-          ${a.foto ? `<br><a href="javascript:void(0)" onclick="abrirVisorFoto('${a.foto}')" style="color: #16a34a; text-decoration: underline; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; margin-top: 3px;">🖼️ Ver Evidencia</a>` : '<br><span style="color:#cbd5e1; font-size:0.68rem;">Sin foto</span>'}
-        </td>
-        <td style="text-align: center; font-weight: 900; font-size: 1rem; color: #0f172a;">${a.cantidad}</td>
-        <td style="font-weight: 700; color: #334155;">${a.proveedor}</td>
-        <td style="text-align: center;">${getBadgeModalidad(a.modalidad)}</td>
-        <td style="color: #475569; font-size: 0.8rem;">${a.motivo}<br><small style="color:#94a3b8; font-weight:600;">${a.obs || 'Sin observaciones'}</small></td>
-        <td style="text-align: center;">
-          ${a.estatus.includes('✅') 
-            ? `<span class="hg-badge badge-done">Compensado / Resuelto ✅</span>` 
-            : `<span class="hg-badge badge-pend">Pendiente Reclamo ⏳</span>`}
-        </td>
-        <td style="text-align: center;">
-          ${!a.estatus.includes('✅') ? `<button onclick="marcarAveriaCompensada(${idx})" style="padding: 6px 12px; background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 0.73rem;">Procesar ✅</button>` : `<span style="color:#94a3b8; font-size:0.75rem; font-weight:700;">Concluido</span>`}
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function marcarAveriaCompensada(idx) {
-    historialAverias[idx].estatus = 'Compensado / Resuelto ✅';
-    localStorage.setItem('hipergalerias_averias_v7', JSON.stringify(historialAverias));
-    renderizarHistorialAverias();
-    actualizarContadoresAverias();
-  }
-
-  function actualizarContadoresAverias() {
-    let pendientes = 0, concluidos = 0;
-    historialAverias.forEach(a => {
-      if (a.estatus.includes('✅')) concluidos++;
-      else pendientes++;
-    });
-    document.getElementById('lblTotalPendientes').textContent = pendientes;
-    document.getElementById('lblTotalConcluidos').textContent = concluidos;
-  }
-
-  function editarPoliticaProveedor(rif) {
-    const prov = proveedoresPoliticas.find(p => p.rif === rif);
-    if (!prov) return;
-    const nuevaMod = prompt(`Modalidad para [${prov.razon}]:\n1. Nota de Crédito\n2. Producto por Producto\n3. Descuento Próxima Factura\n4. Destrucción Autorizada\n5. No Acepta`, prov.modalidad);
-    if (nuevaMod) {
-      if (nuevaMod === '1') prov.modalidad = 'Nota de Crédito';
-      else if (nuevaMod === '2') prov.modalidad = 'Producto por Producto';
-      else if (nuevaMod === '3') prov.modalidad = 'Descuento Próxima Factura';
-      else if (nuevaMod === '4') prov.modalidad = 'Destrucción Autorizada';
-      else if (nuevaMod === '5') prov.modalidad = 'No Acepta';
-      else prov.modalidad = nuevaMod;
-      renderizarProveedoresPoliticas(proveedoresPoliticas);
-      llenarSelectProveedoresModal();
+    body.theme-dark {
+      --bg: #0c1511;
+      --surface: #121e19;
+      --surface-2: #172620;
+      --border: #233a30;
+      --border-strong: #35544a;
+      --text: #e8f2ec;
+      --muted: #9bb2a5;
+      --pine: #9ae8b8;
+      --leaf: #3fbf74;
+      --mint: #163a28;
+      --btn: #1f8a4c;
+      --red-text: #ff8a80;
+      --red-soft: #3d1f22;
+      --warn: #f5c15a;
+      --warn-soft: #41331a;
+      --ok: #74e5a4;
+      --ok-soft: #15382a;
+      --info: #6cb9ee;
+      --shadow: 0 6px 20px rgba(0, 0, 0, .28)
     }
-  }
 
-  window.addEventListener('DOMContentLoaded', () => { inicializarModuloAverias(); });
-</script>
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      background: var(--bg);
+      color-scheme: light
+    }
+
+    html:has(.theme-dark) {
+      color-scheme: dark
+    }
+
+    body {
+      margin: 0;
+      font: 14px/1.45 var(--font);
+      background: var(--bg);
+      color: var(--text);
+      animation: fade .5s
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px)
+      }
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(.96)
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit
+    }
+
+    :focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--leaf) 55%, transparent);
+      outline-offset: 2px
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 28px;
+      min-height: 68px;
+      background: color-mix(in srgb, var(--surface) 90%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: inset 0 -3px 0 var(--gold)
+    }
+
+    .hb,
+    .ha {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .hb img {
+      height: 48px;
+      mix-blend-mode: multiply
+    }
+
+    .theme-dark .hb img {
+      mix-blend-mode: normal
+    }
+
+    .hb p {
+      margin: 0;
+      font-weight: 700;
+      font-size: 1.02rem
+    }
+
+    .back,
+    .lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 40px;
+      padding: 0 15px;
+      border-radius: 99px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--pine);
+      font-weight: 700;
+      font-size: .8rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: .2s
+    }
+
+    .lang {
+      color: var(--text)
+    }
+
+    .back:hover,
+    .lang:hover {
+      border-color: var(--leaf);
+      background: var(--mint)
+    }
+
+    .user {
+      position: relative
+    }
+
+    .ut {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 4px 13px 4px 4px;
+      border: 1px solid var(--border-strong);
+      border-radius: 99px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 700;
+      font-size: .8rem;
+      cursor: pointer
+    }
+
+    .av {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--leaf), #0f4d27);
+      color: #fff;
+      font-weight: 800
+    }
+
+    .um {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      z-index: 60;
+      width: 230px;
+      padding: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+      animation: pop .22s var(--ease)
+    }
+
+    .um[hidden] {
+      display: none
+    }
+
+    .um button {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 0;
+      background: 0;
+      border-radius: 10px;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    .um button:hover {
+      background: var(--mint)
+    }
+
+    .um .dg {
+      color: var(--red-text)
+    }
+
+    main {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 22px 30px 40px
+    }
+
+    main>* {
+      animation: rise .5s var(--ease) backwards
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      margin-bottom: 18px
+    }
+
+    .ct {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--pine)
+    }
+
+    .mu {
+      color: var(--muted);
+      font-size: .8rem
+    }
+
+    .sc {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    .sc input {
+      flex: 1;
+      min-width: 220px;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 1.1rem;
+      background: var(--surface);
+      color: var(--text);
+      transition: .2s
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: .85rem;
+      width: 100%
+    }
+
+    .sc input:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 0;
+      border-color: var(--leaf);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf) 20%, transparent)
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 18px;
+      border: 1px solid transparent;
+      border-radius: 99px;
+      background: var(--btn);
+      color: #fff;
+      font-weight: 700;
+      font-size: .8rem;
+      cursor: pointer;
+      transition: .15s
+    }
+
+    .btn:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px)
+    }
+
+    .btn:active {
+      transform: scale(.97)
+    }
+
+    .btn.g {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border-strong)
+    }
+
+    .btn.s {
+      min-height: 30px;
+      padding: 4px 12px
+    }
+
+    .kp {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px
+    }
+
+    .k {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--leaf);
+      border-radius: 10px
+    }
+
+    .k.p {
+      border-left-color: #e8a21a
+    }
+
+    .k b {
+      display: block;
+      font-size: 1.8rem;
+      line-height: 1;
+      margin-top: 4px
+    }
+
+    .ver {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      border-radius: 12px;
+      margin: 14px 0;
+      border-left: 6px solid;
+      font-size: 1.05rem;
+      animation: rise .4s var(--ease) both
+    }
+
+    .ver .ic {
+      font-size: 2rem
+    }
+
+    .ver small {
+      display: block;
+      font-weight: 500;
+      font-size: .84rem
+    }
+
+    .ver.ok {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: var(--ok)
+    }
+
+    .ver.no {
+      background: var(--red-soft);
+      color: var(--red-text);
+      border-color: var(--red-text)
+    }
+
+    .ver.wn {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: var(--warn)
+    }
+
+    .tw {
+      overflow: auto;
+      max-height: 62vh;
+      border: 1px solid var(--border);
+      border-radius: 10px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .82rem
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: var(--mint);
+      color: var(--pine);
+      white-space: nowrap;
+      font-size: .76rem
+    }
+
+    tr:last-child td {
+      border-bottom: 0
+    }
+
+    tbody tr:hover {
+      background: var(--mint)
+    }
+
+    tr.ult td {
+      background: var(--ok-soft)
+    }
+
+    tr.ult td:first-child {
+      box-shadow: inset 5px 0 0 var(--ok)
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 9px;
+      border-radius: 99px;
+      background: var(--ok);
+      color: #fff;
+      font-size: .66rem;
+      font-weight: 800
+    }
+
+    .theme-dark .tag {
+      color: #08130d
+    }
+
+    .b {
+      display: inline-flex;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: .74rem;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    .b.ok {
+      background: var(--ok-soft);
+      color: var(--ok)
+    }
+
+    .b.no {
+      background: var(--red-soft);
+      color: var(--red-text)
+    }
+
+    .b.wn {
+      background: var(--warn-soft);
+      color: var(--warn)
+    }
+
+    .sm {
+      display: block;
+      color: var(--muted);
+      font-size: .74rem;
+      margin-top: 2px
+    }
+
+    a {
+      color: var(--leaf)
+    }
+
+    .fl {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px
+    }
+
+    .fl label {
+      display: block;
+      font-size: .74rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px
+    }
+
+    .opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    .ov {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(8, 20, 13, .5);
+      backdrop-filter: blur(4px)
+    }
+
+    .ov.on {
+      display: flex
+    }
+
+    .mc {
+      width: 100%;
+      max-width: 520px;
+      max-height: 92vh;
+      overflow: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 5px solid var(--gold);
+      border-radius: 16px;
+      padding: 22px;
+      animation: pop .3s var(--ease)
+    }
+
+    .mc label {
+      display: block;
+      margin: 12px 0 4px;
+      font-weight: 700;
+      font-size: .78rem
+    }
+
+    .g2 {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 10px
+    }
+
+    .g3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .acts {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 18px
+    }
+
+    .up {
+      border: 2px dashed var(--border-strong);
+      background: var(--surface-2);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer
+    }
+
+    .up:hover {
+      border-color: var(--leaf)
+    }
+
+    #th {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .to {
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--leaf);
+      border-radius: 10px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .3);
+      font-weight: 600;
+      animation: pop .3s var(--ease)
+    }
+
+    .to.e {
+      border-left-color: var(--red)
+    }
+
+    #gate {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--muted);
+      font-weight: 600;
+      transition: opacity .35s
+    }
+
+    #gate.done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none
+    }
+
+    @media(max-width:700px) {
+
+      header,
+      main {
+        padding-left: 14px;
+        padding-right: 14px
+      }
+
+      .g2,
+      .g3 {
+        grid-template-columns: 1fr
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      * {
+        animation: none !important;
+        transition: none !important
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <script>try { if (localStorage.getItem('hipergalerias_theme') === 'dark') document.body.classList.add('theme-dark') } catch (e) { }</script>
+  <div id="gate">Verificando sesión…</div>
+  <header>
+    <div class="hb"><a class="back" href="index.html">← Inicio</a><img src="logo.png" alt="Hipergalerias"
+        onerror="this.onerror=null;this.src='logo.jpeg'">
+      <p>Proveedores y devoluciones</p>
+    </div>
+    <div class="ha"><button class="lang" data-no-i18n onclick="cambiarIdioma()" aria-label="Idioma / 语言">🌐
+        <b>中文</b></button>
+      <div class="user"><button class="ut" id="ut" onclick="$('um').hidden=!$('um').hidden"><span class="av"
+            id="av">U</span><span id="un">…</span> ▾</button>
+        <div class="um" id="um" hidden><button id="tt">☾ Modo oscuro</button><button class="dg" onclick="salir()">⎋
+            Cerrar sesión</button></div>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="card">
+      <h2 class="ct">📷 Consultar un producto</h2>
+      <div class="sc"><input id="q" placeholder="Escanea el código de barras (o escribe código / nombre)"
+          autocomplete="off" autofocus><button class="btn" id="bb">Buscar</button></div>
+      <p class="mu" style="margin:8px 0 0">El escáner escribe el código y envía Enter solo. Para otro producto, vuelve a
+        escanear.</p>
+    </section>
+    <div id="res"></div>
+    <div class="kp">
+      <div class="k p">
+        <div><span class="mu">RECLAMOS PENDIENTES</span><b id="kp">0</b><span class="mu">En espera de cambio /
+            N/C</span></div><span style="font-size:1.6rem">⏳</span>
+      </div>
+      <div class="k">
+        <div><span class="mu">RECLAMOS PROCESADOS</span><b id="kc">0</b><span class="mu">Resueltos</span></div><span
+          style="font-size:1.6rem">✅</span>
+      </div>
+    </div>
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <h2 class="ct" style="margin:0">📦 Averías y vencidos</h2><button class="btn" onclick="abrirAveria()">+
+          Registrar avería / vencido</button>
+      </div>
+      <div class="tw" style="margin-top:12px">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Producto y evidencia</th>
+              <th>Cant.</th>
+              <th>Proveedor</th>
+              <th>Modalidad</th>
+              <th>Motivo / pasillo</th>
+              <th>Estatus</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="ta"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="card">
+      <h2 class="ct">🏢 Directorio de proveedores <span class="mu" id="np"></span></h2>
+      <div class="fl">
+        <div><label>🔍 Empresa, RIF, código o contacto</label><input id="bd"
+            placeholder="Ej. Milano, Drolanca, Pepsi, 298…"></div>
+        <div><label>🏷️ Modalidad aceptada</label><select id="fm">
+            <option value="todos">Todas las modalidades</option>
+            <option value="__sin">Sin política registrada</option>
+            <option value="__hist">Con devoluciones en Posline y sin política</option>
+          </select></div>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Código / RIF</th>
+              <th>Razón social</th>
+              <th>Contacto</th>
+              <th>Devolución</th>
+              <th
+                title="Devoluciones registradas en Posline (motivo 15), atribuidas al último proveedor de cada artículo">
+                Historial Posline</th>
+              <th>Condiciones</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tp"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <div class="ov" id="ov">
+    <div class="mc" id="mc"></div>
+  </div>
+  <div id="th"></div>
+  <script>
+    const $ = id => document.getElementById(id), esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const clean = s => String(s || '').replace(/[%,()*"\\]/g, ' ').trim(), norm6 = v => { const s = String(v || '').trim(); return /^\d+$/.test(s) && s.length < 6 ? s.padStart(6, '0') : s }, extraer = v => { const s = String(v || '').trim(); return /^\d+$/.test(s) && s.length > 13 ? s.slice(-13) : s }, fecha = f => f ? f.split('-').reverse().join('/') : 'Sin fecha';
+    const MOD = { 'Nota de Crédito': ['📄', 'Nota de Crédito', 'ok'], 'Producto por Producto': ['📦', 'Cambio físico (1 a 1)', 'ok'], 'Descuento Próxima Factura': ['🏷️', 'Descuento en la próxima factura', 'ok'], 'Destrucción Autorizada': ['🔨', 'Destrucción autorizada (N/C con acta)', 'ok'], 'No Acepta': ['❌', 'No acepta devoluciones', 'no'] };
+    const badge = m => { const x = MOD[m]; return x ? `<span class="b ${x[2]}">${x[0]} ${x[1]}</span>` : '<span class="b wn">⚠ Sin política</span>' };
+    const num = n => Number(n || 0).toLocaleString('es-VE', { maximumFractionDigits: 3 });
+    let puedeEditar = false, provs = new Map(), dev = new Map(), foto = '', K = 'hipergalerias_averias_v7', av = []; try { av = JSON.parse(localStorage.getItem(K) || '[]') } catch (e) { }
+    function toast(m, e) { const t = document.createElement('div'); t.className = 'to' + (e ? ' e' : ''); t.textContent = m; $('th').appendChild(t); setTimeout(() => t.remove(), 4500) }
+    const abrir = h => { $('mc').innerHTML = h; $('ov').classList.add('on') }, cerrar = () => $('ov').classList.remove('on');
+    $('ov').onclick = e => { if (e.target === $('ov')) cerrar() }; document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrar() });
+    document.addEventListener('click', e => { if (!e.target.closest('.user')) $('um').hidden = true });
+    function tema(d) { document.body.classList.toggle('theme-dark', d); $('tt').textContent = d ? '☀ Modo claro' : '☾ Modo oscuro' }
+    $('tt').onclick = () => { const d = !document.body.classList.contains('theme-dark'); tema(d); localStorage.setItem('hipergalerias_theme', d ? 'dark' : 'light') };
+    async function salir() { await supabaseClient.auth.signOut(); location.href = 'index.html' }
+
+    /* ---------- Consulta por escáner ---------- */
+    async function buscarArticulos(q) {
+      const c = 'id,codigoBarras,codigoInterno,descripcion,departamento'; let r;
+      if (/^\d+$/.test(q)) r = await supabaseClient.from('articulos').select(c).or(`codigoBarras.eq."${q}",codigoInterno.eq."${norm6(q)}"`).limit(5);
+      else r = await supabaseClient.from('articulos').select(c).ilike('descripcion', `%${clean(q)}%`).limit(8);
+      if (r.error) throw r.error; return r.data || []
+    }
+    async function buscar() {
+      const q = extraer($('q').value); if (!q) return; $('res').innerHTML = '<div class="card mu">Buscando…</div>';
+      try {
+        let a = await buscarArticulos(q); if (!a.length && /^\d+$/.test(q)) a = [{ codigoInterno: norm6(q), codigoBarras: q, descripcion: '(Artículo fuera del catálogo)', departamento: '' }];
+        if (a.length === 1) return mostrar(a[0]); if (!a.length) { $('res').innerHTML = '<div class="card">No encontré ese artículo. Revisa el código o prueba con el nombre.</div>'; return }
+        $('res').innerHTML = '<div class="card"><b>Elige el artículo:</b><div style="margin-top:10px">' + a.map((x, i) => `<button class="opt" data-i="${i}">${esc(x.descripcion)}<span class="sm">Cód. ${esc(x.codigoInterno)} · ${esc(x.departamento || '')}</span></button>`).join('') + '</div></div>';
+        $('res').querySelectorAll('.opt').forEach(b => b.onclick = () => mostrar(a[b.dataset.i]))
+      } catch (e) { $('res').innerHTML = `<div class="card">Error: ${esc(e.message)}</div>` }
+    }
+    async function mostrar(a) {
+      const cod = a.codigoInterno;
+      try {
+        const { data: rel, error } = await supabaseClient.from('articulo_proveedor').select('supply_id,fecha,auto').eq('item_id', cod); if (error) throw error;
+        const asc = (rel || []).sort((x, y) => String(x.fecha || '').localeCompare(String(y.fecha || '')) || String(x.supply_id).localeCompare(String(y.supply_id)));
+        const miss = asc.map(r => r.supply_id).filter(i => !provs.has(i));
+        if (miss.length) { const { data: ps } = await supabaseClient.from('proveedores').select('*').in('supply_id', miss); (ps || []).forEach(p => provs.set(p.supply_id, p)) }
+        let hd = null, hr = []; try { const [r1, r2] = await Promise.all([supabaseClient.from('devoluciones_por_articulo').select('veces,unidades,ultima_fecha').eq('item_id', cod).maybeSingle(), supabaseClient.from('devoluciones_proveedor').select('ajuste,fecha,unidades').eq('item_id', cod).order('fecha', { ascending: false }).limit(5)]); if (!r1.error) hd = r1.data; if (!r2.error) hr = r2.data || [] } catch (e) { }
+        const ht = hd ? `Posline registra ${hd.veces} ${hd.veces == 1 ? 'devolución' : 'devoluciones'} de este artículo (${num(hd.unidades)} uds), la última el ${fecha(hd.ultima_fecha)}.` : '';
+        const lista = asc.slice().reverse(), ult = lista[0] && provs.get(lista[0].supply_id); let v;
+        if (!lista.length) v = hd ? ['ok', '✅', 'Tiene devolución (según el historial de Posline)', ht + ' No tiene proveedor asignado: consulta con Oscar o Morelvys a quién se le devuelve.'] : ['wn', '⚠', 'Este artículo no tiene proveedores registrados', 'Posline no le asigna ninguno. Consulta con Oscar o Morelvys.'];
+        else {
+          const m = ult && MOD[ult.modalidad], n = ult ? ult.nombre : lista[0].supply_id, otros = lista.slice(1).map(r => provs.get(r.supply_id)).filter(p => p && MOD[p.modalidad] && MOD[p.modalidad][2] === 'ok'), nota = otros.length ? ` Otros proveedores que sí aceptan: ${otros.map(p => p.nombre).join(', ')}.` : '';
+          if (m && m[2] === 'ok') v = ['ok', '✅', `Tiene devolución: ${m[1]}`, `Último proveedor: ${n}. ${ult.condiciones || ''} ${ht}`]; else if (m) v = hd ? ['wn', '⚠', 'La política dice que NO acepta, pero Posline registra devoluciones', `${n}. ${ht} Confirma la política con Oscar o Morelvys.${nota}`] : ['no', '❌', 'El último proveedor NO acepta devoluciones', `${n}. ${ult.condiciones || ''}${nota}`]; else v = hd ? ['ok', '✅', 'Tiene devolución (según el historial de Posline)', `Último proveedor: ${n}, aún sin política registrada. ${ht}${nota}`] : ['wn', '⚠', 'Sin política de devolución registrada', `Último proveedor: ${n}. Consulta con Oscar o Morelvys.${nota}`]
+        }
+        const f = lista.map((r, i) => {
+          const p = provs.get(r.supply_id) || { nombre: '(proveedor no sincronizado)' };
+          return `<tr class="${i ? '' : 'ult'}"><td><b>${esc(fecha(r.fecha))}</b>${i ? '' : '<br><span class="tag">ÚLTIMO EN ENTREGAR</span>'}</td><td><b>${esc(r.supply_id)} ~ ${esc(p.nombre)}</b>${p.telefono ? `<span class="sm">📞 ${esc(p.telefono)}</span>` : ''}${p.correo ? `<span class="sm">✉ <a href="mailto:${esc(p.correo)}">${esc(p.correo)}</a></span>` : ''}</td><td>${badge(p.modalidad)}${p.modalidad && !p.validado_por ? '<span class="sm">Sin validar</span>' : ''}${p.validado_por ? `<span class="sm">Validó ${esc(p.validado_por)} · ${fecha(p.validado_en)}</span>` : ''}</td><td>${esc(p.condiciones || '—')}${p.contacto_dev ? `<span class="sm">Contacto: ${esc(p.contacto_dev)}</span>` : ''}</td><td>${puedeEditar && provs.get(r.supply_id) ? `<button class="btn g s" data-ed="${esc(r.supply_id)}">Editar</button>` : ''}</td></tr>`
+        }).join('');
+        $('res').innerHTML = `<section class="card"><h2 class="ct" style="font-size:1.3rem;margin:0">${esc(a.descripcion)}</h2><div class="mu">Cód. interno ${esc(cod)} · Barras ${esc(a.codigoBarras || '—')} · ${esc(a.departamento || '')}</div>
+  <div class="ver ${v[0]}"><span class="ic">${v[1]}</span><div><b>${esc(v[2])}</b><small>${esc(v[3])}</small></div></div>
+  ${hr.length ? `<div class="mu" style="margin:-4px 0 12px">↩ Últimas devoluciones: ${hr.map(x => `${esc(fecha(x.fecha))} · aj. ${esc(x.ajuste)} · ${num(x.unidades)} uds`).join(' | ')}</div>` : ''}
+  ${lista.length ? `<div class="tw"><table><thead><tr><th>Fecha de entrega</th><th>Proveedor</th><th>Devolución</th><th>Condiciones</th><th></th></tr></thead><tbody>${f}</tbody></table></div>` : ''}
+  <div class="acts" style="justify-content:flex-start"><button class="btn" id="ra">📝 Registrar avería de este producto</button></div></section>`;
+        $('res').querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editar(b.dataset.ed, a)); $('ra').onclick = () => abrirAveria(a.descripcion, lista[0] && provs.get(lista[0].supply_id))
+      }
+      catch (e) { $('res').innerHTML = `<div class="card">Error: ${esc(e.message)}</div>` } $('q').value = ''; $('q').focus()
+    }
+    $('bb').onclick = buscar; $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscar() } });
+
+    /* ---------- Directorio y política (editar: admin / compras) ---------- */
+    const dvh = id => { const d = dev.get(id); return d ? `<span class="b ok">↩ ${d.ajustes} ${d.ajustes == 1 ? 'ajuste' : 'ajustes'}</span><span class="sm">${d.articulos} art. · última ${esc(fecha(d.ultima_fecha))}</span>` : '<span class="mu">—</span>' };
+    function pintarDir() {
+      const q = $('bd').value.toLowerCase(), m = $('fm').value;
+      const l = [...provs.values()].filter(p => (!q || [p.nombre, p.rif, p.supply_id, p.contacto, p.contacto_dev, p.telefono].some(x => String(x || '').toLowerCase().includes(q))) && (m === 'todos' || (m === '__sin' ? !p.modalidad : m === '__hist' ? (!p.modalidad && dev.has(p.supply_id)) : p.modalidad === m))).sort((a, b) => m === '__hist' ? ((dev.get(b.supply_id)?.ajustes || 0) - (dev.get(a.supply_id)?.ajustes || 0)) : a.nombre.localeCompare(b.nombre));
+      $('np').textContent = `· ${l.length} proveedores`;
+      $('tp').innerHTML = l.slice(0, 150).map(p => `<tr><td><b>${esc(p.supply_id)}</b><span class="sm">${esc(p.rif || '')}</span></td><td><b>${esc(p.nombre)}</b></td><td class="mu">${esc([p.contacto, p.telefono, p.correo].filter(Boolean).join(' / ') || '—')}</td><td>${badge(p.modalidad)}</td><td>${dvh(p.supply_id)}</td><td class="mu">${esc(p.condiciones || '—')}</td><td>${puedeEditar ? `<button class="btn g s" data-ed="${esc(p.supply_id)}">Editar</button>` : ''}</td></tr>`).join('') + (l.length > 150 ? '<tr><td colspan="7" class="mu">Mostrando 150. Afina la búsqueda.</td></tr>' : '');
+      $('tp').querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editar(b.dataset.ed))
+    }
+    $('fm').innerHTML += Object.keys(MOD).map(k => `<option>${k}</option>`).join(''); $('bd').oninput = pintarDir; $('fm').onchange = pintarDir;
+    function editar(id, art) {
+      const p = provs.get(id); if (!p) return;
+      abrir(`<h3 style="margin:0">${esc(p.nombre)}</h3><span class="mu">Código ${esc(id)}</span><label>Forma de devolución</label><select id="fM"><option value="">— Sin política —</option>${Object.keys(MOD).map(k => `<option ${p.modalidad === k ? 'selected' : ''}>${k}</option>`).join('')}</select>
+ <label>Condiciones</label><textarea id="fC" rows="3" placeholder="Ej. Nota de crédito previa revisión en 48 h">${esc(p.condiciones || '')}</textarea><label>RIF</label><input id="fR" value="${esc(p.rif || '')}"><label>Contacto para devoluciones</label><input id="fT" value="${esc(p.contacto_dev || '')}" placeholder="Nombre / teléfono"><label>Validado por</label><input id="fV" value="${esc(p.validado_por || '')}" placeholder="Quién confirmó esta política">
+ <div class="acts"><button class="btn g" onclick="cerrar()">Cancelar</button><button class="btn" id="mo">Guardar</button></div>`);
+      $('mo').onclick = async () => {
+        const h = new Date(), iso = new Date(h - h.getTimezoneOffset() * 6e4).toISOString().slice(0, 10), u = { modalidad: $('fM').value || null, condiciones: $('fC').value.trim() || null, rif: $('fR').value.trim() || null, contacto_dev: $('fT').value.trim() || null, validado_por: $('fV').value.trim() || null, validado_en: iso, updated_at: new Date().toISOString() };
+        const { error } = await supabaseClient.from('proveedores').update(u).eq('supply_id', id); if (error) { toast('No se pudo guardar: ' + error.message, 1); return }
+        Object.assign(p, u); cerrar(); pintarDir(); toast('Política guardada.'); if (art) mostrar(art)
+      }
+    }
+
+    /* ---------- Averías y vencidos (evidencia con foto) ---------- */
+    function pintarAv() {
+      let p = 0, c = 0; av.forEach(a => a.estatus.includes('✅') ? c++ : p++); $('kp').textContent = p; $('kc').textContent = c;
+      $('ta').innerHTML = av.length ? av.map((a, i) => `<tr><td class="mu">${esc(a.fecha)}</td><td><b>${esc(a.producto)}</b><br>${a.foto ? `<a href="#" data-f="${i}">🖼️ Ver evidencia</a>` : '<span class="mu">Sin foto</span>'}</td><td><b>${esc(a.cantidad)}</b></td><td><b>${esc(a.proveedor)}</b></td><td>${badge(a.modalidad)}</td><td>${esc(a.motivo)}<span class="sm">${esc(a.obs || 'Sin observaciones')}</span></td><td>${a.estatus.includes('✅') ? '<span class="b ok">Resuelto ✅</span>' : '<span class="b wn">Pendiente ⏳</span>'}</td><td>${a.estatus.includes('✅') ? '<span class="mu">Concluido</span>' : `<button class="btn s" data-p="${i}">Procesar ✅</button>`}</td></tr>`).join('') : '<tr><td colspan="8" class="mu" style="text-align:center;padding:22px">No hay averías registradas.</td></tr>';
+      $('ta').querySelectorAll('[data-f]').forEach(b => b.onclick = e => { e.preventDefault(); abrir(`<b>📷 Evidencia fotográfica</b><img src="${av[b.dataset.f].foto}" style="max-width:100%;max-height:70vh;border-radius:10px;margin-top:10px"><div class="acts"><button class="btn g" onclick="cerrar()">Cerrar</button></div>`) });
+      $('ta').querySelectorAll('[data-p]').forEach(b => b.onclick = () => { av[b.dataset.p].estatus = 'Compensado / Resuelto ✅'; guardarAv(); pintarAv() })
+    }
+    function guardarAv() { try { localStorage.setItem(K, JSON.stringify(av)); return true } catch (e) { toast('No cabe en el almacenamiento del navegador (foto muy grande).', 1); return false } }
+    function abrirAveria(prod, p) {
+      foto = ''; const ps = [...provs.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
+      abrir(`<h3 style="margin:0">📝 Reportar producto averiado o vencido</h3>
+ <div class="g2"><div><label>Producto o código</label><input id="aP" value="${esc(prod || '')}" placeholder="Ej. Harina Pan 1kg"></div><div><label>Cant.</label><input id="aC" type="number" min="1" value="1"></div></div>
+ <div class="g3"><div><label>Motivo</label><select id="aM"><option>Fecha Vencida</option><option>Defecto de Fábrica</option><option>Maltrato en Transporte</option><option>Manipulación Interna</option></select></div>
+ <div><label>Modalidad acordada</label><select id="aD">${Object.keys(MOD).filter(k => k !== 'No Acepta').map(k => `<option>${k}</option>`).join('')}</select></div></div>
+ <label>Proveedor responsable</label><select id="aV">${ps.map(x => `<option value="${esc(x.nombre)}" data-m="${esc(x.modalidad || '')}" ${p && p.supply_id === x.supply_id ? 'selected' : ''}>${esc(x.nombre)}${x.modalidad ? ' (' + esc(x.modalidad) + ')' : ''}</option>`).join('')}</select>
+ <label>📸 Foto de evidencia</label><div class="up" onclick="$('aF').click()"><input type="file" id="aF" accept="image/*" hidden><div id="aPv">📷 Toca para tomar o subir foto</div></div>
+ <label>Observaciones / pasillo de origen</label><textarea id="aO" rows="2" placeholder="Ej. Pasillo 3, bulto húmedo"></textarea>
+ <div class="acts"><button class="btn g" onclick="cerrar()">Cancelar</button><button class="btn" id="aG">Guardar registro</button></div>`);
+      const sync = () => { const m = $('aV').selectedOptions[0]?.dataset.m; if (m && m !== 'No Acepta') $('aD').value = m }; sync(); $('aV').onchange = sync;
+      $('aF').onchange = e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = x => { const im = new Image(); im.onload = () => { const s = Math.min(1, 900 / Math.max(im.width, im.height)), c = document.createElement('canvas'); c.width = im.width * s; c.height = im.height * s; c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); foto = c.toDataURL('image/jpeg', .7); $('aPv').innerHTML = `<img src="${foto}" style="max-height:80px;border-radius:8px"><br>✓ Foto cargada` }; im.src = x.target.result }; r.readAsDataURL(f) };
+      $('aG').onclick = () => {
+        const pr = $('aP').value.trim(); if (!pr) { toast('Ingresa el producto.', 1); return } const d = new Date();
+        av.unshift({ fecha: d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), producto: pr, cantidad: parseFloat($('aC').value) || 1, foto, motivo: $('aM').value, modalidad: $('aD').value, proveedor: $('aV').value, obs: $('aO').value.trim(), estatus: 'Pendiente Reclamo / N/C' });
+        if (!guardarAv()) { av.shift(); return } pintarAv(); cerrar(); toast('Avería registrada.')
+      }
+    }
+
+    /* ---------- Sesión ---------- */
+    (async () => {
+      const gate = $('gate'), fin = () => gate.classList.add('done'); setTimeout(fin, 6000);
+      if (typeof supabaseClient === 'undefined') { location.href = 'index.html'; return }
+      const { data: { session } } = await supabaseClient.auth.getSession(); if (!session) { location.href = 'index.html'; return }
+      supabaseClient.auth.onAuthStateChange(e => { if (e === 'SIGNED_OUT') location.href = 'index.html' });
+      const m = session.user.user_metadata || {}, n = m.display_name || m.full_name || session.user.email.split('@')[0], N = n.charAt(0).toUpperCase() + n.slice(1); $('un').textContent = N; $('av').textContent = N.charAt(0);
+      const { data: pf } = await supabaseClient.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle(); puedeEditar = ['admin', 'compras'].includes(pf && pf.rol);
+      tema(document.body.classList.contains('theme-dark')); pintarAv(); fin();
+      const { data, error } = await supabaseClient.from('proveedores').select('*').order('nombre').limit(3000);
+      if (error) toast('No se pudo cargar el directorio: ' + error.message, 1); (data || []).forEach(p => provs.set(p.supply_id, p)); try { const { data: dv2, error: e2 } = await supabaseClient.from('devoluciones_por_proveedor').select('supply_id,ajustes,articulos,unidades,ultima_fecha').limit(3000); if (!e2) (dv2 || []).forEach(d => dev.set(d.supply_id, d)) } catch (e) { }
+      pintarDir(); $('q').focus()
+    })();
+  </script>
+  <script src="sesion-usuario.js"></script>
+  <script src="i18n.js"></script>
+</body>
+
+</html>
