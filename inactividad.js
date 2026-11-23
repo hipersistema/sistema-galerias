@@ -17,8 +17,8 @@
     window.__hgIdle = true;
 
     const prueba = /[?&]idletest/.test(location.search);
-    const AVISO = (prueba ? 15 : 540) * 1000;     // 9 min: sale la franja
-    const LIMITE = (prueba ? 30 : 800) * 1000;    // 10 min: se cierra
+    const AVISO = (prueba ? 15 : 900) * 1000;     // 9 min: sale la franja
+    const LIMITE = (prueba ? 30 : 1200) * 1000;    // 10 min: se cierra
     const GRACIA = (prueba ? 10 : 30) * 1000;     // margen si el aviso no alcanzo a mostrarse
     const PRORROGA = (prueba ? 20 : 300) * 1000;  // tiempo extra si hay una receta sin guardar
     const CHEQUEO = 30 * 1000;                    // cada cuanto se revisa (1 s mientras hay aviso)

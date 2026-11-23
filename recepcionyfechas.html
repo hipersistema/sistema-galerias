@@ -1139,7 +1139,7 @@
             text-align: center;
         }
 
-        
+
 
         code {
             font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
@@ -1315,9 +1315,17 @@
             font-variant-numeric: tabular-nums;
         }
 
-        .fv-optimo { color: var(--ok); }
-        .fv-warn { color: var(--warn); }
-        .fv-danger { color: var(--red-text); }
+        .fv-optimo {
+            color: var(--ok);
+        }
+
+        .fv-warn {
+            color: var(--warn);
+        }
+
+        .fv-danger {
+            color: var(--red-text);
+        }
 
         .fv-urgente {
             color: var(--warn);
@@ -1335,8 +1343,15 @@
         }
 
         @keyframes blinkFecha {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .2; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .2;
+            }
         }
 
         /* Paginación */
@@ -1970,45 +1985,166 @@
         }
 
         /* ===== Registro compacto ===== */
-        .reg-card { padding: 16px 22px; }
-        .reg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-        .reg-head kbd { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); color: #fff; margin-left: 4px; }
-        .reg-panel { margin-top: 14px; animation: riseIn .3s var(--ease); }
-        .reg-panel[hidden] { display: none; }
-        .reg-fila { display: grid; grid-template-columns: 1.1fr 1fr 2.4fr .7fr 1fr; gap: 12px; align-items: start; }
-        .reg-mas { margin-top: 12px; }
-        .reg-mas summary { cursor: pointer; width: max-content; padding: 6px 0; list-style: none; font-size: .8rem; font-weight: 700; color: var(--muted); }
-        .reg-mas summary::-webkit-details-marker { display: none; }
-        .reg-mas summary::before { content: '＋ '; }
-        .reg-mas[open] summary::before { content: '－ '; }
-        .reg-mas summary:hover { color: var(--text); }
-        .reg-mas .form-grid { margin-top: 10px; padding: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r); }
-        .reg-panel .form-actions { margin-top: 14px; }
+        .reg-card {
+            padding: 16px 22px;
+        }
+
+        .reg-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .reg-head kbd {
+            background: rgba(255, 255, 255, .2);
+            border-color: rgba(255, 255, 255, .4);
+            color: #fff;
+            margin-left: 4px;
+        }
+
+        .reg-panel {
+            margin-top: 14px;
+            animation: riseIn .3s var(--ease);
+        }
+
+        .reg-panel[hidden] {
+            display: none;
+        }
+
+        .reg-fila {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr 2.4fr .7fr 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .reg-mas {
+            margin-top: 12px;
+        }
+
+        .reg-mas summary {
+            cursor: pointer;
+            width: max-content;
+            padding: 6px 0;
+            list-style: none;
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .reg-mas summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .reg-mas summary::before {
+            content: '＋ ';
+        }
+
+        .reg-mas[open] summary::before {
+            content: '－ ';
+        }
+
+        .reg-mas summary:hover {
+            color: var(--text);
+        }
+
+        .reg-mas .form-grid {
+            margin-top: 10px;
+            padding: 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+        }
+
+        .reg-panel .form-actions {
+            margin-top: 14px;
+        }
+
         @media (max-width: 900px) {
-            .reg-fila { grid-template-columns: 1fr 1fr; }
-            .reg-prod { grid-column: 1 / -1; }
+            .reg-fila {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .reg-prod {
+                grid-column: 1 / -1;
+            }
         }
 
         /* ===== Filtro de stock desplegable ===== */
-        .pill-sep { width: 1px; height: 22px; background: var(--border-strong); margin: 0 4px; }
-        .stock-menu { position: relative; }
-        .stock-trigger[aria-expanded="true"] .chev { transform: rotate(180deg); }
-        .stock-pop {
-            position: absolute; top: calc(100% + 8px); left: 0; z-index: 40; min-width: 280px;
-            display: flex; flex-direction: column; gap: 2px; padding: 6px;
-            background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-            box-shadow: 0 18px 44px rgba(0,0,0,.28); animation: cardIn .18s var(--ease); transform-origin: top left;
+        .pill-sep {
+            width: 1px;
+            height: 22px;
+            background: var(--border-strong);
+            margin: 0 4px;
         }
-        .stock-pop[hidden] { display: none; }
+
+        .stock-menu {
+            position: relative;
+        }
+
+        .stock-trigger[aria-expanded="true"] .chev {
+            transform: rotate(180deg);
+        }
+
+        .stock-pop {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            z-index: 40;
+            min-width: 280px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+            animation: cardIn .18s var(--ease);
+            transform-origin: top left;
+        }
+
+        .stock-pop[hidden] {
+            display: none;
+        }
+
         .menu-opt {
-            display: flex; flex-direction: column; align-items: flex-start; gap: 1px; width: 100%;
-            padding: 9px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--text);
-            font-size: .84rem; font-weight: 700; text-align: left; cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1px;
+            width: 100%;
+            padding: 9px 12px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--text);
+            font-size: .84rem;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
             transition: background-color .15s ease;
         }
-        .menu-opt small { font-size: .72rem; font-weight: 500; color: var(--muted); }
-        .menu-opt:hover, .menu-opt:focus-visible { background: var(--mint); outline: none; }
-        .menu-opt.active { background: var(--mint); box-shadow: inset 3px 0 0 var(--leaf); color: var(--ok); }
+
+        .menu-opt small {
+            font-size: .72rem;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .menu-opt:hover,
+        .menu-opt:focus-visible {
+            background: var(--mint);
+            outline: none;
+        }
+
+        .menu-opt.active {
+            background: var(--mint);
+            box-shadow: inset 3px 0 0 var(--leaf);
+            color: var(--ok);
+        }
     </style>
 </head>
 
@@ -2094,11 +2230,13 @@
                         </div>
                         <div class="form-group reg-prod">
                             <label for="producto">Producto</label>
-                            <input type="text" id="producto" placeholder="Ej. MARGARINA MAVESA 500G" required autocomplete="off">
+                            <input type="text" id="producto" placeholder="Ej. MARGARINA MAVESA 500G" required
+                                autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label for="cantidad">Cantidad</label>
-                            <input type="number" id="cantidad" min="1" value="1" oninput="calcularCostoTotalAuto()" required>
+                            <input type="number" id="cantidad" min="1" value="1" oninput="calcularCostoTotalAuto()"
+                                required>
                         </div>
                         <div class="form-group">
                             <label for="fechaCaducidad">Vence</label>
@@ -2112,11 +2250,13 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="departamento">Departamento</label>
-                                <input type="text" id="departamento" placeholder="Ej. VÍVERES" list="dlDptos" autocomplete="off">
+                                <input type="text" id="departamento" placeholder="Ej. VÍVERES" list="dlDptos"
+                                    autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="proveedor">Proveedor</label>
-                                <input type="text" id="proveedor" placeholder="Ej. ALFONZO RIVAS" list="dlProveedores" autocomplete="off">
+                                <input type="text" id="proveedor" placeholder="Ej. ALFONZO RIVAS" list="dlProveedores"
+                                    autocomplete="off">
                             </div>
                             <div class="form-group">
                                 <label for="numFactura">N° de factura</label>
@@ -2132,11 +2272,13 @@
                             </div>
                             <div class="form-group">
                                 <label for="costoUnitario">Costo unitario ($)</label>
-                                <input type="number" id="costoUnitario" step="0.01" min="0" placeholder="0.00" oninput="calcularCostoTotalAuto()">
+                                <input type="number" id="costoUnitario" step="0.01" min="0" placeholder="0.00"
+                                    oninput="calcularCostoTotalAuto()">
                             </div>
                             <div class="form-group">
                                 <label for="costoTotal">Costo total ($)</label>
-                                <input type="number" id="costoTotal" step="0.01" min="0" placeholder="0.00" oninput="calcularCostoUnitarioAuto()">
+                                <input type="number" id="costoTotal" step="0.01" min="0" placeholder="0.00"
+                                    oninput="calcularCostoUnitarioAuto()">
                             </div>
                             <div class="form-group">
                                 <label for="fechaRecepcion">Fecha de recepción</label>
@@ -2144,7 +2286,8 @@
                             </div>
                             <div class="form-group span-large">
                                 <label for="observaciones">Observaciones</label>
-                                <input type="text" id="observaciones" placeholder="Novedades de la mercancía…" autocomplete="off">
+                                <input type="text" id="observaciones" placeholder="Novedades de la mercancía…"
+                                    autocomplete="off">
                             </div>
                         </div>
                     </details>
@@ -2153,14 +2296,17 @@
                     <datalist id="dlProveedores"></datalist>
 
                     <div class="form-actions">
-                        <button type="submit" class="btn btn-save" id="btnGuardar"><span id="btnGuardarTxt">Guardar registro</span></button>
+                        <button type="submit" class="btn btn-save" id="btnGuardar"><span id="btnGuardarTxt">Guardar
+                                registro</span></button>
                         <button type="button" class="btn btn-ghost" id="btnCancelarEdicion" style="display:none;"
                             onclick="cancelarEdicionForm(); cerrarPanelRegistro();">Cancelar edición</button>
                         <button type="button" class="btn btn-ghost" onclick="cerrarPanelRegistro()">Cerrar</button>
-                        <button type="button" id="btnEliminarForm" class="btn btn-delete" style="display:none; margin-left:auto;"
-                            onclick="eliminarItemActualForm()">🗑️ Eliminar este registro</button>
+                        <button type="button" id="btnEliminarForm" class="btn btn-delete"
+                            style="display:none; margin-left:auto;" onclick="eliminarItemActualForm()">🗑️ Eliminar este
+                            registro</button>
                     </div>
-                    <p class="form-help">Enter avanza al siguiente campo · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guarda · <kbd>Esc</kbd> cierra</p>
+                    <p class="form-help">Enter avanza al siguiente campo · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> guarda ·
+                        <kbd>Esc</kbd> cierra</p>
                 </form>
             </div>
         </section>
@@ -2194,8 +2340,8 @@
             <div class="filter-search-bar">
                 <div class="filter-pills" role="group" aria-label="Filtrar por estado">
                     <button class="pill-btn pill-inhabilitados" data-filter="inhabilitados"
-                        onclick="filtrarEstado(filtroEstadoActual === 'inhabilitados' ? 'todos' : 'inhabilitados')">🚫 Inhabilitados <span class="pill-count"
-                            id="contadorInhabilitados">0</span></button>
+                        onclick="filtrarEstado(filtroEstadoActual === 'inhabilitados' ? 'todos' : 'inhabilitados')">🚫
+                        Inhabilitados <span class="pill-count" id="contadorInhabilitados">0</span></button>
                     <span class="pill-sep" aria-hidden="true"></span>
                     <div class="stock-menu" id="stockMenu">
                         <button type="button" class="pill-btn stock-trigger" id="stockTrigger" aria-haspopup="true"
@@ -2208,7 +2354,8 @@
                                 <span>Todo stock</span><small>Sin filtro de stock</small></button>
                             <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
                                 data-stock-filter="negativos" onclick="filtrarStock('negativos')">
-                                <span>📉 Negativos (ajuste)</span><small>Stock negativo o diferencia piso/depósito</small></button>
+                                <span>📉 Negativos (ajuste)</span><small>Stock negativo o diferencia
+                                    piso/depósito</small></button>
                             <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
                                 data-stock-filter="piso_cero" onclick="filtrarStock('piso_cero')">
                                 <span>🛑 Piso en 0</span><small>Sin existencia en Piso de Venta</small></button>
@@ -2217,10 +2364,12 @@
                                 <span>📦 Depósito en 0</span><small>Sin existencia en Depósito</small></button>
                             <button type="button" class="menu-opt" role="menuitemradio" aria-checked="false"
                                 data-stock-filter="pedir_proveedor" onclick="filtrarStock('pedir_proveedor')">
-                                <span>🛒 Pedir a proveedor</span><small>Candidatos a pedido (excluye vencidos)</small></button>
+                                <span>🛒 Pedir a proveedor</span><small>Candidatos a pedido (excluye
+                                    vencidos)</small></button>
                             <div class="usep"></div>
                             <button type="button" class="menu-opt" onclick="precargarStockTodos(); cerrarStockMenu();">
-                                <span>🔄 Consultar stock</span><small>Carga el stock de todos los códigos</small></button>
+                                <span>🔄 Consultar stock</span><small>Carga el stock de todos los
+                                    códigos</small></button>
                         </div>
                     </div>
                 </div>
@@ -2251,7 +2400,8 @@
                     <strong style="color:var(--warn)">naranja por vencer</strong> (titila si faltan 5 días o menos),
                     <strong style="color:var(--red-text)">rojo vencido</strong> y gris sin fecha.
                     La columna <strong>Cant. (Stock Real)</strong> muestra Piso de Venta y Depósito desde
-                    NewPosline.<span id="stockSyncInfo"></span></p>
+                    NewPosline.<span id="stockSyncInfo"></span>
+                </p>
                 <div class="table-responsive">
                     <table>
                         <thead>

@@ -993,7 +993,8 @@
           <button class="btn" id="bb" style="min-height:50px;padding:0 24px;font-size:.92rem">Buscar</button>
         </div>
         <p class="mu" style="margin:8px 0 0">El lector escribe el código y envía Enter automáticamente. Presiona
-          <b>F2</b> desde cualquier pestaña para volver aquí.</p>
+          <b>F2</b> desde cualquier pestaña para volver aquí.
+        </p>
       </section>
 
       <div id="res">
@@ -1598,7 +1599,8 @@
         const { error } = await supabaseClient.from('averias').insert({
           creado_por: '(migrado)', producto: a.producto, cantidad: a.cantidad || 1, motivo: a.motivo, modalidad: a.modalidad,
           proveedor: a.proveedor, obs: [a.obs, 'Fecha original: ' + a.fecha].filter(Boolean).join(' · '), foto_path: path,
-          estatus: a.estatus || 'Pendiente Reclamo / N/C' });
+          estatus: a.estatus || 'Pendiente Reclamo / N/C'
+        });
         if (error) { toast('Migración detenida: ' + error.message, 1); return; }
       }
       localStorage.removeItem(K); await cargarAv(); toast('Averías migradas a Supabase.');
@@ -1702,7 +1704,8 @@
         const { error } = await supabaseClient.from('averias').insert({
           creado_por: $('un').textContent, producto: pr, cantidad: parseFloat($('aC').value) || 1, motivo: $('aM').value,
           modalidad: modSel, proveedor: $('aV').value, obs: $('aO').value.trim() || null, foto_path: path,
-          estatus: esInt ? 'Canalizado Interno ✅' : 'Pendiente Reclamo / N/C' });
+          estatus: esInt ? 'Canalizado Interno ✅' : 'Pendiente Reclamo / N/C'
+        });
         if (error) { toast('No se pudo guardar: ' + error.message, 1); btn.disabled = false; return; }
         await cargarAv(); cerrar(); toast(esInt ? 'Enviado a destino interno.' : 'Reclamo registrado.');
       };
