@@ -916,6 +916,26 @@
       pointer-events: none
     }
 
+    /* parche3: directorio sin scroll horizontal + caja "por qué" */
+    .tdir { table-layout: fixed }
+    .tdir th, .tdir td { padding: 10px; overflow-wrap: anywhere }
+    .tdir th { white-space: normal }
+    .tdir .b { white-space: normal }
+    .tdir .inline-sel { min-width: 0; width: 100% }
+    .tdir th:nth-child(1) { width: 9% }
+    .tdir th:nth-child(2) { width: 29% }
+    .tdir th:nth-child(3) { width: 22% }
+    .tdir th:nth-child(4) { width: 14% }
+    .tdir th:nth-child(5) { width: 18% }
+    .tdir th:nth-child(6) { width: 8% }
+    @media(max-width:900px) {
+      .tdir th:nth-child(5), .tdir td:nth-child(5) { display: none }
+    }
+    .why { margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: color-mix(in srgb, var(--surface) 75%, transparent); color: var(--text); font-size: .78rem; line-height: 1.4 }
+    .why b.wt { display: block; margin-bottom: 4px; font-size: .72rem; text-transform: uppercase; letter-spacing: .3px; color: var(--muted) }
+    .why ul { margin: 0; padding-left: 18px }
+    .why li { margin: 2px 0 }
+
     @media(max-width:700px) {
       header {
         flex-wrap: wrap;
@@ -1081,12 +1101,11 @@
           </div>
         </div>
         <div class="tw">
-          <table>
+          <table class="tdir">
             <thead>
               <tr>
                 <th>Código / RIF</th>
                 <th>Razón social</th>
-                <th>Contacto</th>
                 <th>Política de devolución</th>
                 <th title="Devoluciones registradas en Posline (motivo 15)">Historial Posline</th>
                 <th>Condiciones</th>
@@ -1114,7 +1133,7 @@
       fecha = f => f ? f.split('-').reverse().join('/') : 'Sin fecha',
       hoyISO = () => { const h = new Date(); return new Date(h - h.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) };
 
-    const COLS_PROV = 'supply_id,nombre,rif,telefono,correo,contacto,contacto_dev,modalidad,condiciones,validado_por,validado_en';
+    const COLS_PROV = 'supply_id,nombre,rif,telefono,correo,contacto,contacto_dev,modalidad,condiciones,validado_por,validado_en,con_devolucion,evidencia_dev';
 
     const MOD = {
       'Nota de Crédito': ['📄', 'Nota de Crédito', 'ok'],
@@ -1213,7 +1232,7 @@
       if (t === 'scan') {
         setTimeout(() => { $('q').focus(); $('q').select(); }, 40);
       } else if (t === 'dir' && !dirCargado) {
-        $('tp').innerHTML = '<tr><td colspan="7" class="mu" style="text-align:center;padding:24px">Cargando directorio de proveedores…</td></tr>';
+        $('tp').innerHTML = '<tr><td colspan="6" class="mu" style="text-align:center;padding:24px">Cargando directorio de proveedores…</td></tr>';
         await cargarDirectorio();
         pintarDir();
       }
@@ -1329,8 +1348,8 @@
               ? ['wn', '⚠️', 'Contradicción: Ficha dice NO ACEPTA, pero Posline tiene devoluciones', `Último proveedor: <b>${esc(n)}</b>. ${ht} Confirma antes de desechar.${notaOtros}`]
               : ['no', '❌', 'NO TIENE DEVOLUCIÓN (Último proveedor no acepta)', `Último proveedor: <b>${esc(n)}</b>. ${esc(ult.condiciones || 'No acepta cambios ni notas de crédito.')}${notaOtros}`];
           } else {
-            v = hd
-              ? ['ok', '✅', 'Probable devolución (Historial Posline positivo)', `Último proveedor: <b>${esc(n)}</b> (sin política escrita aún). ${ht}${notaOtros}`]
+            v = (ult?.con_devolucion || hd)
+              ? ['ok', '✅', 'SÍ DA DEVOLUCIÓN', `Último proveedor: <b>${esc(n)}</b>. ${ult?.con_devolucion ? 'Ya devolvió antes (nota Excel). ' : ''}${esc(ult?.condiciones || '')} ${ht}${notaOtros}`]
               : ['wn', '⚠️', 'Proveedor sin política clasificada todavía', `Último proveedor: <b>${esc(n)}</b>. Consulta con Oscar/Morelvys o clasifícalo abajo.${notaOtros}`];
           }
 
@@ -1358,6 +1377,13 @@
               </div>
             </div>`;
         }
+
+        const evid = [];
+        if (ult?.modalidad) evid.push(`Política del proveedor: <b>${esc(ult.modalidad)}</b>${ult.validado_por ? ` — validó ${esc(ult.validado_por)} (${fecha(ult.validado_en)})` : ''}`);
+        if (ult?.con_devolucion) evid.push(`Excel de notas de devolución: ${ult.evidencia_dev ? esc(ult.evidencia_dev) : 'el proveedor ya recibió devoluciones antes'}`);
+        if (hd) evid.push(`Posline: ${hd.veces} ${hd.veces == 1 ? 'devolución' : 'devoluciones'} de este producto (${num(hd.unidades)} uds), última el ${fecha(hd.ultima_fecha)}`);
+        if (ult && ultRel) evid.push(`Se evalúa el último proveedor que lo entregó: <b>${esc(ult.nombre)}</b> (${fecha(ultRel.fecha)})`);
+        const why = evid.length ? `<div class="why"><b class="wt">Por qué lo dice el sistema</b><ul>${evid.map(x => `<li>${x}</li>`).join('')}</ul></div>` : '';
 
         const filasProv = lista.map((r, i) => {
           const p = provs.get(r.supply_id) || { nombre: '(proveedor no sincronizado)' };
@@ -1397,6 +1423,7 @@
               <div style="flex:1">
                 <span class="ver-title">${esc(v[2])}</span>
                 <div class="ver-desc">${v[3]}</div>
+                ${why}
                 ${accionExtra}
               </div>
             </div>
@@ -1473,13 +1500,12 @@
         return `<tr>
           <td><b>${esc(p.supply_id)}</b><span class="sm">${esc(p.rif || '')}</span></td>
           <td><b>${esc(p.nombre)}</b>${p.validado_por ? `<span class="sm">✓ ${esc(p.validado_por)}</span>` : ''}</td>
-          <td class="mu">${esc([p.contacto, p.telefono, p.correo].filter(Boolean).join(' / ') || '—')}</td>
           <td>${celdaPolitica}</td>
           <td>${dvh(p.supply_id)}</td>
           <td class="mu">${esc(p.condiciones || '—')}</td>
           <td>${puedeEditar ? `<button class="btn g s" data-ed="${esc(p.supply_id)}">Detalles</button>` : ''}</td>
         </tr>`;
-      }).join('') + (l.length > 150 ? '<tr><td colspan="7" class="mu">Mostrando los primeros 150. Usa el buscador para filtrar.</td></tr>' : '');
+      }).join('') + (l.length > 150 ? '<tr><td colspan="6" class="mu">Mostrando los primeros 150. Usa el buscador para filtrar.</td></tr>' : '');
 
       $('tp').querySelectorAll('[data-insel]').forEach(s => {
         s.onchange = () => guardarPoliticaRapida(s.dataset.insel, s.value, null);
@@ -1497,6 +1523,7 @@
       abrir(`
         <h3 style="margin:0">${esc(p.nombre)}</h3>
         <span class="mu">Código ${esc(id)}</span>
+        <div class="mu" style="margin:6px 0 2px">📞 ${esc([p.contacto, p.telefono, p.correo].filter(Boolean).join(' · ') || 'Sin contacto en Posline')}</div>
         <label>Forma de devolución</label>
         <select id="fM">
           <option value="">— Sin política —</option>

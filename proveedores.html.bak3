@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proveedores y devoluciones - GALERIA HIPERMARKET 1 C.A</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="conexion.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    :root {
+      --font: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+      --bg: #f4f6f3;
+      --surface: #fff;
+      --surface-2: #f7f9f6;
+      --border: #dfe6e0;
+      --border-strong: #c3cfc6;
+      --text: #17231b;
+      --muted: #5d6f63;
+      --pine: #123e1b;
+      --leaf: #1f8a4c;
+      --mint: #e8f4ec;
+      --btn: #166534;
+      --gold: #f4b400;
+      --red: #c8372d;
+      --red-text: #b42318;
+      --red-soft: #fceceb;
+      --warn: #8f5600;
+      --warn-soft: #fff3d6;
+      --ok: #17703d;
+      --ok-soft: #e3f3e9;
+      --info: #0b6aa8;
+      --info-soft: #e6f2fa;
+      --shadow: 0 6px 20px rgba(18, 62, 27, .07);
+      --ease: cubic-bezier(.22, .8, .3, 1)
+    }
+
+    body.theme-dark {
+      --bg: #0c1511;
+      --surface: #121e19;
+      --surface-2: #172620;
+      --border: #233a30;
+      --border-strong: #35544a;
+      --text: #e8f2ec;
+      --muted: #9bb2a5;
+      --pine: #9ae8b8;
+      --leaf: #3fbf74;
+      --mint: #163a28;
+      --btn: #1f8a4c;
+      --red-text: #ff8a80;
+      --red-soft: #3d1f22;
+      --warn: #f5c15a;
+      --warn-soft: #41331a;
+      --ok: #74e5a4;
+      --ok-soft: #15382a;
+      --info: #6cb9ee;
+      --info-soft: #142f42;
+      --shadow: 0 6px 20px rgba(0, 0, 0, .28)
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html {
+      background: #f4f6f3;
+      color-scheme: light
+    }
+
+    html:has(body.theme-dark),
+    html.theme-dark {
+      background: #0c1511;
+      color-scheme: dark
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font: 14px/1.45 var(--font);
+      background: var(--bg);
+      color: var(--text);
+      animation: fade .35s
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0
+      }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+    }
+
+    @keyframes pop {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(.97)
+      }
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit
+    }
+
+    :focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--leaf) 55%, transparent);
+      outline-offset: 2px
+    }
+
+    /* HEADER: Logo a la izquierda | Lenguaje -> En Línea -> Usuario a la derecha */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 10px 28px;
+      min-height: 68px;
+      background: color-mix(in srgb, var(--surface) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: inset 0 -3px 0 var(--gold)
+    }
+
+    .hb {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-right: auto;
+      order: 1
+    }
+
+    .ha {
+      display: contents
+    }
+
+    header .lang {
+      order: 2
+    }
+
+    header> :not(.hb):not(.ha):not(.lang):not(.user),
+    .ha> :not(.lang):not(.user) {
+      order: 3
+    }
+
+    header .user {
+      order: 4
+    }
+
+    .hb img {
+      height: 46px;
+      mix-blend-mode: multiply
+    }
+
+    .theme-dark .hb img {
+      mix-blend-mode: normal
+    }
+
+    .hb p {
+      margin: 0;
+      font-weight: 800;
+      font-size: 1.02rem;
+      color: var(--pine)
+    }
+
+    .back,
+    .lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 99px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--pine);
+      font-weight: 700;
+      font-size: .8rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: .2s
+    }
+
+    .lang {
+      color: var(--text)
+    }
+
+    .back:hover,
+    .lang:hover {
+      border-color: var(--leaf);
+      background: var(--mint)
+    }
+
+    .user {
+      position: relative
+    }
+
+    .ut {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 4px 13px 4px 4px;
+      border: 1px solid var(--border-strong);
+      border-radius: 99px;
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 700;
+      font-size: .8rem;
+      cursor: pointer
+    }
+
+    .av {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--leaf), #0f4d27);
+      color: #fff;
+      font-weight: 800
+    }
+
+    .um {
+      position: absolute;
+      right: 0;
+      left: auto;
+      top: calc(100% + 10px);
+      z-index: 60;
+      width: 220px;
+      padding: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, .28);
+      animation: pop .2s var(--ease)
+    }
+
+    .um[hidden] {
+      display: none
+    }
+
+    .um button {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+      padding: 10px 12px;
+      border: 0;
+      background: 0;
+      border-radius: 10px;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    .um button:hover {
+      background: var(--mint)
+    }
+
+    .um .dg {
+      color: var(--red-text)
+    }
+
+    /* MAIN & TABS */
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 20px 26px 44px
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+      padding: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow)
+    }
+
+    .tab {
+      flex: 1;
+      min-width: 190px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .86rem;
+      cursor: pointer;
+      transition: .18s
+    }
+
+    .tab:hover {
+      background: var(--surface-2);
+      color: var(--text)
+    }
+
+    .tab.active {
+      background: var(--pine);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(18, 62, 27, .22)
+    }
+
+    .theme-dark .tab.active {
+      background: var(--leaf);
+      color: #fff
+    }
+
+    .pill-cnt {
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 800;
+      background: rgba(125, 125, 125, .16)
+    }
+
+    .pill-cnt[hidden] {
+      display: none
+    }
+
+    .tab.active .pill-cnt {
+      background: rgba(255, 255, 255, .24)
+    }
+
+    .pane {
+      display: none;
+      animation: rise .3s var(--ease)
+    }
+
+    .pane.active {
+      display: block
+    }
+
+    /* CARDS & INPUTS */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      margin-bottom: 18px
+    }
+
+    .ct {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--pine);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .mu {
+      color: var(--muted);
+      font-size: .8rem
+    }
+
+    .sc {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      position: relative
+    }
+
+    .sc-wrap {
+      flex: 1;
+      min-width: 240px;
+      position: relative;
+      display: flex;
+      align-items: center
+    }
+
+    .sc input {
+      width: 100%;
+      padding: 14px 42px 14px 16px;
+      border: 2px solid var(--border-strong);
+      border-radius: 12px;
+      font-size: 1.12rem;
+      font-weight: 600;
+      background: var(--surface);
+      color: var(--text);
+      transition: .2s
+    }
+
+    .sc-clear {
+      position: absolute;
+      right: 12px;
+      border: 0;
+      background: var(--surface-2);
+      color: var(--muted);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-weight: 800;
+      display: none;
+      place-items: center
+    }
+
+    .sc-clear.show {
+      display: grid
+    }
+
+    input,
+    select,
+    textarea {
+      padding: 9px 12px;
+      border: 1px solid var(--border-strong);
+      border-radius: 9px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: .85rem;
+      width: 100%
+    }
+
+    .sc input:focus,
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 0;
+      border-color: var(--leaf);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf) 20%, transparent)
+    }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 18px;
+      border: 1px solid transparent;
+      border-radius: 99px;
+      background: var(--btn);
+      color: #fff;
+      font-weight: 700;
+      font-size: .82rem;
+      cursor: pointer;
+      transition: .15s;
+      white-space: nowrap
+    }
+
+    .btn:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px)
+    }
+
+    .btn:active {
+      transform: scale(.98)
+    }
+
+    .btn.g {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border-strong)
+    }
+
+    .btn.g:hover {
+      background: var(--mint);
+      border-color: var(--leaf)
+    }
+
+    .btn.s {
+      min-height: 30px;
+      padding: 4px 12px;
+      font-size: .76rem
+    }
+
+    .btn.warn {
+      background: var(--warn);
+      color: #fff
+    }
+
+    .btn.info {
+      background: var(--info);
+      color: #fff
+    }
+
+    /* VERDICT & DECISION FLOW */
+    .ver {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 18px 20px;
+      border-radius: 12px;
+      margin: 14px 0;
+      border-left: 6px solid;
+      animation: rise .3s var(--ease) both
+    }
+
+    .ver .ic {
+      font-size: 2.1rem;
+      line-height: 1.1
+    }
+
+    .ver-title {
+      font-size: 1.12rem;
+      font-weight: 800;
+      display: block;
+      margin-bottom: 4px
+    }
+
+    .ver-desc {
+      font-size: .88rem;
+      line-height: 1.45;
+      opacity: .95
+    }
+
+    .ver.ok {
+      background: var(--ok-soft);
+      color: var(--ok);
+      border-color: var(--ok)
+    }
+
+    .ver.no {
+      background: var(--red-soft);
+      color: var(--red-text);
+      border-color: var(--red-text)
+    }
+
+    .ver.wn {
+      background: var(--warn-soft);
+      color: var(--warn);
+      border-color: var(--warn)
+    }
+
+    .quick-box {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--surface) 75%, transparent);
+      border: 1px dashed currentColor
+    }
+
+    .quick-pills {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 8px
+    }
+
+    .qpill {
+      padding: 6px 12px;
+      border-radius: 99px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--text);
+      font-size: .76rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s
+    }
+
+    .qpill:hover {
+      border-color: var(--leaf);
+      background: var(--mint);
+      transform: translateY(-1px)
+    }
+
+    .qpill.no:hover {
+      border-color: var(--red);
+      background: var(--red-soft);
+      color: var(--red-text)
+    }
+
+    /* TABLES */
+    .tw {
+      overflow: auto;
+      max-height: 60vh;
+      border: 1px solid var(--border);
+      border-radius: 10px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .83rem
+    }
+
+    th,
+    td {
+      padding: 11px 13px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--mint);
+      color: var(--pine);
+      white-space: nowrap;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .3px
+    }
+
+    tr:last-child td {
+      border-bottom: 0
+    }
+
+    tbody tr:hover {
+      background: var(--surface-2)
+    }
+
+    tr.ult td {
+      background: var(--ok-soft)
+    }
+
+    tr.ult td:first-child {
+      box-shadow: inset 5px 0 0 var(--ok)
+    }
+
+    .tag {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 9px;
+      border-radius: 99px;
+      background: var(--ok);
+      color: #fff;
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .3px
+    }
+
+    .theme-dark .tag {
+      color: #08130d
+    }
+
+    .b {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: .74rem;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    .b.ok {
+      background: var(--ok-soft);
+      color: var(--ok)
+    }
+
+    .b.no {
+      background: var(--red-soft);
+      color: var(--red-text)
+    }
+
+    .b.wn {
+      background: var(--warn-soft);
+      color: var(--warn)
+    }
+
+    .b.in {
+      background: var(--info-soft);
+      color: var(--info)
+    }
+
+    .sm {
+      display: block;
+      color: var(--muted);
+      font-size: .74rem;
+      margin-top: 2px
+    }
+
+    a {
+      color: var(--leaf)
+    }
+
+    /* KPIS & FILTERS */
+    .kp {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 18px
+    }
+
+    .k {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--leaf);
+      border-radius: 12px;
+      box-shadow: var(--shadow)
+    }
+
+    .k.p {
+      border-left-color: #e8a21a
+    }
+
+    .k.i {
+      border-left-color: var(--info)
+    }
+
+    .k b {
+      display: block;
+      font-size: 1.75rem;
+      line-height: 1;
+      margin-top: 4px
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px
+    }
+
+    .chip {
+      padding: 6px 13px;
+      border-radius: 99px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .15s
+    }
+
+    .chip:hover {
+      border-color: var(--leaf);
+      color: var(--text)
+    }
+
+    .chip.on {
+      background: var(--mint);
+      border-color: var(--leaf);
+      color: var(--pine)
+    }
+
+    .fl {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 12px
+    }
+
+    .fl label {
+      display: block;
+      font-size: .74rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 5px
+    }
+
+    .opt {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin-bottom: 8px;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer
+    }
+
+    .opt:hover {
+      border-color: var(--leaf);
+      background: var(--mint)
+    }
+
+    /* INLINE SELECT IN DIRECTORY */
+    .inline-sel {
+      padding: 5px 8px;
+      font-size: .78rem;
+      font-weight: 700;
+      border-radius: 8px;
+      min-width: 175px;
+      cursor: pointer
+    }
+
+    /* MODAL & TOAST */
+    .ov {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(8, 20, 13, .55);
+      backdrop-filter: blur(4px)
+    }
+
+    .ov.on {
+      display: flex
+    }
+
+    .mc {
+      width: 100%;
+      max-width: 530px;
+      max-height: 92vh;
+      overflow: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: 5px solid var(--gold);
+      border-radius: 16px;
+      padding: 22px;
+      animation: pop .25s var(--ease)
+    }
+
+    .mc label {
+      display: block;
+      margin: 12px 0 4px;
+      font-weight: 700;
+      font-size: .78rem
+    }
+
+    .g2 {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 10px
+    }
+
+    .g3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px
+    }
+
+    .acts {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      margin-top: 18px
+    }
+
+    .up {
+      border: 2px dashed var(--border-strong);
+      background: var(--surface-2);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      cursor: pointer
+    }
+
+    .up:hover {
+      border-color: var(--leaf)
+    }
+
+    #th {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .to {
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--leaf);
+      border-radius: 10px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .25);
+      font-weight: 700;
+      animation: pop .25s var(--ease)
+    }
+
+    .to.e {
+      border-left-color: var(--red)
+    }
+
+    #gate {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      display: grid;
+      place-items: center;
+      background: var(--bg);
+      color: var(--muted);
+      font-weight: 600;
+      transition: opacity .3s
+    }
+
+    #gate.done {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none
+    }
+
+    @media(max-width:700px) {
+      header {
+        flex-wrap: wrap;
+        padding: 10px 14px
+      }
+
+      main {
+        padding-left: 14px;
+        padding-right: 14px
+      }
+
+      .g2,
+      .g3 {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    try {
+      if (localStorage.getItem('hipergalerias_theme') === 'dark') {
+        document.documentElement.classList.add('theme-dark');
+        document.body.classList.add('theme-dark');
+      }
+    } catch (e) { }
+  </script>
+  <div id="gate">Verificando sesión…</div>
+
+  <header>
+    <div class="hb">
+      <a class="back" href="index.html">← Inicio</a>
+      <img src="logo.png" alt="Hipergalerias" onerror="this.onerror=null;this.src='logo.jpeg'">
+      <p>Proveedores y devoluciones</p>
+    </div>
+    <div class="ha">
+      <button class="lang" data-no-i18n onclick="cambiarIdioma()" aria-label="Idioma / 语言">🌐 <b>中文</b></button>
+      <div class="user">
+        <button class="ut" id="ut" onclick="$('um').hidden=!$('um').hidden">
+          <span class="av" id="av">U</span><span id="un">…</span> ▾
+        </button>
+        <div class="um" id="um" hidden>
+          <button id="tt">☾ Modo oscuro</button>
+          <button class="dg" onclick="salir()">⎋ Cerrar sesión</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- NAVEGACIÓN POR PESTAÑAS -->
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="scan" onclick="irTab('scan')">
+        📷 Escáner y Decisión <span class="pill-cnt">F2</span>
+      </button>
+      <button class="tab" data-tab="averias" onclick="irTab('averias')">
+        📦 Averías y Destinos <span class="pill-cnt" id="badgePend">0</span>
+      </button>
+      <button class="tab" data-tab="dir" onclick="irTab('dir')">
+        🏢 Directorio de Políticas <span class="pill-cnt" id="badgeSinPol" hidden>0</span>
+      </button>
+    </nav>
+
+    <!-- PESTAÑA 1: ESCÁNER Y DECISIÓN -->
+    <div id="pane-scan" class="pane active">
+      <section class="card">
+        <h2 class="ct">📷 Consultar producto por escáner o código</h2>
+        <div class="sc">
+          <div class="sc-wrap">
+            <input id="q" placeholder="Escanea el código de barras (o escribe código / descripción)…" autocomplete="off"
+              autofocus>
+            <button type="button" class="sc-clear" id="qClear" title="Limpiar">✕</button>
+          </div>
+          <button class="btn" id="bb" style="min-height:50px;padding:0 24px;font-size:.92rem">Buscar</button>
+        </div>
+        <p class="mu" style="margin:8px 0 0">El lector escribe el código y envía Enter automáticamente. Presiona
+          <b>F2</b> desde cualquier pestaña para volver aquí.
+        </p>
+      </section>
+
+      <div id="res">
+        <div class="card" style="text-align:center;padding:34px 20px;border-style:dashed">
+          <div style="font-size:2.2rem;margin-bottom:6px">📦</div>
+          <b style="color:var(--pine);font-size:1rem">Listo para escanear mercancía de Piso de Venta</b>
+          <p class="mu" style="max-width:520px;margin:6px auto 0">Pasa el artículo por el lector para ver su último
+            proveedor sombreado en verde, confirmar si acepta devolución o canalizarlo a uso interno.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: BANDEJA DE AVERÍAS Y DESTINOS INTERNOS -->
+    <div id="pane-averias" class="pane">
+      <div class="kp">
+        <div class="k p">
+          <div><span class="mu">RECLAMOS PENDIENTES</span><b id="kp">0</b><span class="mu">En espera de cambio /
+              N/C</span></div>
+          <span style="font-size:1.7rem">⏳</span>
+        </div>
+        <div class="k i">
+          <div><span class="mu">CANALIZADOS INTERNO</span><b id="ki">0</b><span class="mu">Cava, cocinas, desc. o
+              merma</span></div>
+          <span style="font-size:1.7rem">🏭</span>
+        </div>
+        <div class="k">
+          <div><span class="mu">RECLAMOS PROCESADOS</span><b id="kc">0</b><span class="mu">Compensados /
+              Resueltos</span></div>
+          <span style="font-size:1.7rem">✅</span>
+        </div>
+      </div>
+
+      <section class="card">
+        <div
+          style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+          <h2 class="ct" style="margin:0">📦 Registro operativo de mercancía</h2>
+          <button class="btn" onclick="abrirAveria()">+ Registrar avería o destino interno</button>
+        </div>
+
+        <div class="chips" id="avChips">
+          <button class="chip on" data-f="todos">Todos</button>
+          <button class="chip" data-f="pend">⏳ Pendientes reclamo</button>
+          <button class="chip" data-f="interno">🏭 Uso interno / Merma</button>
+          <button class="chip" data-f="done">✅ Resueltos</button>
+        </div>
+
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Producto y evidencia</th>
+                <th>Cant.</th>
+                <th>Destino / Proveedor</th>
+                <th>Modalidad / Ruta</th>
+                <th>Motivo / Pasillo</th>
+                <th>Estatus</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ta"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- PESTAÑA 3: DIRECTORIO DE POLÍTICAS -->
+    <div id="pane-dir" class="pane">
+      <section class="card">
+        <h2 class="ct">🏢 Directorio de proveedores <span class="mu" id="np"></span></h2>
+        <div class="fl">
+          <div>
+            <label>🔍 Empresa, RIF, código o contacto</label>
+            <input id="bd" placeholder="Ej. Milano, Drolanca, Pepsi, 298…">
+          </div>
+          <div>
+            <label>🏷️ Filtro rápido por política</label>
+            <select id="fm">
+              <option value="todos">Todos los proveedores</option>
+              <option value="__hist">🔥 Prioridad: Con devoluciones en Posline y sin política</option>
+              <option value="__sin">⚠ Todos los que no tienen política</option>
+              <option value="__ok">✅ Solo los que aceptan devolución</option>
+            </select>
+          </div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Código / RIF</th>
+                <th>Razón social</th>
+                <th>Contacto</th>
+                <th>Política de devolución</th>
+                <th title="Devoluciones registradas en Posline (motivo 15)">Historial Posline</th>
+                <th>Condiciones</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tp"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="ov" id="ov">
+    <div class="mc" id="mc"></div>
+  </div>
+  <div id="th"></div>
+
+  <script>
+    const $ = id => document.getElementById(id),
+      esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])),
+      clean = s => String(s || '').replace(/[%,()*"\\]/g, ' ').trim(),
+      norm6 = v => { const s = String(v || '').trim(); return /^\d+$/.test(s) && s.length < 6 ? s.padStart(6, '0') : s },
+      extraer = v => { const s = String(v || '').trim(); return /^\d+$/.test(s) && s.length > 13 ? s.slice(-13) : s },
+      fecha = f => f ? f.split('-').reverse().join('/') : 'Sin fecha',
+      hoyISO = () => { const h = new Date(); return new Date(h - h.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) };
+
+    const COLS_PROV = 'supply_id,nombre,rif,telefono,correo,contacto,contacto_dev,modalidad,condiciones,validado_por,validado_en,con_devolucion';
+
+    const MOD = {
+      'Nota de Crédito': ['📄', 'Nota de Crédito', 'ok'],
+      'Producto por Producto': ['📦', 'Cambio físico (1 a 1)', 'ok'],
+      'Descuento Próxima Factura': ['🏷️', 'Descuento próxima factura', 'ok'],
+      'Destrucción Autorizada': ['🔨', 'Destrucción autorizada', 'ok'],
+      'No Acepta': ['❌', 'No acepta devoluciones', 'no']
+    };
+
+    const DESTINOS_INTERNOS = [
+      '❄️ Cava / Cocina Gourmet',
+      '🥖 Panadería / Pastelería',
+      '🥩 Carnicería / Charcutería',
+      '🏷️ Descuento Empleados',
+      '🗑️ Merma / Desecho'
+    ];
+
+    const badge = m => {
+      if (DESTINOS_INTERNOS.includes(m)) return `<span class="b in">${esc(m)}</span>`;
+      const x = MOD[m];
+      return x ? `<span class="b ${x[2]}">${x[0]} ${x[1]}</span>` : '<span class="b wn">⚠ Sin política</span>';
+    };
+
+    const num = n => Number(n || 0).toLocaleString('es-VE', { maximumFractionDigits: 3 });
+
+    let puedeEditar = false,
+      provs = new Map(),
+      dev = new Map(),
+      dirCargado = false,
+      promDir = null,
+      foto = '',
+      filtroAv = 'todos',
+      K = 'hipergalerias_averias_v7',
+      av = [];
+
+    function toast(m, e) {
+      const t = document.createElement('div');
+      t.className = 'to' + (e ? ' e' : '');
+      t.textContent = m;
+      $('th').appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    }
+
+    const abrir = h => { $('mc').innerHTML = h; $('ov').classList.add('on') },
+      cerrar = () => $('ov').classList.remove('on');
+
+    $('ov').onclick = e => { if (e.target === $('ov')) cerrar() };
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') cerrar();
+      if (e.key === 'F2') { e.preventDefault(); irTab('scan'); }
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('.user')) $('um').hidden = true });
+
+    function tema(d) {
+      document.documentElement.classList.toggle('theme-dark', d);
+      document.body.classList.toggle('theme-dark', d);
+      $('tt').textContent = d ? '☀ Modo claro' : '☾ Modo oscuro';
+    }
+    $('tt').onclick = () => {
+      const d = !document.body.classList.contains('theme-dark');
+      tema(d);
+      localStorage.setItem('hipergalerias_theme', d ? 'dark' : 'light');
+    };
+
+    async function salir() {
+      await supabaseClient.auth.signOut();
+      location.href = 'index.html';
+    }
+
+    /* ---------- Carga diferida del directorio (ahorra egress al entrar solo a escanear) ---------- */
+    async function cargarDirectorio() {
+      if (dirCargado) return;
+      if (promDir) return promDir;
+      promDir = (async () => {
+        try {
+          const [rProv, rDev] = await Promise.all([
+            supabaseClient.from('proveedores').select(COLS_PROV).order('nombre').limit(3000),
+            supabaseClient.from('devoluciones_por_proveedor').select('supply_id,ajustes,articulos,unidades,ultima_fecha').limit(3000)
+          ]);
+          if (rProv.error) toast('No se pudo cargar el directorio: ' + rProv.error.message, 1);
+          (rProv.data || []).forEach(p => provs.set(p.supply_id, p));
+          if (!rDev.error) (rDev.data || []).forEach(d => dev.set(d.supply_id, d));
+          dirCargado = true;
+          actualizarBadgesGlobales();
+        } finally {
+          promDir = null;
+        }
+      })();
+      return promDir;
+    }
+
+    /* ---------- Navegación por pestañas ---------- */
+    async function irTab(t) {
+      document.querySelectorAll('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+      document.querySelectorAll('.pane').forEach(p => p.classList.toggle('active', p.id === 'pane-' + t));
+      if (t === 'scan') {
+        setTimeout(() => { $('q').focus(); $('q').select(); }, 40);
+      } else if (t === 'dir' && !dirCargado) {
+        $('tp').innerHTML = '<tr><td colspan="7" class="mu" style="text-align:center;padding:24px">Cargando directorio de proveedores…</td></tr>';
+        await cargarDirectorio();
+        pintarDir();
+      }
+    }
+
+    /* ---------- Guardado rápido de política (desde Escáner o Directorio) ---------- */
+    async function guardarPoliticaRapida(supplyId, modalidad, artRef) {
+      const p = provs.get(supplyId);
+      if (!p) return;
+      const validador = $('un').textContent || 'Sistemas';
+      const u = {
+        modalidad: modalidad || null,
+        validado_por: validador,
+        validado_en: hoyISO(),
+        updated_at: new Date().toISOString()
+      };
+      const { error } = await supabaseClient.from('proveedores').update(u).eq('supply_id', supplyId);
+      if (error) { toast('Error al guardar política: ' + error.message, 1); return; }
+      Object.assign(p, u);
+      actualizarBadgesGlobales();
+      if (dirCargado) pintarDir();
+      toast(`Política guardada: ${p.nombre} → ${modalidad || 'Sin política'}`);
+      if (artRef) mostrar(artRef);
+    }
+
+    /* ---------- Consulta por escáner ---------- */
+    $('q').addEventListener('input', () => $('qClear').classList.toggle('show', $('q').value.length > 0));
+    $('qClear').onclick = () => { $('q').value = ''; $('qClear').classList.remove('show'); $('q').focus(); };
+
+    async function buscarArticulos(q) {
+      const c = 'id,codigoBarras,codigoInterno,descripcion,departamento';
+      let r;
+      if (/^\d+$/.test(q)) {
+        r = await supabaseClient.from('articulos').select(c).or(`codigoBarras.eq."${q}",codigoInterno.eq."${norm6(q)}"`).limit(6);
+      } else {
+        r = await supabaseClient.from('articulos').select(c).ilike('descripcion', `%${clean(q)}%`).limit(10);
+      }
+      if (r.error) throw r.error;
+      return r.data || [];
+    }
+
+    async function buscar() {
+      const q = extraer($('q').value);
+      if (!q) return;
+      $('res').innerHTML = '<div class="card mu">Consultando proveedores y políticas…</div>';
+      try {
+        let a = await buscarArticulos(q);
+        if (!a.length && /^\d+$/.test(q)) {
+          a = [{ codigoInterno: norm6(q), codigoBarras: q, descripcion: '(Artículo fuera del catálogo web)', departamento: '' }];
+        }
+        if (a.length === 1) return mostrar(a[0]);
+        if (!a.length) {
+          $('res').innerHTML = '<div class="card">No encontré ese artículo. Verifica el código o prueba con parte del nombre.</div>';
+          return;
+        }
+        $('res').innerHTML = '<div class="card"><b>Se encontraron varios artículos, elige uno:</b><div style="margin-top:10px">' +
+          a.map((x, i) => `<button class="opt" data-i="${i}">${esc(x.descripcion)}<span class="sm">Cód. ${esc(x.codigoInterno)} · Barras ${esc(x.codigoBarras || '—')} · ${esc(x.departamento || '')}</span></button>`).join('') +
+          '</div></div>';
+        $('res').querySelectorAll('.opt').forEach(b => b.onclick = () => mostrar(a[b.dataset.i]));
+      } catch (e) {
+        $('res').innerHTML = `<div class="card">Error: ${esc(e.message)}</div>`;
+      }
+    }
+
+    async function mostrar(a) {
+      const cod = a.codigoInterno;
+      try {
+        const { data: rel, error } = await supabaseClient.from('articulo_proveedor').select('supply_id,fecha,auto').eq('item_id', cod);
+        if (error) throw error;
+
+        const asc = (rel || []).sort((x, y) =>
+          String(x.fecha || '').localeCompare(String(y.fecha || '')) ||
+          (Number(x.auto || 0) - Number(y.auto || 0)) ||
+          String(x.supply_id).localeCompare(String(y.supply_id))
+        );
+
+        const miss = asc.map(r => r.supply_id).filter(i => !provs.has(i));
+        if (miss.length) {
+          const { data: ps } = await supabaseClient.from('proveedores').select(COLS_PROV).in('supply_id', miss);
+          (ps || []).forEach(p => provs.set(p.supply_id, p));
+        }
+
+        let hd = null, hr = [];
+        try {
+          const [r1, r2] = await Promise.all([
+            supabaseClient.from('devoluciones_por_articulo').select('veces,unidades,ultima_fecha').eq('item_id', cod).maybeSingle(),
+            supabaseClient.from('devoluciones_proveedor').select('ajuste,fecha,unidades').eq('item_id', cod).order('fecha', { ascending: false }).limit(5)
+          ]);
+          if (!r1.error) hd = r1.data;
+          if (!r2.error) hr = r2.data || [];
+        } catch (e) { }
+
+        const ht = hd ? `Posline registra <b>${hd.veces}</b> ${hd.veces == 1 ? 'devolución' : 'devoluciones'} de este producto (${num(hd.unidades)} uds), última el ${fecha(hd.ultima_fecha)}.` : '';
+        const lista = asc.slice().reverse();
+        const ultRel = lista[0];
+        const ult = ultRel && provs.get(ultRel.supply_id);
+
+        let v, accionExtra = '';
+        if (!lista.length) {
+          v = hd
+            ? ['ok', '✅', 'Tiene devolución (según historial de Posline)', `${ht} No tiene proveedor vinculado en ficha: confirma con Oscar o Morelvys.`]
+            : ['wn', '⚠️', 'Artículo sin proveedores vinculados en Posline', 'No aparece registro de compra para este código. Puedes canalizarlo a destino interno o consultar a Compras.'];
+        } else {
+          const m = ult && MOD[ult.modalidad];
+          const n = ult ? ult.nombre : ultRel.supply_id;
+          const otrosOk = lista.slice(1).map(r => provs.get(r.supply_id)).filter(p => p && MOD[p.modalidad] && MOD[p.modalidad][2] === 'ok');
+          const notaOtros = otrosOk.length ? `<br>💡 <b>Alternativa:</b> Otro proveedor anterior de este producto sí acepta devolución (<b>${esc(otrosOk[0].nombre)}</b>).` : '';
+
+          if (m && m[2] === 'ok') {
+            v = ['ok', '✅', `SÍ TIENE DEVOLUCIÓN — ${m[1]}`, `Último proveedor: <b>${esc(n)}</b>. ${esc(ult.condiciones || '')} ${ht}`];
+          } else if (m) {
+            v = hd
+              ? ['wn', '⚠️', 'Contradicción: Ficha dice NO ACEPTA, pero Posline tiene devoluciones', `Último proveedor: <b>${esc(n)}</b>. ${ht} Confirma antes de desechar.${notaOtros}`]
+              : ['no', '❌', 'NO TIENE DEVOLUCIÓN (Último proveedor no acepta)', `Último proveedor: <b>${esc(n)}</b>. ${esc(ult.condiciones || 'No acepta cambios ni notas de crédito.')}${notaOtros}`];
+          } else {
+            v = (ult?.con_devolucion || hd)
+              ? ['ok', '✅', 'SÍ DA DEVOLUCIÓN', `Último proveedor: <b>${esc(n)}</b>. ${ult?.con_devolucion ? 'Ya devolvió antes (nota Excel). ' : ''}${esc(ult?.condiciones || '')} ${ht}${notaOtros}`]
+              : ['wn', '⚠️', 'Proveedor sin política clasificada todavía', `Último proveedor: <b>${esc(n)}</b>. Consulta con Oscar/Morelvys o clasifícalo abajo.${notaOtros}`];
+          }
+
+          if (puedeEditar && ult && !ult.modalidad) {
+            accionExtra += `
+              <div class="quick-box">
+                <div style="font-size:.78rem;font-weight:800">⚡ Clasificar política de <u>${esc(ult.nombre)}</u> ahora mismo (1 clic):</div>
+                <div class="quick-pills">
+                  <button type="button" class="qpill" data-qm="Nota de Crédito">📄 Nota de Crédito</button>
+                  <button type="button" class="qpill" data-qm="Producto por Producto">📦 Cambio 1 a 1</button>
+                  <button type="button" class="qpill" data-qm="Descuento Próxima Factura">🏷️ Desc. Factura</button>
+                  <button type="button" class="qpill" data-qm="Destrucción Autorizada">🔨 Destrucción</button>
+                  <button type="button" class="qpill no" data-qm="No Acepta">❌ No Acepta</button>
+                </div>
+              </div>`;
+          }
+        }
+
+        if (v[0] === 'no' || (!lista.length && !hd)) {
+          accionExtra += `
+            <div class="quick-box">
+              <div style="font-size:.78rem;font-weight:800">🧭 Flujo alternativo (Mercancía sin devolución a proveedor):</div>
+              <div class="quick-pills">
+                ${DESTINOS_INTERNOS.map(d => `<button type="button" class="qpill" data-dest="${esc(d)}">${esc(d)}</button>`).join('')}
+              </div>
+            </div>`;
+        }
+
+        const filasProv = lista.map((r, i) => {
+          const p = provs.get(r.supply_id) || { nombre: '(proveedor no sincronizado)' };
+          const modObj = MOD[p.modalidad];
+          const acepta = modObj && modObj[2] === 'ok';
+          return `<tr class="${i ? '' : 'ult'}">
+            <td><b>${esc(fecha(r.fecha))}</b>${i ? '' : '<br><span class="tag">ÚLTIMO EN ENTREGAR</span>'}</td>
+            <td>
+              <b>${esc(r.supply_id)} ~ ${esc(p.nombre)}</b>
+              ${p.telefono ? `<span class="sm">📞 ${esc(p.telefono)}</span>` : ''}
+              ${p.correo ? `<span class="sm">✉ <a href="mailto:${esc(p.correo)}">${esc(p.correo)}</a></span>` : ''}
+            </td>
+            <td>
+              ${badge(p.modalidad)}
+              ${p.validado_por ? `<span class="sm">Validó: ${esc(p.validado_por)} (${fecha(p.validado_en)})</span>` : ''}
+            </td>
+            <td>${esc(p.condiciones || '—')}${p.contacto_dev ? `<span class="sm">Contacto dev.: ${esc(p.contacto_dev)}</span>` : ''}</td>
+            <td style="white-space:nowrap">
+              ${acepta ? `<button class="btn s" data-reclamo="${esc(r.supply_id)}">📝 Reclamar</button> ` : ''}
+              ${puedeEditar && provs.get(r.supply_id) ? `<button class="btn g s" data-ed="${esc(r.supply_id)}">Editar</button>` : ''}
+            </td>
+          </tr>`;
+        }).join('');
+
+        $('res').innerHTML = `
+          <section class="card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+              <div>
+                <h2 class="ct" style="font-size:1.32rem;margin:0">${esc(a.descripcion)}</h2>
+                <div class="mu" style="margin-top:3px">Cód. interno <b>${esc(cod)}</b> · Barras <b>${esc(a.codigoBarras || '—')}</b> · ${esc(a.departamento || 'Sin depto.')}</div>
+              </div>
+              <button class="btn" id="ra">📝 Registrar caso</button>
+            </div>
+
+            <div class="ver ${v[0]}">
+              <span class="ic">${v[1]}</span>
+              <div style="flex:1">
+                <span class="ver-title">${esc(v[2])}</span>
+                <div class="ver-desc">${v[3]}</div>
+                ${accionExtra}
+              </div>
+            </div>
+
+            ${hr.length ? `<div class="mu" style="margin:0 0 12px">↩ Últimos ajustes de devolución en Posline: ${hr.map(x => `${esc(fecha(x.fecha))} · aj. ${esc(x.ajuste)} (${num(x.unidades)} uds)`).join(' | ')}</div>` : ''}
+
+            ${lista.length ? `
+              <div class="tw">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Fecha entrega</th>
+                      <th>Proveedor</th>
+                      <th>Devolución</th>
+                      <th>Condiciones</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filasProv}</tbody>
+                </table>
+              </div>` : ''}
+          </section>`;
+
+        $('res').querySelectorAll('[data-qm]').forEach(b => b.onclick = () => guardarPoliticaRapida(ultRel.supply_id, b.dataset.qm, a));
+        $('res').querySelectorAll('[data-dest]').forEach(b => b.onclick = () => abrirAveria(a.descripcion, ult, b.dataset.dest));
+        $('res').querySelectorAll('[data-reclamo]').forEach(b => b.onclick = () => abrirAveria(a.descripcion, provs.get(b.dataset.reclamo)));
+        $('res').querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editar(b.dataset.ed, a));
+        $('ra').onclick = () => abrirAveria(a.descripcion, ult);
+
+      } catch (e) {
+        $('res').innerHTML = `<div class="card">Error al consultar: ${esc(e.message)}</div>`;
+      }
+      $('q').value = '';
+      $('qClear').classList.remove('show');
+      $('q').focus();
+    }
+
+    $('bb').onclick = buscar;
+    $('q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscar(); } });
+
+    /* ---------- Directorio y políticas (con edición inline) ---------- */
+    const dvh = id => {
+      const d = dev.get(id);
+      return d
+        ? `<span class="b ok">↩ ${d.ajustes} ${d.ajustes == 1 ? 'ajuste' : 'ajustes'}</span><span class="sm">${d.articulos} art. · últ. ${esc(fecha(d.ultima_fecha))}</span>`
+        : '<span class="mu">—</span>';
+    };
+
+    function pintarDir() {
+      const q = $('bd').value.toLowerCase(), m = $('fm').value;
+      const l = [...provs.values()].filter(p => {
+        const matchQ = !q || [p.nombre, p.rif, p.supply_id, p.contacto, p.contacto_dev, p.telefono].some(x => String(x || '').toLowerCase().includes(q));
+        if (!matchQ) return false;
+        if (m === 'todos') return true;
+        if (m === '__sin') return !p.modalidad;
+        if (m === '__hist') return !p.modalidad && dev.has(p.supply_id);
+        if (m === '__ok') return MOD[p.modalidad] && MOD[p.modalidad][2] === 'ok';
+        return p.modalidad === m;
+      }).sort((a, b) =>
+        m === '__hist'
+          ? ((dev.get(b.supply_id)?.ajustes || 0) - (dev.get(a.supply_id)?.ajustes || 0))
+          : a.nombre.localeCompare(b.nombre)
+      );
+
+      $('np').textContent = `(${l.length} mostrados)`;
+      $('tp').innerHTML = l.slice(0, 150).map(p => {
+        const celdaPolitica = puedeEditar
+          ? `<select class="inline-sel" data-insel="${esc(p.supply_id)}">
+               <option value="">⚠ Sin política</option>
+               ${Object.keys(MOD).map(k => `<option value="${k}" ${p.modalidad === k ? 'selected' : ''}>${MOD[k][0]} ${k}</option>`).join('')}
+             </select>`
+          : badge(p.modalidad);
+
+        return `<tr>
+          <td><b>${esc(p.supply_id)}</b><span class="sm">${esc(p.rif || '')}</span></td>
+          <td><b>${esc(p.nombre)}</b>${p.validado_por ? `<span class="sm">✓ ${esc(p.validado_por)}</span>` : ''}</td>
+          <td class="mu">${esc([p.contacto, p.telefono, p.correo].filter(Boolean).join(' / ') || '—')}</td>
+          <td>${celdaPolitica}</td>
+          <td>${dvh(p.supply_id)}</td>
+          <td class="mu">${esc(p.condiciones || '—')}</td>
+          <td>${puedeEditar ? `<button class="btn g s" data-ed="${esc(p.supply_id)}">Detalles</button>` : ''}</td>
+        </tr>`;
+      }).join('') + (l.length > 150 ? '<tr><td colspan="7" class="mu">Mostrando los primeros 150. Usa el buscador para filtrar.</td></tr>' : '');
+
+      $('tp').querySelectorAll('[data-insel]').forEach(s => {
+        s.onchange = () => guardarPoliticaRapida(s.dataset.insel, s.value, null);
+      });
+      $('tp').querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editar(b.dataset.ed));
+    }
+
+    $('fm').innerHTML += Object.keys(MOD).map(k => `<option value="${k}">${MOD[k][0]} ${k}</option>`).join('');
+    $('bd').oninput = pintarDir;
+    $('fm').onchange = pintarDir;
+
+    function editar(id, art) {
+      const p = provs.get(id);
+      if (!p) return;
+      abrir(`
+        <h3 style="margin:0">${esc(p.nombre)}</h3>
+        <span class="mu">Código ${esc(id)}</span>
+        <label>Forma de devolución</label>
+        <select id="fM">
+          <option value="">— Sin política —</option>
+          ${Object.keys(MOD).map(k => `<option ${p.modalidad === k ? 'selected' : ''}>${k}</option>`).join('')}
+        </select>
+        <label>Condiciones y plazos</label>
+        <textarea id="fC" rows="3" placeholder="Ej. Nota de crédito previa revisión en 48 h">${esc(p.condiciones || '')}</textarea>
+        <div class="g3">
+          <div><label>RIF</label><input id="fR" value="${esc(p.rif || '')}"></div>
+          <div><label>Validado por</label><input id="fV" value="${esc(p.validado_por || $('un').textContent || '')}"></div>
+        </div>
+        <label>Contacto para devoluciones</label>
+        <input id="fT" value="${esc(p.contacto_dev || '')}" placeholder="Nombre / teléfono del vendedor o supervisor">
+        <div class="acts">
+          <button class="btn g" onclick="cerrar()">Cancelar</button>
+          <button class="btn" id="mo">Guardar política</button>
+        </div>`);
+
+      $('mo').onclick = async () => {
+        const u = {
+          modalidad: $('fM').value || null,
+          condiciones: $('fC').value.trim() || null,
+          rif: $('fR').value.trim() || null,
+          contacto_dev: $('fT').value.trim() || null,
+          validado_por: $('fV').value.trim() || null,
+          validado_en: hoyISO(),
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabaseClient.from('proveedores').update(u).eq('supply_id', id);
+        if (error) { toast('No se pudo guardar: ' + error.message, 1); return; }
+        Object.assign(p, u);
+        cerrar();
+        actualizarBadgesGlobales();
+        if (dirCargado) pintarDir();
+        toast('Política actualizada.');
+        if (art) mostrar(art);
+      };
+    }
+
+    /* ---------- Averías y Destinos Internos (Supabase) ---------- */
+    $('avChips').querySelectorAll('.chip').forEach(c => {
+      c.onclick = () => {
+        $('avChips').querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
+        c.classList.add('on');
+        filtroAv = c.dataset.f;
+        pintarAv();
+      };
+    });
+
+    const fechaAv = a => new Date(a.creado_en).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' });
+
+    async function cargarAv() {
+      const { data, error } = await supabaseClient.from('averias')
+        .select('id,creado_en,creado_por,producto,cantidad,motivo,modalidad,proveedor,obs,foto_path,estatus')
+        .order('creado_en', { ascending: false }).limit(200);
+      if (error) { toast('No se pudieron cargar las averías: ' + error.message, 1); return; }
+      av = data || []; pintarAv();
+    }
+
+    function pintarAv() {
+      const T = a => DESTINOS_INTERNOS.includes(a.modalidad), D = a => a.estatus.includes('✅');
+      let p = 0, i = 0, c = 0; av.forEach(a => T(a) ? i++ : D(a) ? c++ : p++);
+      $('kp').textContent = p; $('ki').textContent = i; $('kc').textContent = c; $('badgePend').textContent = p;
+      const l = av.filter(a => filtroAv === 'pend' ? !D(a) && !T(a) : filtroAv === 'interno' ? T(a) : filtroAv === 'done' ? D(a) && !T(a) : true);
+      $('ta').innerHTML = l.length ? l.map(a => `<tr>
+        <td class="mu">${esc(fechaAv(a))}<span class="sm">${esc(a.creado_por || '')}</span></td>
+        <td><b>${esc(a.producto)}</b><br>${a.foto_path ? `<a href="#" data-f="${esc(a.foto_path)}">🖼️ Ver evidencia</a>` : '<span class="mu">Sin foto</span>'}</td>
+        <td><b>${esc(a.cantidad)}</b></td><td><b>${esc(a.proveedor)}</b></td><td>${badge(a.modalidad)}</td>
+        <td>${esc(a.motivo)}<span class="sm">${esc(a.obs || 'Sin observaciones')}</span></td>
+        <td>${D(a) ? '<span class="b ok">Resuelto ✅</span>' : '<span class="b wn">Pendiente ⏳</span>'}</td>
+        <td style="white-space:nowrap">${D(a) ? '<span class="mu">Concluido</span>' : (puedeEditar ? `<button class="btn s" data-p="${a.id}">Procesar ✅</button>` : '')}</td></tr>`).join('')
+        : '<tr><td colspan="8" class="mu" style="text-align:center;padding:24px">No hay registros en esta vista.</td></tr>';
+      $('ta').querySelectorAll('[data-f]').forEach(b => b.onclick = async e => {
+        e.preventDefault();
+        const { data, error } = await supabaseClient.storage.from('averias').createSignedUrl(b.dataset.f, 300);
+        if (error) { toast('No se pudo abrir la foto: ' + error.message, 1); return; }
+        abrir(`<b>📷 Evidencia fotográfica</b><img src="${data.signedUrl}" style="max-width:100%;max-height:70vh;border-radius:10px;margin-top:10px"><div class="acts"><button class="btn g" onclick="cerrar()">Cerrar</button></div>`);
+      });
+      $('ta').querySelectorAll('[data-p]').forEach(b => b.onclick = async () => {
+        const { data, error } = await supabaseClient.from('averias')
+          .update({ estatus: 'Compensado / Resuelto ✅', resuelto_por: $('un').textContent, resuelto_en: new Date().toISOString() })
+          .eq('id', b.dataset.p).select('id');
+        if (error || !data || !data.length) { toast('No se pudo procesar: ' + (error ? error.message : 'sin permiso'), 1); return; }
+        cargarAv();
+      });
+    }
+
+    // Pasa lo que ya hay guardado en este navegador a Supabase, una sola vez, y limpia el localStorage
+    async function migrarLocal() {
+      let old; try { old = JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) { return; }
+      if (!old.length) { localStorage.removeItem(K); return; }
+      toast(`Pasando ${old.length} averías de este navegador a Supabase…`);
+      for (const a of old.reverse()) {
+        let path = null;
+        if (a.foto) {
+          path = `migradas/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+          const { error } = await supabaseClient.storage.from('averias').upload(path, await (await fetch(a.foto)).blob(), { contentType: 'image/jpeg' });
+          if (error) path = null;
+        }
+        const { error } = await supabaseClient.from('averias').insert({
+          creado_por: '(migrado)', producto: a.producto, cantidad: a.cantidad || 1, motivo: a.motivo, modalidad: a.modalidad,
+          proveedor: a.proveedor, obs: [a.obs, 'Fecha original: ' + a.fecha].filter(Boolean).join(' · '), foto_path: path,
+          estatus: a.estatus || 'Pendiente Reclamo / N/C'
+        });
+        if (error) { toast('Migración detenida: ' + error.message, 1); return; }
+      }
+      localStorage.removeItem(K); await cargarAv(); toast('Averías migradas a Supabase.');
+    }
+
+    async function abrirAveria(prod, p, destinoPre) {
+      foto = '';
+      const esInterno = Boolean(destinoPre);
+      const renderOpcionesProv = () => [...provs.values()]
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .map(x => `<option value="${esc(x.nombre)}" data-m="${esc(x.modalidad || '')}" ${p && p.supply_id === x.supply_id ? 'selected' : ''}>${esc(x.nombre)}${x.modalidad ? ' (' + esc(x.modalidad) + ')' : ''}</option>`)
+        .join('');
+
+      abrir(`
+        <h3 style="margin:0">📝 Registrar mercancía averiada / vencida</h3>
+        <div class="g2">
+          <div><label>Producto o código</label><input id="aP" value="${esc(prod || '')}" placeholder="Ej. Harina Pan 1kg"></div>
+          <div><label>Cant.</label><input id="aC" type="number" min="1" value="1"></div>
+        </div>
+        <div class="g3">
+          <div>
+            <label>Motivo</label>
+            <select id="aM">
+              <option>Fecha Vencida</option>
+              <option>Gorgojeado / Plaga</option>
+              <option>Empaque Roto / Golpeado</option>
+              <option>Defecto de Fábrica</option>
+              <option>Hurtado / Incompleto</option>
+            </select>
+          </div>
+          <div>
+            <label>Modalidad o Destino Interno</label>
+            <select id="aD">
+              <optgroup label="Reclamo a Proveedor">
+                ${Object.keys(MOD).filter(k => k !== 'No Acepta').map(k => `<option value="${k}">${k}</option>`).join('')}
+              </optgroup>
+              <optgroup label="Destino Interno (Sin devolución)">
+                ${DESTINOS_INTERNOS.map(d => `<option value="${esc(d)}" ${destinoPre === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <label>Proveedor asociado</label>
+        <select id="aV">
+          <option value="Gestión Interna / Sin proveedor">— Gestión Interna (Sin reclamo a proveedor) —</option>
+          ${renderOpcionesProv()}
+        </select>
+        <label>📸 Foto de evidencia (opcional)</label>
+        <div class="up" onclick="$('aF').click()"><input type="file" id="aF" accept="image/*" hidden><div id="aPv">📷 Toca para tomar o subir foto</div></div>
+        <label>Observaciones / Pasillo de origen</label>
+        <textarea id="aO" rows="2" placeholder="Ej. Pasillo 3, pasa a cava de congelación antes de cocina…"></textarea>
+        <div class="acts">
+          <button class="btn g" onclick="cerrar()">Cancelar</button>
+          <button class="btn" id="aG">Guardar registro</button>
+        </div>`);
+
+      const sync = () => {
+        if (esInterno) return;
+        const m = $('aV')?.selectedOptions[0]?.dataset.m;
+        if (m && m !== 'No Acepta') $('aD').value = m;
+      };
+      sync();
+      $('aV').onchange = sync;
+
+      if (!dirCargado) {
+        await cargarDirectorio();
+        const selV = $('aV');
+        if (selV) {
+          selV.innerHTML = `<option value="Gestión Interna / Sin proveedor">— Gestión Interna (Sin reclamo a proveedor) —</option>` + renderOpcionesProv();
+          sync();
+        }
+      }
+
+      $('aF').onchange = e => {
+        const f = e.target.files[0];
+        if (!f) return;
+        const r = new FileReader();
+        r.onload = x => {
+          const im = new Image();
+          im.onload = () => {
+            const s = Math.min(1, 800 / Math.max(im.width, im.height)), c = document.createElement('canvas');
+            c.width = im.width * s; c.height = im.height * s;
+            c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+            foto = c.toDataURL('image/jpeg', .65);
+            $('aPv').innerHTML = `<img src="${foto}" style="max-height:80px;border-radius:8px"><br>✓ Foto lista`;
+          };
+          im.src = x.target.result;
+        };
+        r.readAsDataURL(f);
+      };
+
+      $('aG').onclick = async () => {
+        const pr = $('aP').value.trim(); if (!pr) { toast('Ingresa el nombre del producto.', 1); return; }
+        const btn = $('aG'); btn.disabled = true;
+        const modSel = $('aD').value, esInt = DESTINOS_INTERNOS.includes(modSel); let path = null;
+        if (foto) {
+          path = `${hoyISO()}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.jpg`;
+          const { error: e1 } = await supabaseClient.storage.from('averias').upload(path, await (await fetch(foto)).blob(), { contentType: 'image/jpeg' });
+          if (e1) { toast('No se pudo subir la foto: ' + e1.message, 1); btn.disabled = false; return; }
+        }
+        const { error } = await supabaseClient.from('averias').insert({
+          creado_por: $('un').textContent, producto: pr, cantidad: parseFloat($('aC').value) || 1, motivo: $('aM').value,
+          modalidad: modSel, proveedor: $('aV').value, obs: $('aO').value.trim() || null, foto_path: path,
+          estatus: esInt ? 'Canalizado Interno ✅' : 'Pendiente Reclamo / N/C'
+        });
+        if (error) { toast('No se pudo guardar: ' + error.message, 1); btn.disabled = false; return; }
+        await cargarAv(); cerrar(); toast(esInt ? 'Enviado a destino interno.' : 'Reclamo registrado.');
+      };
+    }
+
+    function actualizarBadgesGlobales() {
+      if (!dirCargado) return;
+      let sinPolConHist = 0;
+      provs.forEach(p => { if (!p.modalidad && dev.has(p.supply_id)) sinPolConHist++; });
+      $('badgeSinPol').textContent = sinPolConHist;
+      $('badgeSinPol').hidden = false;
+    }
+
+    /* ---------- Sesión y control de acceso por rol ---------- */
+    (async () => {
+      const gate = $('gate'), fin = () => gate.classList.add('done');
+      setTimeout(fin, 6000);
+      if (typeof supabaseClient === 'undefined') { location.href = 'index.html'; return; }
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) { location.href = 'index.html'; return; }
+      supabaseClient.auth.onAuthStateChange(e => { if (e === 'SIGNED_OUT') location.href = 'index.html'; });
+
+      const { data: pf } = await supabaseClient.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle();
+      if (!pf || !['admin', 'compras', 'sistemas'].includes(pf.rol)) {
+        location.href = 'index.html';
+        return;
+      }
+      puedeEditar = ['admin', 'compras', 'sistemas'].includes(pf.rol);
+
+      const m = session.user.user_metadata || {},
+        n = m.display_name || m.full_name || session.user.email.split('@')[0],
+        N = n.charAt(0).toUpperCase() + n.slice(1);
+      $('un').textContent = N;
+      $('av').textContent = N.charAt(0);
+
+      tema(document.body.classList.contains('theme-dark'));
+      await cargarAv();
+      migrarLocal();
+      fin();
+      $('q').focus();
+    })();
+  </script>
+  <script src="sesion-usuario.js"></script>
+  <script src="i18n.js"></script>
+</body>
+
+</html>
