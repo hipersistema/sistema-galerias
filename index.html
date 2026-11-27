@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
+
 
     <script src="conexion.js"></script>
     <script src="usuarios-admin.js"></script>
@@ -1420,23 +1420,650 @@
             animation: rise .5s var(--ease) both;
             animation-delay: calc(var(--k) * 70ms + 150ms)
         }
+
+
+        /* ===== REDISEÑO PANEL ===== */
+        :root {
+            --bg: #F4F7F5;
+            --line: #E2EAE5;
+            --tx: #1C2925;
+            --mu: #687A72;
+            --soft: #E7F5EC;
+            --side: #103C40;
+            --brand: #16803C
+        }
+
+        body {
+            display: flex;
+            min-height: 100vh
+        }
+
+        .app {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            flex: none;
+            width: 190px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 22px 12px 16px;
+            background: var(--side);
+            color: #fff;
+            transition: width .25s var(--ease)
+        }
+
+        .side-logo {
+            display: flex;
+            justify-content: center;
+            padding: 0 6px 22px
+        }
+
+        .side-logo img {
+            width: 100%;
+            max-height: 62px;
+            object-fit: contain
+        }
+
+        .side-logo .mini {
+            display: none;
+            width: 36px
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .nav-i {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            padding: 11px 14px;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            color: rgba(255, 255, 255, .9);
+            font: inherit;
+            font-size: .88rem;
+            font-weight: 500;
+            text-align: left;
+            cursor: pointer;
+            transition: background .2s
+        }
+
+        .nav-i:hover:not(:disabled) {
+            background: rgba(255, 255, 255, .08)
+        }
+
+        .nav-i.active {
+            background: var(--brand);
+            color: #fff;
+            font-weight: 600
+        }
+
+        .nav-i:disabled {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .nav-i svg,
+        .icon-btn svg {
+            width: 20px;
+            height: 20px;
+            flex: none
+        }
+
+        .side-foot {
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, .14);
+            display: flex;
+            flex-direction: column;
+            gap: 6px
+        }
+
+        .sidebar .user {
+            width: 100%
+        }
+
+        .sidebar .utrigger {
+            width: 100%;
+            background: transparent;
+            border: 0;
+            color: #fff;
+            padding: 8px;
+            border-radius: 12px;
+            text-align: left;
+            animation: none
+        }
+
+        .sidebar .utrigger:hover,
+        .sidebar .utrigger.open {
+            background: rgba(255, 255, 255, .08);
+            box-shadow: none
+        }
+
+        .sidebar .av .on {
+            border-color: var(--side)
+        }
+
+        .sidebar .chev {
+            color: #fff;
+            opacity: .7
+        }
+
+        .uinfo {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+            line-height: 1.25
+        }
+
+        .uname {
+            font-size: .8rem;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap
+        }
+
+        .urole {
+            font-size: .68rem;
+            font-weight: 500;
+            opacity: .7;
+            text-transform: capitalize
+        }
+
+        .sidebar .btn-login-trigger {
+            width: 100%
+        }
+
+        .sidebar .umenu {
+            top: auto;
+            bottom: calc(100% + 8px);
+            left: 0;
+            right: auto;
+            width: 260px;
+            transform-origin: bottom left
+        }
+
+        @media(min-width:901px) {
+            body.side-collapsed .sidebar {
+                width: 68px
+            }
+
+            body.side-collapsed .lbl {
+                display: none
+            }
+
+            body.side-collapsed .side-logo .full {
+                display: none
+            }
+
+            body.side-collapsed .side-logo .mini {
+                display: block
+            }
+
+            body.side-collapsed .nav-i {
+                justify-content: center;
+                padding: 11px 0
+            }
+
+            body.side-collapsed .sidebar .utrigger {
+                justify-content: center;
+                padding: 8px 0
+            }
+        }
+
+        @media(max-width:900px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                transform: translateX(-100%);
+                transition: transform .25s var(--ease)
+            }
+
+            body.side-open .sidebar {
+                transform: none;
+                box-shadow: 0 0 40px rgba(0, 0, 0, .45)
+            }
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 28px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line)
+        }
+
+        .tb-right {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: .86rem;
+            font-weight: 500
+        }
+
+        .online,
+        .fecha {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap
+        }
+
+        .online i {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e
+        }
+
+        .online.off i {
+            background: #ef4444
+        }
+
+        .sep {
+            width: 1px;
+            height: 26px;
+            background: var(--line)
+        }
+
+        .icon-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            background: transparent;
+            color: var(--tx);
+            border-radius: 10px;
+            cursor: pointer
+        }
+
+        .icon-btn:hover {
+            background: var(--soft)
+        }
+
+        .lang-btn svg {
+            width: 16px;
+            height: 16px
+        }
+
+        @media(max-width:700px) {
+
+            .online,
+            .fecha,
+            .sep {
+                display: none
+            }
+
+            .topbar {
+                padding: 0 14px
+            }
+        }
+
+        .content {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 24px 30px 48px
+        }
+
+        .banner {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            min-height: 104px;
+            padding: 24px 34px;
+            margin-bottom: 28px;
+            border-radius: 18px;
+            color: #fff;
+            background: linear-gradient(100deg, #0d4a2b, #16803C);
+            animation: rise .5s var(--ease) both
+        }
+
+        .banner-ico {
+            width: 56px;
+            height: 56px;
+            stroke-width: 1.8;
+            flex: none
+        }
+
+        @media(max-width:700px) {
+            .banner {
+                flex-wrap: wrap;
+                padding: 20px
+            }
+
+            .banner-ico {
+                display: none
+            }
+        }
+
+        .sec-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 18px
+        }
+
+        .sec-title {
+            scroll-margin-top: 84px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -.02em
+        }
+
+        .sec-title:before {
+            content: "";
+            width: 6px;
+            height: 28px;
+            border-radius: 3px;
+            background: var(--brand)
+        }
+
+        .count {
+            font-size: .76rem;
+            font-weight: 600;
+            color: var(--mu);
+            background: var(--soft);
+            border: 1px solid var(--line);
+            padding: 3px 10px;
+            border-radius: 999px
+        }
+
+        .tools {
+            display: flex;
+            gap: 10px;
+            align-items: center
+        }
+
+        .search {
+            position: relative;
+            display: flex;
+            align-items: center
+        }
+
+        .search svg {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            color: var(--mu);
+            pointer-events: none
+        }
+
+        .search input {
+            width: min(340px, 60vw);
+            height: 46px;
+            padding: 0 16px 0 42px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--tx);
+            font: inherit;
+            font-size: .92rem
+        }
+
+        .search input:focus {
+            outline: none;
+            border-color: var(--g4);
+            box-shadow: 0 0 0 4px color-mix(in srgb, var(--g4) 20%, transparent)
+        }
+
+        .seg {
+            display: flex;
+            padding: 3px;
+            gap: 2px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--surface)
+        }
+
+        .seg button {
+            width: 42px;
+            height: 38px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--mu);
+            cursor: pointer;
+            display: grid;
+            place-items: center
+        }
+
+        .seg button.on {
+            background: var(--brand);
+            color: #fff
+        }
+
+        .seg svg {
+            width: 18px;
+            height: 18px
+        }
+
+        .mods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px
+        }
+
+        .mods.list {
+            grid-template-columns: 1fr
+        }
+
+        @media(min-width:1700px) {
+            .mods:not(.list) {
+                grid-template-columns: repeat(4, 1fr)
+            }
+        }
+
+        @media(max-width:1100px) {
+            .mods:not(.list) {
+                grid-template-columns: repeat(2, 1fr)
+            }
+        }
+
+        @media(max-width:640px) {
+            .mods:not(.list) {
+                grid-template-columns: 1fr
+            }
+
+            .content {
+                padding: 18px 14px 40px
+            }
+        }
+
+        .mod {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-height: 138px;
+            padding: 20px;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 1px 2px rgba(16, 32, 26, .04);
+            color: inherit;
+            text-decoration: none;
+            animation: rise .5s var(--ease) both;
+            animation-delay: calc(var(--i)*60ms + 100ms);
+            transition: transform .25s var(--ease), border-color .25s, box-shadow .25s
+        }
+
+        .mods.list .mod {
+            min-height: 96px
+        }
+
+        .mod:hover {
+            transform: translateY(-3px);
+            border-color: color-mix(in srgb, var(--g4) 45%, var(--line));
+            box-shadow: 0 14px 28px -14px rgba(16, 32, 26, .22)
+        }
+
+        .mod-ico {
+            flex: none;
+            width: 56px;
+            height: 56px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            color: var(--c);
+            background: color-mix(in srgb, var(--c) 14%, var(--surface))
+        }
+
+        .mod-ico svg {
+            width: 26px;
+            height: 26px
+        }
+
+        .c-green {
+            --c: #16803C
+        }
+
+        .c-blue {
+            --c: #1D6FD1
+        }
+
+        .c-violet {
+            --c: #6D3FD1
+        }
+
+        .c-slate {
+            --c: #3E5577
+        }
+
+        .c-teal {
+            --c: #0F7C70
+        }
+
+        .c-orange {
+            --c: #D9701A
+        }
+
+        .mod-body {
+            flex: 1;
+            min-width: 0
+        }
+
+        .mod-body h3 {
+            margin: 0 0 4px;
+            font-size: 1.02rem;
+            font-weight: 700;
+            letter-spacing: -.01em
+        }
+
+        .mod-body p {
+            margin: 0;
+            font-size: .82rem;
+            line-height: 1.4;
+            color: var(--mu);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden
+        }
+
+        .mod-go {
+            flex: none;
+            align-self: flex-end;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: var(--soft);
+            color: var(--brand);
+            transition: transform .25s var(--ease)
+        }
+
+        .mod-go svg {
+            width: 18px;
+            height: 18px
+        }
+
+        .mod:hover .mod-go {
+            transform: translateX(3px)
+        }
+
+        .mod.off {
+            opacity: .6;
+            cursor: default
+        }
+
+        .mod.off:hover {
+            transform: none;
+            box-shadow: none
+        }
+
+        .empty {
+            grid-column: 1/-1;
+            margin: 24px 0;
+            text-align: center;
+            font-size: .9rem;
+            color: var(--mu)
+        }
+
+        /* ===== FIN REDISEÑO PANEL ===== */
     </style>
+
+    <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
 </head>
 
 <body>
     <a class="skip" href="#main">Saltar al contenido</a>
 
-    <header>
-        <div class="brand">
-            <div class="logo-container"><img src="logo.png" alt="Galeria Hipermarket Logo"
-                    onerror="this.onerror=null; this.src='logo.jpeg';"></div>
-            <div class="titles"><span class="eyebrow"></span>
-                <h1>Sistema Centralizado de Gestión <span class="version-tag" data-no-i18n>v1.0</span></h1>
-            </div>
+    <!-- ===== NUEVO PANEL GALERÍAS ===== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="side-logo">
+            <img class="full" src="logo.png" alt="Galería Hipermarket"
+                onerror="this.onerror=null;this.src='logo.jpeg';">
+            <img class="mini" src="logo solo g.png" alt="" onerror="this.onerror=null;this.src='logo.png';">
         </div>
-        <div class="header-actions">
-            <button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言"
-                aria-label="Idioma / 语言"><span aria-hidden="true">🌐</span><b>中文</b></button>
+        <nav class="nav" aria-label="Navegación principal">
+            <button type="button" class="nav-i active" onclick="irASeccion('top',this)"><i data-lucide="house"></i><span
+                    class="lbl">Inicio</span></button>
+            <button type="button" class="nav-i" onclick="irASeccion('modulos',this)"><i data-lucide="grid-2x2"></i><span
+                    class="lbl">Módulos</span></button>
+            <button type="button" class="nav-i" disabled title="Próximamente"><i data-lucide="chart-column"></i><span
+                    class="lbl">Reportes</span></button>
+            <button type="button" class="nav-i" disabled title="Próximamente"><i data-lucide="settings"></i><span
+                    class="lbl">Configuración</span></button>
+            <button type="button" class="nav-i" disabled title="Próximamente"><i data-lucide="circle-help"></i><span
+                    class="lbl">Ayuda</span></button>
+        </nav>
+        <div class="side-foot">
             <div class="user" id="userMenu">
                 <div id="userAuthContainer"></div>
                 <div class="umenu" id="userDropdown" role="menu" hidden>
@@ -1458,174 +2085,67 @@
                         sesión</button>
                 </div>
             </div>
+            <button type="button" class="nav-i" onclick="ejecutarLogout()"><i data-lucide="log-out"></i><span
+                    class="lbl">Cerrar Sesión</span></button>
         </div>
-    </header>
+    </aside>
 
-    <main class="container" id="main">
-        <section class="welcome-card">
-            <div class="welcome-text">
-                <h2>Panel de Control Ejecutivo</h2>
-                <p>Supervisión general de operaciones, inventarios, costos y sistemas de Galeria.</p>
+    <div class="app" id="top">
+        <div class="topbar">
+            <button type="button" class="icon-btn" onclick="toggleSidebar()" aria-label="Contraer o expandir menú"><i
+                    data-lucide="menu"></i></button>
+            <div class="titles">
+                <h1>Sistema Centralizado de Gestión <span class="version-tag" data-no-i18n>v1.0</span></h1>
             </div>
-            <img src="logo solo g.png" alt="" class="welcome-card-watermark"
-                onerror="this.onerror=null; this.src='logo.png';">
-            <aside class="tasa-bcv" id="tasaBcv" aria-live="polite" data-no-i18n>
-                <div class="tb-head"><span>Tasa BCV</span><span class="tb-fecha" id="tbFecha"></span></div>
-                <div class="tb-hoy" id="tbHoy"><small>Bs</small>--</div>
-                <div class="tb-ayer"><span id="tbAyer">Anterior: --</span><span class="tb-var" id="tbVar"></span></div>
-            </aside>
-        </section>
-
-        <h2 class="section-title">Módulos del sistema</h2>
-        <div class="modules-grid is-loading" id="modulesGrid">
-
-            <article class="module-card" style="--i:0">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/e50acea4-cd98-44b2-933f-55fe3271c515/71KxhDvMQj.json" loop
-                                data-emoji="📦"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>Recepción y Fechas</h3>
-                            <p class="module-desc">Registro de mercancía y control de vencimientos.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics cols-3">
-                        <div class="metric-box" id="box-mod1-optimos" title="Productos con más de 30 días para vencer">
-                            <span class="metric-title">Óptimos</span><span class="metric-value"
-                                id="val-mod1-optimos">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod1-porvencer" title="Productos que vencen en 30 días o menos">
-                            <span class="metric-title">Por Vencer</span><span class="metric-value"
-                                id="val-mod1-porvencer">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod1-vencidos"
-                            title="Productos con fecha de vencimiento pasada"><span
-                                class="metric-title">Vencidos</span><span class="metric-value"
-                                id="val-mod1-vencidos">0</span></div>
-                    </div>
-                </div>
-                <a href="recepcionyfechas.html" class="btn-module"
-                    onclick="protegerEnlaceModulo(event, 'recepcionyfechas.html')">Ingresar al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card" style="--i:1">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/9c924f2d-0a9f-4258-b925-e1582d676f64/W5x2kJgrfs.lottie" loop
-                                data-emoji="👥"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>Descuentos para Empleados</h3>
-                            <p class="module-desc">Cobro de productos al personal.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics cols-3">
-                        <div class="metric-box" id="box-mod2-pendientes" title="Empleados con deuda y ningún abono">
-                            <span class="metric-title">Pend. Pago</span><span class="metric-value"
-                                id="val-mod2-pendientes">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod2-parciales" title="Empleados con deuda y abono parcial">
-                            <span class="metric-title">Parciales</span><span class="metric-value"
-                                id="val-mod2-parciales">0</span>
-                        </div>
-                        <div class="metric-box" id="box-mod2-porcobrar" title="Monto total pendiente de cobro"><span
-                                class="metric-title">Por Cobrar</span><span class="metric-value"
-                                id="val-mod2-porcobrar">$0</span></div>
-                    </div>
-                </div>
-                <a href="descuentos.html" class="btn-module"
-                    onclick="protegerEnlaceModulo(event, 'descuentos.html')">Ingresar al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card" style="--i:2">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/acf440ae-9654-4635-884e-d6b0d65d41b1/1MxfDUdyfu.lottie" loop
-                                data-emoji="🍳"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>Recetas y Costos</h3>
-                            <p class="module-desc">Escandallos, insumos y precios sugeridos.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" id="box-mod3-recetas" title="Recetas guardadas en el catálogo"><span
-                                class="metric-title">Recetas</span><span class="metric-value"
-                                id="val-mod3-recetas">0</span></div>
-                        <div class="metric-box" id="box-mod3-ingredientes" title="Insumos e ingredientes registrados">
-                            <span class="metric-title">Ingredientes</span><span class="metric-value"
-                                id="val-mod3-ingredientes">0</span>
-                        </div>
-                    </div>
-                </div>
-                <a href="recetarioycostos.html" class="btn-module"
-                    onclick="protegerEnlaceModulo(event, 'recetarioycostos.html')">Ingresar al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card" style="--i:3">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true"><dotlottie-wc class="lottie-icon"
-                                src="https://lottie.host/67d95dba-3dc3-48a1-ae7a-ec7b94f866c6/GX8l7QoSYJ.lottie" loop
-                                data-emoji="🖥️"></dotlottie-wc></div>
-                        <div class="module-title-zone">
-                            <h3>TI Equipos</h3>
-                            <p class="module-desc">Inventario y mantenimiento de equipos.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" id="box-mod4-equipos" title="Equipos registrados"><span
-                                class="metric-title">Equipos TI</span><span class="metric-value"
-                                id="val-mod4-equipos">0</span></div>
-                        <div class="metric-box" id="box-mod4-mant" title="Mantenimientos por realizar"><span
-                                class="metric-title">Mant. Pendientes</span><span class="metric-value"
-                                id="val-mod4-mant">0</span></div>
-                    </div>
-                </div>
-                <a href="modulo4.html" class="btn-module" onclick="protegerEnlaceModulo(event, 'modulo4.html')">Ingresar
-                    al Módulo <span>➔</span></a>
-            </article>
-
-            <article class="module-card disabled" id="slotPendiente5" style="--i:4" aria-disabled="true">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true">📑</div>
-                        <div class="module-title-zone">
-                            <h3>Pendiente 5</h3>
-                            <p class="module-desc">Módulo reservado para una próxima fase.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span
-                                class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span
-                                class="metric-value" style="font-size:1.05rem">Diseño</span></div>
-                    </div>
-                </div>
-                <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
-            </article>
-
-            <article class="module-card disabled" id="slotPendiente6" style="--i:5" aria-disabled="true">
-                <div>
-                    <div class="module-header">
-                        <div class="module-icon" aria-hidden="true">📊</div>
-                        <div class="module-title-zone">
-                            <h3>Pendiente 6</h3>
-                            <p class="module-desc">Módulo reservado para una próxima fase.</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-metrics">
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Estado</span><span
-                                class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
-                        <div class="metric-box" style="opacity:.55"><span class="metric-title">Fase</span><span
-                                class="metric-value" style="font-size:1.05rem">Próximamente</span></div>
-                    </div>
-                </div>
-                <a href="#" class="btn-module disabled" tabindex="-1">No disponible aún</a>
-            </article>
+            <div class="tb-right">
+                <button type="button" class="lang-btn" data-no-i18n onclick="cambiarIdioma()" title="Idioma / 语言"
+                    aria-label="Idioma / 语言"><span aria-hidden="true"><i
+                            data-lucide="globe"></i></span><b>中文</b></button>
+                <span class="online" id="estadoRed" data-no-i18n><i></i><span id="estadoTxt">En línea</span></span>
+                <span class="sep"></span>
+                <span class="fecha" data-no-i18n><i data-lucide="calendar-days"></i><span id="fechaHoy"></span></span>
+                <span class="sep"></span>
+                <button type="button" class="icon-btn" aria-label="Notificaciones" title="Sin notificaciones"><i
+                        data-lucide="bell"></i></button>
+            </div>
         </div>
-    </main>
+
+        <main class="content" id="main">
+            <section class="banner">
+                <i data-lucide="trending-up" class="banner-ico" aria-hidden="true"></i>
+                <div class="welcome-text">
+                    <h2>Panel de Control Ejecutivo</h2>
+                    <p>Supervisión general de operaciones, inventarios, costos y sistemas de Galería.</p>
+                </div>
+                <img src="logo solo g.png" alt="" class="welcome-card-watermark"
+                    onerror="this.onerror=null; this.src='logo.png';">
+                <aside class="tasa-bcv" id="tasaBcv" aria-live="polite" data-no-i18n>
+                    <div class="tb-head"><span>Tasa BCV</span><span class="tb-fecha" id="tbFecha"></span></div>
+                    <div class="tb-hoy" id="tbHoy"><small>Bs</small>--</div>
+                    <div class="tb-ayer"><span id="tbAyer">Anterior: --</span><span class="tb-var" id="tbVar"></span>
+                    </div>
+                </aside>
+            </section>
+
+            <div class="sec-head">
+                <h2 class="sec-title" id="modulos">Módulos del Sistema <span class="count" id="modCount"
+                        data-no-i18n></span></h2>
+                <div class="tools">
+                    <label class="search"><i data-lucide="search"></i>
+                        <input type="search" id="buscarModulo" placeholder="Buscar módulo..." aria-label="Buscar módulo"
+                            oninput="renderModulos()"></label>
+                    <div class="seg">
+                        <button type="button" class="on" id="vGrid" aria-label="Vista cuadrícula"
+                            onclick="setVista('grid')"><i data-lucide="layout-grid"></i></button>
+                        <button type="button" id="vList" aria-label="Vista lista" onclick="setVista('list')"><i
+                                data-lucide="list"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="mods" id="modulesGrid"></div>
+        </main>
+    </div>
+    <!-- ===== FIN NUEVO PANEL GALERÍAS ===== -->
 
     <div class="modal-overlay" id="loginModal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
         <div class="login-card" id="loginCard">
@@ -2264,7 +2784,6 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             cargarTemaGuardado();
-            iniciarIconosLottie();
 
             if (typeof supabaseClient !== 'undefined') {
                 const { data: { session } } = await supabaseClient.auth.getSession();
@@ -2407,9 +2926,229 @@
             pass.addEventListener('blur', () => $('capsHint').classList.remove('show'));
             ['loginEmail', 'loginPassword'].forEach(id => $(id).addEventListener('input', () => $(id).classList.remove('invalid')));
         })();
+
+
+        /* ===== FUNCIONES DEL NUEVO PANEL GALERÍAS ===== */
+        (function () {
+            'use strict';
+            const MODULOS_PANEL = [
+                { id: 'recepcion', nombre: 'Recepción y Fechas', desc: 'Registro de mercancía y control de vencimientos.', icono: 'package-check', color: 'green', categoria: 'Inventario', ruta: 'recepcionyfechas.html', estado: 'activo' },
+                { id: 'descuentos', nombre: 'Descuentos para Empleados', desc: 'Cobro de productos al personal.', icono: 'tag', color: 'blue', categoria: 'Personal', ruta: 'descuentos.html', estado: 'activo' },
+                { id: 'recetas', nombre: 'Recetas y Costos', desc: 'Escandallos, insumos y precios sugeridos.', icono: 'calculator', color: 'violet', categoria: 'Producción', ruta: 'recetarioycostos.html', estado: 'activo' },
+                { id: 'ti', nombre: 'TI Equipos', desc: 'Inventario y mantenimiento de equipos.', icono: 'monitor', color: 'slate', categoria: 'Sistemas', ruta: 'modulo4.html', estado: 'activo' },
+                { id: 'auditoria', nombre: 'Auditoría', desc: 'Control de cambios y registro de actividad.', icono: 'shield-check', color: 'teal', categoria: 'Control', ruta: 'auditoria.html', estado: 'activo', roles: ['auditor', 'admin'] },
+                { id: 'proveedores', nombre: 'Proveedores y Devoluciones', desc: 'Gestiona proveedores y devoluciones.', icono: 'truck', color: 'orange', categoria: 'Compras', ruta: 'proveedores.html', estado: 'activo', roles: ['admin', 'compras', 'sistemas'] }
+            ];
+            let rolPanelActual = null;
+            const normalizar = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const escapar = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            const iconos = () => { if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons(); };
+
+            window.renderModulos = function () {
+                const grid = document.getElementById('modulesGrid');
+                const buscador = document.getElementById('buscarModulo');
+                if (!grid || !buscador) return;
+                const q = normalizar(buscador.value.trim());
+                const visibles = MODULOS_PANEL.filter(m => !m.roles || (rolPanelActual && m.roles.includes(rolPanelActual)));
+                const resultados = visibles.filter(m => !q || normalizar(m.nombre + ' ' + m.desc).includes(q));
+                const contador = document.getElementById('modCount');
+                if (contador) contador.textContent = visibles.length + (visibles.length === 1 ? ' módulo' : ' módulos');
+                grid.innerHTML = resultados.map((m, i) => {
+                    const contenido = `<span class="mod-ico c-${escapar(m.color)}"><i data-lucide="${escapar(m.icono)}"></i></span>
+                <span class="mod-body"><h3>${escapar(m.nombre)}</h3><p>${escapar(m.desc)}</p></span>
+                <span class="mod-go"><i data-lucide="arrow-right"></i></span>`;
+                    if (m.estado !== 'activo') return `<div class="mod off" style="--i:${i}" aria-disabled="true">${contenido}</div>`;
+                    return `<a class="mod" style="--i:${i}" href="${escapar(m.ruta)}" onclick="if(typeof window.protegerEnlaceModulo==='function'){window.protegerEnlaceModulo(event,this.getAttribute('href'))}">${contenido}</a>`;
+                }).join('') || '<p class="empty">No se encontraron módulos.</p>';
+                iconos();
+            };
+
+            window.setVista = function (vista) {
+                const grid = document.getElementById('modulesGrid');
+                if (!grid) return;
+                grid.classList.toggle('list', vista === 'list');
+                document.getElementById('vGrid')?.classList.toggle('on', vista === 'grid');
+                document.getElementById('vList')?.classList.toggle('on', vista === 'list');
+            };
+
+            window.toggleSidebar = function () {
+                if (window.innerWidth <= 900) {
+                    document.body.classList.toggle('side-open');
+                    return;
+                }
+                const colapsado = document.body.classList.toggle('side-collapsed');
+                try { localStorage.setItem('hipergalerias_side', colapsado ? '1' : '0'); } catch (_) { }
+            };
+
+            window.irASeccion = function (id, boton) {
+                document.body.classList.remove('side-open');
+                document.querySelectorAll('.nav-i.active').forEach(el => el.classList.remove('active'));
+                if (boton) boton.classList.add('active');
+                if (id === 'top') window.scrollTo({ top: 0, behavior: 'smooth' });
+                else document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+            };
+
+            // Mantiene la consulta de rol; la visibilidad de módulos sigue dependiendo del perfil.
+            window.configurarModulosPorRol = async function (session) {
+                rolPanelActual = null;
+                try {
+                    const clienteSupabase = (typeof supabaseClient !== 'undefined') ? supabaseClient : window.supabaseClient;
+                    if (session && clienteSupabase) {
+                        const { data: perfil } = await clienteSupabase.from('perfiles').select('rol').eq('id', session.user.id).maybeSingle();
+                        rolPanelActual = (perfil && perfil.rol) || null;
+                    }
+                } catch (error) {
+                    console.warn('No se pudo consultar el rol del usuario:', error);
+                }
+                const rol = document.getElementById('userRol');
+                if (rol) rol.textContent = rolPanelActual || '';
+                window.renderModulos();
+            };
+
+            // Se eliminó la fila de métricas del inicio; evita actualizaciones sobre tarjetas que ya no existen.
+            window.sincronizarDashboard = function () { };
+
+            function iniciarPanel() {
+                try { if (localStorage.getItem('hipergalerias_side') === '1') document.body.classList.add('side-collapsed'); } catch (_) { }
+                const fecha = document.getElementById('fechaHoy');
+                if (fecha) fecha.textContent = new Date().toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const actualizarRed = () => {
+                    const estado = document.getElementById('estadoRed');
+                    const texto = document.getElementById('estadoTxt');
+                    if (estado) estado.classList.toggle('off', !navigator.onLine);
+                    if (texto) texto.textContent = navigator.onLine ? 'En línea' : 'Sin conexión';
+                };
+                window.addEventListener('online', actualizarRed);
+                window.addEventListener('offline', actualizarRed);
+                actualizarRed();
+                window.renderModulos();
+                iconos();
+            }
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciarPanel, { once: true });
+            else iniciarPanel();
+        })();
+        /* ===== FIN FUNCIONES DEL NUEVO PANEL ===== */
+
     </script>
     <script src="sesion-usuario.js"></script>
     <script src="i18n.js"></script>
+    <!-- HG-REUBICAR -->
+<style id="hg-reubicar-css">
+  /* Elementos duplicados que se ocultan sin borrarlos (evita que otro script los vuelva a crear) */
+  [data-hg-oculto]{display:none!important}
+
+  /* "En linea" movido a la barra superior */
+  .tb-right .hg-presencia{position:relative;width:auto!important;margin:0!important;flex:none}
+  .tb-right .hg-presencia .hg-pop{position:absolute!important;top:calc(100% + 10px)!important;right:0!important;left:auto!important;bottom:auto!important;transform:none!important;z-index:90}
+
+  /* Menu del usuario: el sidebar fuerza color blanco y el menu tiene fondo claro -> texto invisible */
+  #userDropdown{color:var(--tx)!important}
+  #userDropdown .theme-label{color:var(--tx)!important;opacity:1!important}
+  #userDropdown .urow{color:var(--tx)!important}
+
+  /* "Crear usuario" dentro del menu */
+  #userDropdown [data-hg-crear]{display:flex!important;align-items:center;gap:8px;width:100%!important;margin:0!important;padding:10px 12px!important;border:0!important;border-radius:10px!important;background:transparent!important;color:var(--tx)!important;font:inherit;font-weight:600;font-size:.88rem;text-align:left;text-decoration:none;cursor:pointer;box-shadow:none!important}
+  #userDropdown [data-hg-crear]:hover{background:color-mix(in srgb,var(--g4) 12%,var(--surface))!important}
+</style>
+<script id="hg-reubicar-js">
+(function () {
+  'use strict';
+  if (window.__hgReubicar) return;
+  window.__hgReubicar = true;
+
+  const norm = t => (t || '').replace(/\s+/g, ' ').trim();
+  const RE_ONLINE = /^(En l[ií]nea|在线)\s*·?\s*\d*$/i;
+  const RE_CREAR = /crear usuario|创建用户/i;
+
+  function buscarOnline() {
+    for (const el of document.querySelectorAll('.sidebar *')) {
+      if (el.closest('#userDropdown') || el.closest('[data-hg-ok]')) continue;
+      if (el.children.length > 4) continue;
+      if (RE_ONLINE.test(norm(el.textContent))) return el;
+    }
+    return null;
+  }
+
+  function subir(el) {
+    const sb = document.getElementById('sidebar');
+    let w = el;
+    while (w.parentElement && w.parentElement !== sb) {
+      const p = w.parentElement;
+      if (p.classList.contains('side-foot')) break;
+      if (p.querySelector('#userMenu') || p.querySelector('.nav-i') || p.querySelector('#userDropdown')) break;
+      if (/Crear usuario/i.test(p.textContent)) break;
+      w = p;
+    }
+    return w;
+  }
+
+  function ajustarPop(w) {
+    w.querySelectorAll('*').forEach(el => {
+      if (el.classList.contains('hg-pop')) return;
+      const pos = getComputedStyle(el).position;
+      if ((pos === 'absolute' || pos === 'fixed') && norm(el.textContent).length > 25) el.classList.add('hg-pop');
+    });
+  }
+
+  function moverPresencia() {
+    const dest = document.querySelector('.tb-right');
+    if (!dest) return;
+    const el = buscarOnline();
+    if (!el) return;
+    const w = subir(el);
+    w.setAttribute('data-hg-ok', '1');
+    w.classList.add('hg-presencia');
+    const viejo = document.getElementById('estadoRed');
+    if (viejo) { dest.insertBefore(w, viejo); viejo.remove(); }
+    else dest.insertBefore(w, dest.firstChild);
+    ajustarPop(w);
+    new MutationObserver(() => ajustarPop(w)).observe(w, { childList: true, subtree: true, attributes: true });
+  }
+
+  // "Crear usuario": fuera de la barra lateral. Si el menu del usuario ya tiene uno, se oculta el de la barra;
+  // si no, se mueve alli.
+  function limpiarCrearUsuario() {
+    const dd = document.getElementById('userDropdown');
+    const sb = document.getElementById('sidebar');
+    if (!dd || !sb) return;
+
+    const cand = [...sb.querySelectorAll('*')].find(el =>
+      !el.closest('#userDropdown') && !el.closest('[data-hg-oculto]') &&
+      !el.querySelector('.utrigger,.nav-i,#userDropdown') &&
+      norm(el.textContent).length <= 30 && RE_CREAR.test(norm(el.textContent))
+    );
+    if (!cand) return;
+
+    const yaEnMenu = dd.querySelector('[data-hg-crear]') || RE_CREAR.test(norm(dd.textContent));
+    if (yaEnMenu) { cand.setAttribute('data-hg-oculto', '1'); return; }
+
+    const btn = cand.matches('button,a,[role=button]') ? cand : (cand.querySelector('button,a,[role=button]') || cand);
+    btn.setAttribute('data-hg-crear', '1');
+    btn.classList.add('uitem');
+    btn.setAttribute('role', 'menuitem');
+    dd.insertBefore(btn, dd.querySelector('.uitem.danger') || null);
+    btn.addEventListener('click', () => setTimeout(() => { if (typeof cerrarUserMenu === 'function') cerrarUserMenu(); }, 0));
+    if (cand !== btn) cand.setAttribute('data-hg-oculto', '1');
+  }
+
+  let pendiente = false;
+  function correr() {
+    if (pendiente) return;
+    pendiente = true;
+    requestAnimationFrame(() => {
+      pendiente = false;
+      try { moverPresencia(); limpiarCrearUsuario(); } catch (e) { console.warn('hg-reubicar:', e); }
+    });
+  }
+
+  // Los botones los inyectan sesion-usuario.js / usuarios-admin.js, a veces tarde o al cambiar de sesion
+  new MutationObserver(correr).observe(document.body, { childList: true, subtree: true });
+  window.addEventListener('load', correr);
+  [300, 1000, 2500].forEach(ms => setTimeout(correr, ms));
+  correr();
+})();
+</script>
+<!-- /HG-REUBICAR -->
 </body>
 
 </html>

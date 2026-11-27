@@ -936,6 +936,58 @@
     .why ul { margin: 0; padding-left: 18px }
     .why li { margin: 2px 0 }
 
+    /* parche: select Sí/No */
+    .inline-sel.si { background: var(--ok-soft); color: var(--ok); border-color: var(--ok) }
+    .inline-sel.no { background: var(--red-soft); color: var(--red-text); border-color: var(--red-text) }
+
+    /* parche4: confirmación pro */
+    .cf{text-align:center}
+    .cf-ck{width:84px;height:84px;margin:2px auto 8px;display:block}
+    .cf-ck circle{fill:var(--ok-soft);stroke:var(--ok);stroke-width:3;stroke-dasharray:252;stroke-dashoffset:252;animation:cfd .6s var(--ease) forwards}
+    .cf-ck path{fill:none;stroke:var(--ok);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:cfd .4s .45s var(--ease) forwards}
+    @keyframes cfd{to{stroke-dashoffset:0}}
+    .cf h3{margin:0;font-size:1.25rem}
+    .cf-t{position:relative;margin:16px auto 6px;max-width:340px;background:#fff;color:#111;border-radius:14px;padding:14px 16px 0;text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.22);transform:rotate(-1.2deg);animation:rise .5s .25s var(--ease) both;overflow:hidden}
+    .cf-t::before,.cf-t::after{content:"";position:absolute;top:52px;width:16px;height:16px;border-radius:50%;background:var(--surface)}
+    .cf-t::before{left:-8px}.cf-t::after{right:-8px}
+    .cf-h{display:flex;justify-content:space-between;align-items:center;font-size:.66rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#555;padding-bottom:12px;border-bottom:2px dashed #cfcfcf}
+    .cf-n{background:#111;color:#fff;border-radius:99px;padding:2px 9px}
+    .cf-p{font-size:1.15rem;font-weight:800;line-height:1.2;margin:12px 0 8px}
+    .cf-r{display:flex;justify-content:space-between;gap:10px;font-size:.78rem;padding:4px 0;border-bottom:1px dotted #d5d5d5}
+    .cf-r span{color:#777}.cf-r b{text-align:right}
+    .cf-d{margin:12px -16px 0;padding:11px;text-align:center;font-weight:800;font-size:.95rem;color:#fff;background:var(--leaf)}
+    .cf-d.in{background:var(--info)}
+    .cf-f{font-size:.68rem;color:#777;text-align:center;margin-top:8px}
+    .cf .acts{justify-content:center;margin-top:18px}
+
+    /* parche3: confirmación */
+    .okc{width:72px;height:72px;margin:4px auto 10px;border-radius:50%;display:grid;place-items:center;background:var(--ok-soft);color:var(--ok);font-size:2.4rem;font-weight:800;box-shadow:0 0 0 8px color-mix(in srgb,var(--ok) 14%,transparent);animation:pop .4s var(--ease)}
+    .rc{margin:14px 0 4px;padding:12px 14px;border:1px dashed var(--border-strong);border-radius:12px;background:var(--surface-2);text-align:left;font-size:.82rem}
+    .rc div{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--border)}
+    .rc div:last-child{border-bottom:0}
+    .rc span{color:var(--muted)}
+    .rc b{text-align:right}
+
+    /* parche4: confirmación pro */
+    .cf{text-align:center}
+    .cf-ck{width:84px;height:84px;margin:2px auto 8px;display:block}
+    .cf-ck circle{fill:var(--ok-soft);stroke:var(--ok);stroke-width:3;stroke-dasharray:252;stroke-dashoffset:252;animation:cfd .6s var(--ease) forwards}
+    .cf-ck path{fill:none;stroke:var(--ok);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:50;stroke-dashoffset:50;animation:cfd .4s .45s var(--ease) forwards}
+    @keyframes cfd{to{stroke-dashoffset:0}}
+    .cf h3{margin:0;font-size:1.25rem}
+    .cf-t{position:relative;margin:16px auto 6px;max-width:340px;background:#fff;color:#111;border-radius:14px;padding:14px 16px 0;text-align:left;box-shadow:0 14px 34px rgba(0,0,0,.22);transform:rotate(-1.2deg);animation:rise .5s .25s var(--ease) both;overflow:hidden}
+    .cf-t::before,.cf-t::after{content:"";position:absolute;top:52px;width:16px;height:16px;border-radius:50%;background:var(--surface)}
+    .cf-t::before{left:-8px}.cf-t::after{right:-8px}
+    .cf-h{display:flex;justify-content:space-between;align-items:center;font-size:.66rem;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#555;padding-bottom:12px;border-bottom:2px dashed #cfcfcf}
+    .cf-n{background:#111;color:#fff;border-radius:99px;padding:2px 9px}
+    .cf-p{font-size:1.15rem;font-weight:800;line-height:1.2;margin:12px 0 8px}
+    .cf-r{display:flex;justify-content:space-between;gap:10px;font-size:.78rem;padding:4px 0;border-bottom:1px dotted #d5d5d5}
+    .cf-r span{color:#777}.cf-r b{text-align:right}
+    .cf-d{margin:12px -16px 0;padding:11px;text-align:center;font-weight:800;font-size:.95rem;color:#fff;background:var(--leaf)}
+    .cf-d.in{background:var(--info)}
+    .cf-f{font-size:.68rem;color:#777;text-align:center;margin-top:8px}
+    .cf .acts{justify-content:center;margin-top:18px}
+
     @media(max-width:700px) {
       header {
         flex-wrap: wrap;
@@ -1133,7 +1185,7 @@
       fecha = f => f ? f.split('-').reverse().join('/') : 'Sin fecha',
       hoyISO = () => { const h = new Date(); return new Date(h - h.getTimezoneOffset() * 6e4).toISOString().slice(0, 10) };
 
-    const COLS_PROV = 'supply_id,nombre,rif,telefono,correo,contacto,contacto_dev,modalidad,condiciones,validado_por,validado_en,con_devolucion,evidencia_dev';
+    const COLS_PROV = 'supply_id,nombre,rif,telefono,correo,contacto,contacto_dev,modalidad,condiciones,validado_por,validado_en,con_devolucion,evidencia_dev,acepta';
 
     const MOD = {
       'Nota de Crédito': ['📄', 'Nota de Crédito', 'ok'],
@@ -1157,9 +1209,12 @@
       return x ? `<span class="b ${x[2]}">${x[0]} ${x[1]}</span>` : '<span class="b wn">⚠ Sin política</span>';
     };
 
+    const est = p => p.modalidad === 'No Acepta' ? 'no' : (p.modalidad || p.acepta) ? 'si' : '';
+
     const num = n => Number(n || 0).toLocaleString('es-VE', { maximumFractionDigits: 3 });
 
-    let puedeEditar = false,
+    let ultAv = null,
+      puedeEditar = false,
       provs = new Map(),
       dev = new Map(),
       dirCargado = false,
@@ -1239,12 +1294,13 @@
     }
 
     /* ---------- Guardado rápido de política (desde Escáner o Directorio) ---------- */
-    async function guardarPoliticaRapida(supplyId, modalidad, artRef) {
+    async function guardarPoliticaRapida(supplyId, modalidad, artRef, aceptaSinTipo) {
       const p = provs.get(supplyId);
       if (!p) return;
       const validador = $('un').textContent || 'Sistemas';
       const u = {
         modalidad: modalidad || null,
+        acepta: modalidad === 'No Acepta' ? false : modalidad ? true : (aceptaSinTipo ?? null),
         validado_por: validador,
         validado_en: hoyISO(),
         updated_at: new Date().toISOString()
@@ -1341,7 +1397,9 @@
           const otrosOk = lista.slice(1).map(r => provs.get(r.supply_id)).filter(p => p && MOD[p.modalidad] && MOD[p.modalidad][2] === 'ok');
           const notaOtros = otrosOk.length ? `<br>💡 <b>Alternativa:</b> Otro proveedor anterior de este producto sí acepta devolución (<b>${esc(otrosOk[0].nombre)}</b>).` : '';
 
-          if (m && m[2] === 'ok') {
+          if (ult && !ult.modalidad && ult.acepta) {
+            v = ['ok', '✅', 'SÍ ACEPTA DEVOLUCIÓN — falta definir el tipo', `Último proveedor: <b>${esc(n)}</b>. Define el tipo con Editar.`];
+          } else if (m && m[2] === 'ok') {
             v = ['ok', '✅', `SÍ TIENE DEVOLUCIÓN — ${m[1]}`, `Último proveedor: <b>${esc(n)}</b>. ${esc(ult.condiciones || '')} ${ht}`];
           } else if (m) {
             v = hd
@@ -1353,20 +1411,7 @@
               : ['wn', '⚠️', 'Proveedor sin política clasificada todavía', `Último proveedor: <b>${esc(n)}</b>. Consulta con Oscar/Morelvys o clasifícalo abajo.${notaOtros}`];
           }
 
-          if (puedeEditar && ult && !ult.modalidad) {
-            accionExtra += `
-              <div class="quick-box">
-                <div style="font-size:.78rem;font-weight:800">⚡ Clasificar política de <u>${esc(ult.nombre)}</u> ahora mismo (1 clic):</div>
-                <div class="quick-pills">
-                  <button type="button" class="qpill" data-qm="Nota de Crédito">📄 Nota de Crédito</button>
-                  <button type="button" class="qpill" data-qm="Producto por Producto">📦 Cambio 1 a 1</button>
-                  <button type="button" class="qpill" data-qm="Descuento Próxima Factura">🏷️ Desc. Factura</button>
-                  <button type="button" class="qpill" data-qm="Destrucción Autorizada">🔨 Destrucción</button>
-                  <button type="button" class="qpill no" data-qm="No Acepta">❌ No Acepta</button>
-                </div>
-              </div>`;
           }
-        }
 
         if (v[0] === 'no' || (!lista.length && !hd)) {
           accionExtra += `
@@ -1478,9 +1523,9 @@
         const matchQ = !q || [p.nombre, p.rif, p.supply_id, p.contacto, p.contacto_dev, p.telefono].some(x => String(x || '').toLowerCase().includes(q));
         if (!matchQ) return false;
         if (m === 'todos') return true;
-        if (m === '__sin') return !p.modalidad;
-        if (m === '__hist') return !p.modalidad && dev.has(p.supply_id);
-        if (m === '__ok') return MOD[p.modalidad] && MOD[p.modalidad][2] === 'ok';
+        if (m === '__sin') return !est(p);
+        if (m === '__hist') return !est(p) && dev.has(p.supply_id);
+        if (m === '__ok') return est(p) === 'si';
         return p.modalidad === m;
       }).sort((a, b) =>
         m === '__hist'
@@ -1490,11 +1535,14 @@
 
       $('np').textContent = `(${l.length} mostrados)`;
       $('tp').innerHTML = l.slice(0, 150).map(p => {
+        const cur = est(p);
+        const tipo = cur === 'si' ? `<span class="sm">${p.modalidad ? esc(p.modalidad) : 'tipo por definir'}</span>` : '';
         const celdaPolitica = puedeEditar
-          ? `<select class="inline-sel" data-insel="${esc(p.supply_id)}">
-               <option value="">⚠ Sin política</option>
-               ${Object.keys(MOD).map(k => `<option value="${k}" ${p.modalidad === k ? 'selected' : ''}>${MOD[k][0]} ${k}</option>`).join('')}
-             </select>`
+          ? `<select class="inline-sel ${cur}" data-insel="${esc(p.supply_id)}">
+               <option value="" ${cur === '' ? 'selected' : ''}>⚠ Sin definir</option>
+               <option value="si" ${cur === 'si' ? 'selected' : ''}>✅ Sí acepta</option>
+               <option value="no" ${cur === 'no' ? 'selected' : ''}>❌ No acepta</option>
+             </select>${tipo}`
           : badge(p.modalidad);
 
         return `<tr>
@@ -1508,7 +1556,12 @@
       }).join('') + (l.length > 150 ? '<tr><td colspan="6" class="mu">Mostrando los primeros 150. Usa el buscador para filtrar.</td></tr>' : '');
 
       $('tp').querySelectorAll('[data-insel]').forEach(s => {
-        s.onchange = () => guardarPoliticaRapida(s.dataset.insel, s.value, null);
+        s.onchange = () => {
+          const id = s.dataset.insel, p = provs.get(id);
+          if (s.value === 'no') guardarPoliticaRapida(id, 'No Acepta', null);
+          else if (s.value === 'si') guardarPoliticaRapida(id, (p.modalidad && p.modalidad !== 'No Acepta') ? p.modalidad : null, null, true);
+          else guardarPoliticaRapida(id, null, null, null);
+        };
       });
       $('tp').querySelectorAll('[data-ed]').forEach(b => b.onclick = () => editar(b.dataset.ed));
     }
@@ -1520,15 +1573,24 @@
     function editar(id, art) {
       const p = provs.get(id);
       if (!p) return;
+      const e0 = est(p), tipos = Object.keys(MOD).filter(k => k !== 'No Acepta');
       abrir(`
         <h3 style="margin:0">${esc(p.nombre)}</h3>
         <span class="mu">Código ${esc(id)}</span>
         <div class="mu" style="margin:6px 0 2px">📞 ${esc([p.contacto, p.telefono, p.correo].filter(Boolean).join(' · ') || 'Sin contacto en Posline')}</div>
-        <label>Forma de devolución</label>
-        <select id="fM">
-          <option value="">— Sin política —</option>
-          ${Object.keys(MOD).map(k => `<option ${p.modalidad === k ? 'selected' : ''}>${k}</option>`).join('')}
+        <label>¿Acepta devoluciones?</label>
+        <select id="fA">
+          <option value="">— Sin definir —</option>
+          <option value="si" ${e0 === 'si' ? 'selected' : ''}>✅ Sí acepta</option>
+          <option value="no" ${e0 === 'no' ? 'selected' : ''}>❌ No acepta</option>
         </select>
+        <div id="fMw" ${e0 === 'si' ? '' : 'hidden'}>
+          <label>Tipo de devolución</label>
+          <select id="fM">
+            <option value="">— Por definir —</option>
+            ${tipos.map(k => `<option ${p.modalidad === k ? 'selected' : ''}>${k}</option>`).join('')}
+          </select>
+        </div>
         <label>Condiciones y plazos</label>
         <textarea id="fC" rows="3" placeholder="Ej. Nota de crédito previa revisión en 48 h">${esc(p.condiciones || '')}</textarea>
         <div class="g3">
@@ -1542,9 +1604,12 @@
           <button class="btn" id="mo">Guardar política</button>
         </div>`);
 
+      $('fA').onchange = () => $('fMw').hidden = $('fA').value !== 'si';
+
       $('mo').onclick = async () => {
         const u = {
-          modalidad: $('fM').value || null,
+          modalidad: $('fA').value === 'no' ? 'No Acepta' : $('fA').value === 'si' ? ($('fM').value || null) : null,
+          acepta: $('fA').value === 'si' ? true : $('fA').value === 'no' ? false : null,
           condiciones: $('fC').value.trim() || null,
           rif: $('fR').value.trim() || null,
           contacto_dev: $('fT').value.trim() || null,
@@ -1652,7 +1717,7 @@
             <label>Motivo</label>
             <select id="aM">
               <option>Fecha Vencida</option>
-              <option>Gorgojeado / Plaga</option>
+              <option>Contaminado / Plaga</option>
               <option>Empaque Roto / Golpeado</option>
               <option>Defecto de Fábrica</option>
               <option>Hurtado / Incompleto</option>
@@ -1662,7 +1727,7 @@
             <label>Modalidad o Destino Interno</label>
             <select id="aD">
               <optgroup label="Reclamo a Proveedor">
-                ${Object.keys(MOD).filter(k => k !== 'No Acepta').map(k => `<option value="${k}">${k}</option>`).join('')}
+                ${Object.keys(MOD).filter(k => k !== 'No Acepta' && k !== 'Acepta').map(k => `<option value="${k}">${k}</option>`).join('')}
               </optgroup>
               <optgroup label="Destino Interno (Sin devolución)">
                 ${DESTINOS_INTERNOS.map(d => `<option value="${esc(d)}" ${destinoPre === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}
@@ -1687,7 +1752,7 @@
       const sync = () => {
         if (esInterno) return;
         const m = $('aV')?.selectedOptions[0]?.dataset.m;
-        if (m && m !== 'No Acepta') $('aD').value = m;
+        if (m && m !== 'No Acepta' && m !== 'Acepta') $('aD').value = m;
       };
       sync();
       $('aV').onchange = sync;
@@ -1728,20 +1793,87 @@
           const { error: e1 } = await supabaseClient.storage.from('averias').upload(path, await (await fetch(foto)).blob(), { contentType: 'image/jpeg' });
           if (e1) { toast('No se pudo subir la foto: ' + e1.message, 1); btn.disabled = false; return; }
         }
-        const { error } = await supabaseClient.from('averias').insert({
+        const reg = {
           creado_por: $('un').textContent, producto: pr, cantidad: parseFloat($('aC').value) || 1, motivo: $('aM').value,
           modalidad: modSel, proveedor: $('aV').value, obs: $('aO').value.trim() || null, foto_path: path,
           estatus: esInt ? 'Canalizado Interno ✅' : 'Pendiente Reclamo / N/C'
-        });
+        };
+        const { data: ins, error } = await supabaseClient.from('averias').insert(reg).select('id').single();
         if (error) { toast('No se pudo guardar: ' + error.message, 1); btn.disabled = false; return; }
-        await cargarAv(); cerrar(); toast(esInt ? 'Enviado a destino interno.' : 'Reclamo registrado.');
+        await cargarAv();
+        confirmarAveria({ ...reg, id: ins?.id, fecha: new Date(), esInt });
       };
+    }
+
+    function confirmarAveria(d) {
+      ultAv = d;
+      const fh = d.fecha.toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' });
+      abrir(`
+        <div class="cf">
+          <svg class="cf-ck" viewBox="0 0 84 84"><circle cx="42" cy="42" r="40"/><path d="M26 43l11 11 21-23"/></svg>
+          <h3>${d.esInt ? 'Enviado a destino interno' : 'Reclamo registrado'}</h3>
+          <div class="mu">Listo. Imprime la etiqueta y pégala a la mercancía.</div>
+          <div class="cf-t">
+            <div class="cf-h"><span>Galería Hipermarket</span><span class="cf-n">${d.id ? '#' + esc(d.id) : 'CASO'}</span></div>
+            <div class="cf-p">${esc(d.producto)}</div>
+            <div class="cf-r"><span>Cantidad</span><b>${esc(d.cantidad)}</b></div>
+            <div class="cf-r"><span>Motivo</span><b>${esc(d.motivo)}</b></div>
+            <div class="cf-r"><span>Proveedor</span><b>${esc(d.proveedor)}</b></div>
+            ${d.obs ? `<div class="cf-r"><span>Obs.</span><b>${esc(d.obs)}</b></div>` : ''}
+            <div class="cf-d ${d.esInt ? 'in' : ''}">${esc(d.modalidad)}</div>
+          </div>
+          <div class="cf-f">${esc(fh)} · ${esc(d.creado_por)}</div>
+          <div class="acts">
+            <button class="btn g" onclick="cerrar()">Cerrar</button>
+            <button class="btn g" onclick="cerrar();abrirAveria()">+ Registrar otro</button>
+            <button class="btn" id="cfP">🖨️ Imprimir etiqueta</button>
+          </div>
+        </div>`);
+      $('cfP').onclick = () => imprimirEtiqueta(ultAv);
+      $('cfP').focus();
+    }
+
+    function imprimirEtiqueta(d) {
+      const f = document.createElement('iframe');
+      f.style.cssText = 'position:fixed;width:0;height:0;border:0';
+      document.body.appendChild(f);
+      const w = f.contentWindow;
+      const fh = d.fecha.toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' });
+      w.document.open();
+      w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+        @page{size:portrait;margin:10mm}
+        *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        body{margin:0;font-family:'Segoe UI',Arial,sans-serif;color:#111}
+        .t{width:90mm;border:2px dashed #888;border-radius:4mm;padding:5mm 5mm 0;overflow:hidden}
+        .h{display:flex;justify-content:space-between;align-items:center;font-size:9pt;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:#444;padding-bottom:3mm;border-bottom:2px solid #111}
+        .n{background:#111;color:#fff;border-radius:99px;padding:1mm 3mm}
+        .p{font-size:16pt;font-weight:800;line-height:1.2;margin:4mm 0 3mm}
+        .r{display:flex;justify-content:space-between;gap:4mm;font-size:10.5pt;padding:1.5mm 0;border-bottom:1px dotted #999}
+        .r span{color:#666}.r b{text-align:right}
+        .d{margin:4mm -5mm 0;padding:4mm;text-align:center;font-size:14pt;font-weight:800;color:#fff;background:#1f8a4c}
+        .d.in{background:#0b6aa8}
+        .f{font-size:8pt;color:#666;margin-top:2mm}
+      </style></head><body>
+        <div class="t">
+          <div class="h"><span>Galería Hipermarket</span><span class="n">${d.id ? '#' + esc(d.id) : 'CASO'}</span></div>
+          <div class="p">${esc(d.producto)}</div>
+          <div class="r"><span>Cantidad</span><b>${esc(d.cantidad)}</b></div>
+          <div class="r"><span>Motivo</span><b>${esc(d.motivo)}</b></div>
+          <div class="r"><span>Proveedor</span><b>${esc(d.proveedor)}</b></div>
+          ${d.obs ? `<div class="r"><span>Obs.</span><b>${esc(d.obs)}</b></div>` : ''}
+          <div class="f">${esc(fh)} · ${esc(d.creado_por)}</div>
+          <div class="d ${d.esInt ? 'in' : ''}">${esc(d.modalidad)}</div>
+        </div>
+      </body></html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => { w.print(); setTimeout(() => f.remove(), 1500); }, 300);
     }
 
     function actualizarBadgesGlobales() {
       if (!dirCargado) return;
       let sinPolConHist = 0;
-      provs.forEach(p => { if (!p.modalidad && dev.has(p.supply_id)) sinPolConHist++; });
+      provs.forEach(p => { if (!est(p) && dev.has(p.supply_id)) sinPolConHist++; });
       $('badgeSinPol').textContent = sinPolConHist;
       $('badgeSinPol').hidden = false;
     }
